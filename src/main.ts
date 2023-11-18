@@ -39,7 +39,8 @@ if(canvas) {
     }
   }
 
-  const clear = registerEvents(
+  // const clear = 
+  registerEvents(
     ball,
     canvas
   )
