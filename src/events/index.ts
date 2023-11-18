@@ -23,8 +23,7 @@ export function registerEvents(
           e.touches[0].pageY
         )
       },
-      onTouchUp: (e:TouchEvent) => {
-        console.log(e.touches)
+      onTouchUp: () => {
         ball.slingShotRelease()
       },
     })

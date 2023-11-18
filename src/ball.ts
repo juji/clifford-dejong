@@ -274,12 +274,24 @@ export default class Ball {
   }
 
   slingShotPull(x: number, y:number){
+
+    if(
+      this.slingShotX === INIT_SLINGSHOT &&
+      this.slingShotY === INIT_SLINGSHOT
+    ) return;
+
     this.x = x
     this.y = y
     this.drawSlingShot()
   }
 
   slingShotRelease(x?: number, y?:number){
+
+    if(
+      this.slingShotX === INIT_SLINGSHOT &&
+      this.slingShotY === INIT_SLINGSHOT
+    ) return;
+
     this.x = typeof x === 'number'  ? x : this.x
     this.y = typeof y === 'number'  ? y : this.y
 

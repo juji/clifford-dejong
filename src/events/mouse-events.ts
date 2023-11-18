@@ -25,12 +25,16 @@ export default class MouseEvents {
 
     let t = this
     let mouseMoveListener = (e:MouseEvent) => {
+      if(e.currentTarget !== e.target) return;
+      if(e.currentTarget !== elm) return;
       e.preventDefault()
       t.onMouseMove && t.onMouseMove(e)
       return false
     }
 
     let mouseDownListener = (e:MouseEvent) => {
+      if(e.currentTarget !== e.target) return;
+      if(e.currentTarget !== elm) return;
       e.preventDefault()
       t.onMouseDown && t.onMouseDown(e)
       if(t.onMouseMove) elm.addEventListener('mousemove', mouseMoveListener)
@@ -38,6 +42,8 @@ export default class MouseEvents {
     }
 
     let mouseUpListener = (e: MouseEvent) => {
+      if(e.currentTarget !== e.target) return;
+      if(e.currentTarget !== elm) return;
       e.preventDefault()
       t.onMouseUp && t.onMouseUp(e)
       if(t.onMouseMove) elm.removeEventListener('mousemove', mouseMoveListener)

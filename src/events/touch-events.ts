@@ -25,12 +25,18 @@ export default class TouchEvents {
 
     let t = this
     let mouseMoveListener = (e:TouchEvent) => {
+      if(e.currentTarget !== e.target) return;
+      if(e.currentTarget !== elm) return;
       e.preventDefault()
       t.onTouchMove && t.onTouchMove(e)
       return false
     }
 
     let mouseDownListener = (e:TouchEvent) => {
+      console.log(e.currentTarget)
+      console.log(e.target)
+      if(e.currentTarget !== e.target) return;
+      if(e.currentTarget !== elm) return;
       e.preventDefault()
       t.onTouchDown && t.onTouchDown(e)
       if(t.onTouchMove) elm.addEventListener('touchmove', mouseMoveListener)
@@ -38,6 +44,8 @@ export default class TouchEvents {
     }
 
     let mouseUpListener = (e: TouchEvent) => {
+      if(e.currentTarget !== e.target) return;
+      if(e.currentTarget !== elm) return;
       e.preventDefault()
       t.onTouchUp && t.onTouchUp(e)
       if(t.onTouchMove) elm.removeEventListener('touchmove', mouseMoveListener)
