@@ -1,0 +1,49 @@
+
+
+/* CSS */
+.button {
+  align-items: center;
+  appearance: none;
+  border: 0;
+  border-radius: 6px;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  height: 48px;
+  justify-content: center;
+  line-height: 1;
+  list-style: none;
+  overflow: hidden;
+  padding-left: 16px;
+  padding-right: 16px;
+  position: relative;
+  text-align: left;
+  text-decoration: none;
+  transition: background-image 500ms;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  white-space: nowrap;
+  will-change: background-image;
+  font-size: 18px;
+  outline: 0px;
+
+  background-image: radial-gradient(100% 100% at 100% 0, #6f6f6f 0, #2e2e2e 100%);
+  box-shadow: rgba(45, 35, 66, .4) 0 4px 8px, rgba(45, 35, 66, .3) 0 7px 13px -3px, #201c31 0 -3px 0 inset;
+}
+
+.button:focus {
+  outline: 0px;
+}
+
+.button:hover {
+  outline: 0px;
+  background-image: radial-gradient(100% 100% at 100% 0, #6f6f6f 0, #383838 100%);
+}
+
+.button:active {
+  outline: 0px;
+  background-image: radial-gradient(100% 100% at 100% 0, #6f6f6f 0, #2e2e2e 100%);
+  box-shadow: rgba(45, 35, 66, .4) 0 1px 1px inset, rgba(45, 35, 66, .3) 0 4px 2px -3px inset, #201c31 0 -2px 0 inset;
+}

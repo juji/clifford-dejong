@@ -45,7 +45,10 @@ export default class Ball {
 
   afterStop: null|(() => void) = null;
   boundingBox: {width:number, height: number};
-  delta:{ x:number, y: number } = { x: Number.MAX_VALUE, y: Number.MAX_VALUE };
+  delta:{ x:number, y: number } = { 
+    x: Number.MAX_VALUE, 
+    y: Number.MAX_VALUE 
+  };
   
   minDelta = 0.01
 
@@ -92,10 +95,15 @@ export default class Ball {
     this.bottom = boundingBox.height - this.radius
     this.canvas.width = boundingBox.width
     this.canvas.height = boundingBox.height
+    if(this.stopped) {
+      this.stopped = false
+      this.start()
+    }
   }
 
   // set flag to stop animating
   setStop(){
+    console.log('stopped')
     this.stopped = true
   }
 
@@ -110,18 +118,27 @@ export default class Ball {
   init(){
     this.stopped = false
     this.setColor()
+
     this.start()
   }
 
   start(){
 
     if(this.stopped) {
+
       if(this.anim) cancelAnimationFrame(this.anim)
 
+      // normalize delts
+      this.delta = { 
+        x: Number.MAX_VALUE, 
+        y: Number.MAX_VALUE 
+      };
+
+      //
       if(this.afterStop) { 
         this.afterStop()
-        this.afterStop = null 
       }
+
       return;
     }
 
@@ -130,12 +147,21 @@ export default class Ball {
 
     this.anim = requestAnimationFrame(() => {
       
-      // when the ball stands still
+      // when the ball stands still 
+      // on the ground
       // we stop
       if( 
+        
+        // delta is essentially zero
         this.delta.x < this.minDelta && 
-        this.delta.y < this.minDelta
-      ) this.setStop()
+        this.delta.y < this.minDelta &&
+        
+        // on the ground
+        Math.abs(this.y - this.bottom) < this.minDelta 
+
+      ) {
+        this.setStop() 
+      }
 
       this.start()
     })
@@ -155,6 +181,7 @@ export default class Ball {
     }
 
     // when bouncing, elasticity should be counted
+    // also, friction goes here
     const yAccel = ((
       (
         this.y >= this.bottom || 
@@ -220,20 +247,19 @@ export default class Ball {
 
   }
 
+
+  // sling shot functions
+  //
   slingShotInit(x: number, y:number){
     if(!this.stopped){
       
       this.afterStop = () => {
-        this.xAccel = 0
-        this.yAccel = 0
-        this.x = x
-        this.y = y
-        this.slingShotX = x
-        this.slingShotY = y
-        this.setColor()
-        this.drawSlingShot()
+        this.afterStop = null
+        this.slingShotInit(x, y)
       }
+
       this.setStop()
+      
 
     }else{
       this.xAccel = 0
@@ -261,6 +287,7 @@ export default class Ball {
     this.xAccel = (this.x - this.slingShotX) * -1 * scale
     this.yAccel = (this.y - this.slingShotY) * -1 * scale
 
+    // normalize slingShot positions
     this.slingShotX = INIT_SLINGSHOT
     this.slingShotY = INIT_SLINGSHOT
     this.stopped = false

@@ -1,20 +1,24 @@
 // create something awesome!!
 
 import './index.css'
+import './button.css'
+
 import Ball from './ball'
 import MouseEvents from './mouse-events'
 import { setLogoColor } from './set-logo-color'
+import { setButtonClick } from './button-click'
 
+setButtonClick()
 const logoDim = 89;
 const canvas = document.querySelector('canvas')
 
 if(canvas) {
 
-  const main = document.querySelector('main') as HTMLElement
-  const dim = main.getBoundingClientRect()
+  const footer = document.querySelector('footer') as HTMLElement
+  const footerDim = footer.getBoundingClientRect()
   let ball = new Ball(canvas,{
-    width: dim?.width,
-    height: dim.height
+    width: window.innerWidth,
+    height: window.innerHeight - footerDim.height
   })
 
   // change logo color when hit
@@ -59,7 +63,7 @@ if(canvas) {
   window.addEventListener('resize', () => {
     ball.changeBoundingBox({
       width: window.innerWidth,
-      height: window.innerHeight
+      height: window.innerHeight - footerDim.height
     })
   })
 
