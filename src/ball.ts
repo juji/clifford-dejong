@@ -25,7 +25,7 @@ export default class Ball {
   xAccel: number = 0;
   yAccel: number = 0;
   
-  gravity: number = 0.3;
+  gravity: number = 0.98;
   elasticity: number = 0.98;
   radius: number = 21;
   friction: number = 0.995
@@ -66,7 +66,7 @@ export default class Ball {
     this.context = canvas.getContext('2d') as CanvasRenderingContext2D
 
     // init accelleration
-    this.xAccel = 10 + (Math.random() * 50) * (Math.random()>0.5 ? -1 : 1)
+    this.xAccel = 50 + (Math.random() * 50) * (Math.random()>0.5 ? -1 : 1)
     this.yAccel = 10 + (Math.random() * 50) * (Math.random()>0.5 ? -1 : 1)
     
     this.boundingBox = boundingBox // screen
