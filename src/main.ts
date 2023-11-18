@@ -4,7 +4,7 @@ import './index.css'
 import './button.css'
 
 import Ball from './ball'
-import MouseEvents from './mouse-events'
+import { registerEvents } from './events'
 import { setLogoColor } from './set-logo-color'
 import { setButtonClick } from './button-click'
 
@@ -39,26 +39,10 @@ if(canvas) {
     }
   }
 
-  new MouseEvents(canvas, {
-    onMouseDown: (e:MouseEvent) => {
-      ball.slingShotInit(
-        e.pageX,
-        e.pageY
-      )
-    },
-    onMouseMove: (e:MouseEvent) => {
-      ball.slingShotPull(
-        e.pageX,
-        e.pageY
-      )
-    },
-    onMouseUp: (e:MouseEvent) => {
-      ball.slingShotRelease(
-        e.pageX,
-        e.pageY
-      )
-    },
-  })
+  const clear = registerEvents(
+    ball,
+    canvas
+  )
 
   window.addEventListener('resize', () => {
     ball.changeBoundingBox({

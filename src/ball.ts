@@ -25,7 +25,7 @@ export default class Ball {
   xAccel: number = 0;
   yAccel: number = 0;
   
-  gravity: number = 0.98;
+  gravity: number = 0.3;
   elasticity: number = 0.98;
   radius: number = 21;
   friction: number = 0.995
@@ -279,9 +279,9 @@ export default class Ball {
     this.drawSlingShot()
   }
 
-  slingShotRelease(x: number, y:number){
-    this.x = x
-    this.y = y
+  slingShotRelease(x?: number, y?:number){
+    this.x = typeof x === 'number'  ? x : this.x
+    this.y = typeof y === 'number'  ? y : this.y
 
     const scale =  0.3 //
     this.xAccel = (this.x - this.slingShotX) * -1 * scale
