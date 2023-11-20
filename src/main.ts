@@ -2,15 +2,17 @@
 
 import './index.css'
 import './button.css'
+import './info-button.css'
 
 import Ball from './ball'
 import { registerEvents } from './events'
 import { setLogoColor } from './set-logo-color'
-import { setButtonClick } from './button-click'
+import { ui } from './ui'
 
-setButtonClick()
 const logoDim = 89;
 const canvas = document.querySelector('canvas')
+
+ui()
 
 if(canvas) {
 
