@@ -1,5 +1,5 @@
-# ball
+# DeJong
 
-It'z a ball ....
+Wallpaper creator for dejong attractor ....
 
-[https://ball.jujiplay.com/](https://ball.jujiplay.com/)
+[https://dejong.jujiplay.com/](https://dejong.jujiplay.com/)
