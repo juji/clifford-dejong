@@ -1,5 +1,5 @@
-# DeJong
+# clifford-dejong
 
-Wallpaper creator for dejong attractor ....
+Wallpaper creator for dejong & clifford attractor ....
 
-[https://dejong.jujiplay.com/](https://dejong.jujiplay.com/)
+[https://clifford-dejong.jujiplay.com/](https://clifford-dejong.jujiplay.com/)
