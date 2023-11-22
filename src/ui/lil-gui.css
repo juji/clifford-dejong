@@ -1,5 +1,3 @@
-
-
 .lil-gui.autoPlace{
   top: auto;
   bottom: calc(21px + 56px); /* 56 is the height of footer */
@@ -7,6 +5,14 @@
   left: 21px;
 }
 
-.lil-gui .controller{
-  padding: 0 21px;
+.lil-gui .children{
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.lil-gui .controller .name{
+  padding-left: 8px;
+}
+.lil-gui .controller .widget{
+  padding-right: 8px;
 }

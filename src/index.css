@@ -153,16 +153,16 @@ main{
 
 main canvas{
   flex: 1 1 auto;
-  cursor: grab; 
+  /* cursor: grab;  */
   will-change: width, height;
   width: 100%;
   height: 100%;
   aspect-ratio: unset;
 }
 
-main canvas:active{
+/* main canvas:active{
   cursor: grabbing; 
-}
+} */
 
 footer{
   padding: 1rem 2rem;
