@@ -212,8 +212,6 @@ export class Context2d {
     
     const index = indexX + (indexY*this.width)
     
-    // weirdly, using <= this.width creates a bug
-    // where pixels on this.width is viewed at 0
     if(
       index < this.pixels.length &&
       indexX>=0 && indexX<this.width &&
