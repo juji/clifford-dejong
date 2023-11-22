@@ -175,10 +175,10 @@ export class Context2d {
     this.anim = requestAnimationFrame(() => {
       const end = new Date().valueOf() - start
       
-      // if this takes more than 100ms
+      // if this takes more than 150ms
       // lower run per itterration
       // and increase total itteration
-      if(end > 200){
+      if(end > 150){
         this.maxItt = this.maxItt * 2
         this.perItt = this.perItt / 2
       }
@@ -205,21 +205,20 @@ export class Context2d {
     const screenX = Math.round(thisX * this.scale)
     const screenY = Math.round(thisY * this.scale)
     
-    const indexX = Math.round(screenX + (this.width/2))
-    const indexY = Math.round(screenY + (this.height/2))
-
-    // if(indexX<0) return;
-    // if(screenY<0) return;
-    // if(indexX>this.width) return;
-    // if(screenY>this.height) return;
-    
     // translate index to 0,0
     // it will be used to calculate bitmap
+    const indexX = Math.floor(screenX + (this.width/2))
+    const indexY = Math.floor(screenY + (this.height/2))
+    
+    const index = indexX + (indexY*this.width)
+    
+    // weirdly, using <= this.width creates a bug
+    // where pixels on this.width is viewed at 0
     if(
-      indexX>0 && indexX<=this.width &&
-      indexY>0 && indexY<=this.height
+      index < this.pixels.length &&
+      indexX>=0 && indexX<this.width &&
+      indexY>=0 && indexY<this.height
     ) {
-      const index = indexX + (indexY*this.width)
       this.pixels[index] += 1
       if(this.maxDensity < this.pixels[index])
         this.maxDensity = this.pixels[index]
