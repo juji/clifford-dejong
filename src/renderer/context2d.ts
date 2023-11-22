@@ -40,6 +40,8 @@ export class Context2d {
   options: UIOptions|null = null
   width: number
   height: number
+  centerX: number
+  centerY: number
   anim: number = 0
   scale: number = 150
   itt = 0
@@ -80,6 +82,8 @@ export class Context2d {
     this.context = canvas.getContext('2d') as CanvasRenderingContext2D
     this.width = canvas.width
     this.height = canvas.height
+    this.centerX = this.width/2
+    this.centerY = this.height/2
     this.context.translate(this.width/2, this.height/2)
     this.pixels = new Array(this.width*this.height).fill(0)
 
@@ -114,7 +118,7 @@ export class Context2d {
   onResize( canvas: HTMLCanvasElement ){
     this.width = canvas.width
     this.height = canvas.height
-    this.context.translate(this.width/2, this.height/2)
+    this.context.translate(this.centerX, this.centerY)
     this.reset()
   }
 
@@ -212,8 +216,8 @@ export class Context2d {
     
     // translate index to 0,0
     // it will be used to calculate bitmap
-    const indexX = Math.floor(screenX + (this.width/2))
-    const indexY = Math.floor(screenY + (this.height/2))
+    const indexX = Math.floor(screenX + this.centerX)
+    const indexY = Math.floor(screenY + this.centerY)
     
     const index = indexX + (indexY*this.width)
     

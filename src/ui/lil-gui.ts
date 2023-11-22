@@ -17,6 +17,11 @@ export default function optionPanel(
 
   const gui = new GUI();
 
+  // get option from local storage
+  const lskey = 'juji-cd-data'
+  let ls = localStorage.getItem(lskey) 
+  const savedOpt = ls ? JSON.parse(ls) as Options : {}
+
   const options:Options = {
     
     attractor: 'clifford',
@@ -25,7 +30,9 @@ export default function optionPanel(
     c: 1,
     d: -1,
     hue: 333,
-    saturation: 100
+    saturation: 100,
+
+    ...savedOpt
 
     // attractor: 'dejong',
     // a: -0.59,
@@ -53,6 +60,7 @@ export default function optionPanel(
   })
 
   gui.onFinishChange( event => {
+    localStorage.setItem(lskey, JSON.stringify(event.object))
     onChange(event.object as Options, false)
   })
 
