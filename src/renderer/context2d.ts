@@ -38,7 +38,7 @@ function getColorData(
   const [ r, g, b ] = hsv2rgb(
     h,
     s - saturationBezier(pdens / mdens) * s,
-    lightnesBezier(pdens / mdens) * 100,
+    v,
   )
   
   return 255 << 24 | b << 16 | g << 8 | r
