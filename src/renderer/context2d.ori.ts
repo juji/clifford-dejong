@@ -4,8 +4,10 @@ import { hsv2rgb } from './hsv2rgb'
 import { clifford, dejong } from './attractors'
 import BezierEasing from 'bezier-easing'
 
+
 const saturationBezier = BezierEasing(.79,-0.34,.54,1.18)
 const lightnesBezier = BezierEasing(.75,.38,.24,1.33)
+
 
 // smoothing comes before scale
 function smoothing(num: number, scale: number){
@@ -44,6 +46,7 @@ export class Context2d {
   scale: number = 150
   itt = 0
   maxItt = 100
+  // perItt = 40000
   perItt = 100000
 
   x: number[] = [0];
@@ -61,12 +64,12 @@ export class Context2d {
   // i believe it's faster
   // independent of screen size, it will only record used pixels
   // key = "x,y"
-  // pixels: {[key:string]: number} // dx, dy, pixelCount 
-  pixels: number[]
+  pixels: {[key:string]: [number, number, number]} // dx, dy, pixelCount 
 
   attractor: ((x:number,y:number,a:number,b:number,c:number,d:number) => number[])|null = null
   background = 0
   maxDensity = 0
+  startAt: Date
   // green = 255<<24|0<<16|255<<8|0
 
   onProgress: ((n:number) => void)|null = null
@@ -79,9 +82,10 @@ export class Context2d {
     this.width = canvas.width
     this.height = canvas.height
     this.context.translate(this.width/2, this.height/2)
-    this.pixels = new Array(this.width*this.height).fill(0)
+    this.pixels = {}
 
     this.setOptions(options, false)
+    this.startAt = new Date()
   }
 
   reportProgress(n: number){
@@ -99,7 +103,7 @@ export class Context2d {
     if(this.anim) cancelAnimationFrame(this.anim)
     this.clear()
     
-    this.pixels = new Array(this.width*this.height).fill(0)
+    this.pixels = {}
     this.x = [0]
     this.y = [0]
     this.itt = 0
@@ -107,7 +111,7 @@ export class Context2d {
     this.reportProgress(0)
     this.start()
   }
-  
+
   onResize( canvas: HTMLCanvasElement ){
     this.width = canvas.width
     this.height = canvas.height
@@ -129,33 +133,48 @@ export class Context2d {
     let buf8 = new Uint8ClampedArray(buf);
     let data = new Uint32Array(buf);
     
-    let dataLen = this.height * this.width
-
-    for(let i=0; i<dataLen;i++){
-      data[ i ] = this.pixels[ i ] ? (
-        // this.green
-        getColorData(
-          this.pixels[ i ],
-          this.maxDensity,
-          this.options?.hue as number,
-          this.options?.saturation as number
-        )
-      ) : this.background;
+    for(let y=0; y<this.height;y++){
+      for(let x=0; x<this.width;x++){
+        data[ x + (y*this.width) ] = this.pixels[`${x},${y}`] ? (
+          // this.green
+          getColorData(
+            // this.pixels[`${x},${y}`][0],
+            // this.pixels[`${x},${y}`][1],
+            this.pixels[`${x},${y}`][2],
+            // this.width,
+            // this.height,
+            this.maxDensity,
+            this.options?.hue as number,
+            this.options?.saturation as number
+          )
+        ) : this.background;
+      }
     }
         
     bitmap.data.set(buf8);
     this.clear()
 	  this.context.putImageData(bitmap, 0,0);
 
+    // red square
+    // this.context.beginPath();
+    // this.context.rect(
+    //   -29,
+    //   -29, 
+    //   54, 54
+    // );
+    // this.context.fillStyle = `rgb(255,0,0)`
+    // this.context.fill()
+
+
   }
 
   start(){
 
-    const start = new Date().valueOf()
-    
     if(this.paused && this.itt>=20) return;
     if(this.itt >= this.maxItt) {
-      return this.drawBitmap()
+      console.log('before done', new Date().valueOf() - this.startAt.valueOf() + 'ms')
+      this.drawBitmap()
+      return console.log('done', new Date().valueOf() - this.startAt.valueOf() + 'ms');
     }
 
     this.itt++;
@@ -173,16 +192,6 @@ export class Context2d {
 
     this.draw()
     this.anim = requestAnimationFrame(() => {
-      const end = new Date().valueOf() - start
-      
-      // if this takes more than 100ms
-      // lower run per itterration
-      // and increase total itteration
-      if(end > 200){
-        this.maxItt = this.maxItt * 2
-        this.perItt = this.perItt / 2
-      }
-
       this.reportProgress(100 * this.itt / this.maxItt)
       this.start()
     })
@@ -205,25 +214,16 @@ export class Context2d {
     const screenX = Math.round(thisX * this.scale)
     const screenY = Math.round(thisY * this.scale)
     
-    const indexX = Math.round(screenX + (this.width/2))
-    const indexY = Math.round(screenY + (this.height/2))
-
-    // if(indexX<0) return;
-    // if(screenY<0) return;
-    // if(indexX>this.width) return;
-    // if(screenY>this.height) return;
-    
     // translate index to 0,0
     // it will be used to calculate bitmap
-    if(
-      indexX>0 && indexX<=this.width &&
-      indexY>0 && indexY<=this.height
-    ) {
-      const index = indexX + (indexY*this.width)
-      this.pixels[index] += 1
-      if(this.maxDensity < this.pixels[index])
-        this.maxDensity = this.pixels[index]
-    }
+    const index = `${screenX + (this.width/2)},${screenY + (this.height/2)}`
+    if(!this.pixels[index]) this.pixels[index] = [0,0,0]
+    this.pixels[index][0] += thisX - this.lastX
+    this.pixels[index][1] += thisY - this.lastY //realY + (this.height/2)
+    this.pixels[index][2] += 1
+
+    if(this.maxDensity < this.pixels[index][2])
+      this.maxDensity = this.pixels[index][2]
     
     this.lastX = thisX
     this.lastY = thisY
@@ -250,12 +250,8 @@ export class Context2d {
         this.y[n], 
         1, 1
       );
-
-      ctx.fillStyle = `hsla(`+
-        `${this.options?.hue},`+
-        `${(this.options?.saturation||0)}%,`+
-        `50%, ${this.paused ? '1' : '0.1'})`
-
+      // ctx.fillStyle = `hsla(${this.options?.hue},${(this.options?.saturation||0)*.3}%,50%, ${this.paused ? '1' : '0.1'})`
+      ctx.fillStyle = `hsla(${this.options?.hue},${(this.options?.saturation||0)}%,50%, ${this.paused ? '1' : '0.1'})`
       ctx.fill()
       n++
     }
