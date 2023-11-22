@@ -2,4 +2,5 @@
 
 Wallpaper creator for dejong & clifford attractor ....
 
-[https://clifford-dejong.jujiplay.com/](https://clifford-dejong.jujiplay.com/)
+NOT DONE
+<!-- [https://clifford-dejong.jujiplay.com/](https://clifford-dejong.jujiplay.com/) -->
