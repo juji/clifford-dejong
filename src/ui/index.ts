@@ -1,4 +1,5 @@
 import optionPanel, { type Options } from './lil-gui'
+import { progressReport } from './progress'
 
 export type UIOptions = Options;
 export function ui( 
@@ -25,7 +26,21 @@ export function ui(
   })
 
 
+  // setProgress
+  const { setProgress, setColor } = progressReport()
+
   /// option panel
-  optionPanel( onChange, initOptions )
+  function localOnChange(options: Options, paused: boolean){
+    onChange(options, paused)
+    setColor(`hsl(${options.hue},${options.saturation}%,50%)`)
+  }
+
+  const init = optionPanel( localOnChange )
+  initOptions(init)
+  setColor(`hsl(${init.hue},${init.saturation}%,50%)`)
+
+
+  return setProgress
+
 
 }

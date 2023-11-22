@@ -28,6 +28,10 @@ function getColorData(
   
   const mdens = Math.log(maxDensity)
   const pdens = Math.log(density)
+  const v = lightnesBezier(pdens / mdens) * 100
+
+  if(v<10) return 0 // this is black, return transparent instead
+
   const [ r, g, b ] = hsv2rgb(
     h,
     s - saturationBezier(pdens / mdens) * s,
@@ -73,7 +77,12 @@ export class Context2d {
   startat: Date
   // green = 255<<24|0<<16|255<<8|0
 
-  constructor( canvas: HTMLCanvasElement, options: UIOptions ){
+  onProgress: ((n:number) => void)|null = null
+
+  constructor( 
+    canvas: HTMLCanvasElement, 
+    options: UIOptions,
+  ){
     this.context = canvas.getContext('2d') as CanvasRenderingContext2D
     this.width = canvas.width
     this.height = canvas.height
@@ -82,6 +91,10 @@ export class Context2d {
 
     this.setOptions(options, false)
     this.startat = new Date()
+  }
+
+  reportProgress(n: number){
+    this.onProgress && this.onProgress(n)
   }
 
   setOptions(options: UIOptions, paused: boolean){
@@ -100,6 +113,7 @@ export class Context2d {
     this.x = [0]
     this.y = [0]
     this.itt = 0
+    this.reportProgress(0)
     this.start()
   }
 
@@ -164,7 +178,9 @@ export class Context2d {
     if(this.paused && this.itt>=20) return;
     if(this.itt >= this.maxItt) {
       console.log('before done', new Date().valueOf() - this.startat.valueOf() + 'ms')
-      this.drawBitmap()
+      requestAnimationFrame(() => {
+        this.drawBitmap()
+      })
       return console.log('done', new Date().valueOf() - this.startat.valueOf() + 'ms');
     }
 
@@ -183,6 +199,7 @@ export class Context2d {
 
     this.draw()
     this.anim = requestAnimationFrame(() => {
+      this.reportProgress(100 * this.itt / this.maxItt)
       this.start()
     })
   }
@@ -224,7 +241,10 @@ export class Context2d {
 
   draw(){
 
-    if(!this.paused && (this.itt%50 === 0)){
+    if(!this.paused &&
+      (this.itt%50 === 0) &&
+      this.maxItt !== this.itt
+    ){
       this.drawBitmap()
     }
 

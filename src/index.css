@@ -169,6 +169,6 @@ footer{
   background-color: #151515;
 
   & a{
-    color: #ff6363;
+    color: hsl(333,100%,50%);
   }
 }

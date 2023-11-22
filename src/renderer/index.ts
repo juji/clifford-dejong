@@ -11,7 +11,7 @@ export default class Renderer {
   constructor(
     canvas: HTMLCanvasElement,
     width: number,
-    height: number
+    height: number,
   ){
 
     this.canvas = canvas
@@ -23,10 +23,17 @@ export default class Renderer {
   setOptions( options: UIOptions, paused: boolean ){
     if(this.context) {
       this.context.setOptions(options, paused)
+    }else{
+      this.context = new Context2d( 
+        this.canvas, 
+        options
+      )
     }
-    else{
-      this.context = new Context2d( this.canvas, options )
-    }
+  }
+  
+  setOnProgress(onProgress: (n: number) => void){
+    if(!this.context) return;
+    this.context.onProgress = onProgress
   }
 
   onResize(width: number, height: number){

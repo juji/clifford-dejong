@@ -13,26 +13,25 @@ export type Options = {
 
 export default function optionPanel( 
   onChange: (options: Options, paused: boolean) => void,
-  initOptions: (options: Options) => void,
-){
+): Options {
 
   const gui = new GUI();
 
   const options:Options = {
-    // attractor: 'clifford',
-    // a: 2,
-    // b: -2,
-    // c: 1,
-    // d: -1,
-    // hue: 333,
-    // saturation: 100
-    attractor: 'dejong',
-    a: -1.17,
-    b: 1.03,
-    c: 2.3,
-    d: -0.9,
+    attractor: 'clifford',
+    a: 2,
+    b: -2,
+    c: 1,
+    d: -1,
     hue: 333,
     saturation: 100
+    // attractor: 'dejong',
+    // a: -0.59,
+    // b: -4.82,
+    // c: 2.42,
+    // d: 1.46,
+    // hue: 333,
+    // saturation: 100
   }
 
   gui.add( options, 'attractor', [
@@ -40,10 +39,10 @@ export default function optionPanel(
     'dejong'
   ]);
 
-  gui.add( options, 'a', -3, 3);
-  gui.add( options, 'b', -3, 3);
-  gui.add( options, 'c', -3, 3);
-  gui.add( options, 'd', -3, 3);
+  gui.add( options, 'a', -5, 5);
+  gui.add( options, 'b', -5, 5);
+  gui.add( options, 'c', -5, 5);
+  gui.add( options, 'd', -5, 5);
   gui.add( options, 'hue', 0, 360);
   gui.add( options, 'saturation', 0, 100);
 
@@ -55,7 +54,7 @@ export default function optionPanel(
     onChange(event.object as Options, false)
   })
 
-  initOptions( options )
+  return options
 
   // const colornode = document.createElement("div");
   // colornode.classList.add('h-color')

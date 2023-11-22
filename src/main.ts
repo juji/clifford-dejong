@@ -17,7 +17,7 @@ if(canvas) {
   const renderer = new Renderer(
     canvas,
     window.innerWidth,
-    window.innerHeight - footerDim.height
+    window.innerHeight - footerDim.height,
   )
 
   function onChange( options: UIOptions, paused: boolean ){
@@ -28,7 +28,10 @@ if(canvas) {
     renderer.setOptions(options, false)
   }
   
-  ui( onChange, initOptions )
+  const setProgress = ui( onChange, initOptions )
+  renderer.setOnProgress((n: number) => {
+    setProgress(n)
+  })
 
   window.addEventListener('resize', () => {
     renderer.onResize(
