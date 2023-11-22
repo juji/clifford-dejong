@@ -29,10 +29,19 @@ export function ui(
   // setProgress
   const { setProgress, setColor } = progressReport()
 
+  // footer, for color
+  const footer = document.querySelector('footer') as HTMLElement
+
   /// option panel
   function localOnChange(options: Options, paused: boolean){
     onChange(options, paused)
     setColor(`hsl(${options.hue},${options.saturation}%,50%)`)
+
+    // also set footer color
+    footer && footer.style.setProperty(
+      '--footer-color', 
+      `hsl(${options.hue},${options.saturation}%,50%)`
+    )
   }
 
   const init = optionPanel( localOnChange )

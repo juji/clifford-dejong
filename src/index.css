@@ -16,6 +16,7 @@
 
   --logo-fg: #fff;
   --logo-bg: #000;
+  --footer-color: hsl(333,100%,50%);
 }
 
 *, *::after, *::before{
@@ -169,6 +170,6 @@ footer{
   background-color: #151515;
 
   & a{
-    color: hsl(333,100%,50%);
+    color: var(--footer-color);
   }
 }
