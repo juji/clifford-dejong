@@ -8,6 +8,9 @@ export default class Renderer {
   options: UIOptions|null = null
   context: Context2d|null = null
 
+  onFinishCallback: (( pngDataUrl: string ) => void) | null = null
+  onBeforeStartCallback: (() => void) | null = null
+
   constructor(
     canvas: HTMLCanvasElement,
     width: number,
@@ -28,7 +31,19 @@ export default class Renderer {
         this.canvas, 
         options
       )
+      this.context.onFinish = this.onFinish
+      this.context.onStart = this.onStart
     }
+  }
+
+  onFinish(){
+    this.onFinishCallback && this.onFinishCallback(
+      this.canvas.toDataURL("image/png")
+    )
+  }
+
+  onStart(){
+    this.onBeforeStartCallback && this.onBeforeStartCallback()
   }
   
   setOnProgress(onProgress: (n: number) => void){

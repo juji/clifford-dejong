@@ -70,6 +70,8 @@ export class Context2d {
   // green = 255<<24|0<<16|255<<8|0
 
   onProgress: ((n:number) => void)|null = null
+  onFinish: (() => void)|null = null
+  onStart: (() => void)|null = null
 
   constructor( 
     canvas: HTMLCanvasElement, 
@@ -105,6 +107,7 @@ export class Context2d {
     this.itt = 0
     this.maxDensity = 0
     this.reportProgress(0)
+    this.onStart && this.onStart()
     this.start()
   }
   
@@ -155,12 +158,10 @@ export class Context2d {
     
     if(this.paused && this.itt>=20) return;
     if(this.itt >= this.maxItt) {
-      return this.drawBitmap()
+      this.drawBitmap()
+      this.onFinish && this.onFinish()
+      return;
     }
-
-    this.itt++;
-
-    if(!(this.itt%100)) console.log(`itt ${this.itt}`)
 
     let n = 0
     this.x = []
@@ -170,8 +171,12 @@ export class Context2d {
       this.calculate()
       n++
     }
-
+    
     this.draw()
+    
+    this.itt++;
+    // if(!(this.itt%100)) console.log(`itt ${this.itt}`)
+
     this.anim = requestAnimationFrame(() => {
       const end = new Date().valueOf() - start
       
