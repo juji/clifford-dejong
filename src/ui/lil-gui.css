@@ -1,18 +1,66 @@
 .lil-gui.autoPlace{
+
+  --font-size: 14px;
+  --input-font-size: 14px;
+  --title-height: unset;
+  --background-color: rgba(0,0,0,0.8);
+  --title-background-color: rgb(61 61 61 / 50%);
+  --widget-height: 24px;
+  --widget-padding: 0 0 0 5px;
+  --slider-input-width: 34%;
+  --widget-color: #303030;
+
   top: auto;
-  bottom: calc(21px + 56px); /* 56 is the height of footer */
+  bottom: 56px; /* 56 is the height of footer */
   right: auto;
-  left: 21px;
+  left: 0;
+  max-width: 400px;
+  width: 100%;
+
+  &.root > .title:before{
+    padding-right: 9px;
+  }
+
+  & .children{
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  
+  &.root > .title{
+    padding: 1rem;
+  }
+
+  & .controller {
+
+    & .name{
+      padding-left: 8px;
+      flex: 0 0 98px;
+      min-width: unset;
+    }
+
+    & .widget{
+      flex: 1 1 auto;
+      padding-right: 8px;
+
+      &text{
+
+      }
+
+    }
+
+  }
+
 }
 
-.lil-gui .children{
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
 
-.lil-gui .controller .name{
-  padding-left: 8px;
-}
-.lil-gui .controller .widget{
-  padding-right: 8px;
+
+@media screen and (max-width: 766px){
+  .lil-gui.autoPlace{
+    bottom: 56px;
+    left:0;
+    width: 100%;
+    max-width: unset;
+    
+  }
+
 }

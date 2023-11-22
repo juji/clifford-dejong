@@ -1,5 +1,5 @@
 import './lil-gui.css'
-import GUI from 'lil-gui'; 
+import GUI, { type Controller } from 'lil-gui'; 
 
 export type Options = {
   attractor: 'clifford'|'dejong',
@@ -9,11 +9,18 @@ export type Options = {
   d: number
   hue: number
   saturation: number
+  brightness: number
+  scale: number
+  top: number
+  left: number
 }
 
 export default function optionPanel( 
   onChange: (options: Options, paused: boolean) => void,
-): Options {
+): {
+  options: Options
+  controllers: Controller[]
+} {
 
   const gui = new GUI();
 
@@ -31,6 +38,10 @@ export default function optionPanel(
     d: -1,
     hue: 333,
     saturation: 100,
+    brightness: 100,
+    scale: 1,
+    top: 0,
+    left: 0,
 
     ...savedOpt
 
@@ -52,8 +63,14 @@ export default function optionPanel(
   gui.add( options, 'b', -5, 5);
   gui.add( options, 'c', -5, 5);
   gui.add( options, 'd', -5, 5);
+
   gui.add( options, 'hue', 0, 360);
   gui.add( options, 'saturation', 0, 100);
+  gui.add( options, 'brightness', 0, 100);
+
+  gui.add( options, 'scale', 0.001, 5);
+  gui.add( options, 'top', -1, 1);
+  gui.add( options, 'left', -1, 1);
 
   gui.onChange( event => {
     onChange(event.object as Options, true)
@@ -64,7 +81,10 @@ export default function optionPanel(
     onChange(event.object as Options, false)
   })
 
-  return options
+  return {
+    options,
+    controllers: gui.controllers
+  }
 
   // const colornode = document.createElement("div");
   // colornode.classList.add('h-color')

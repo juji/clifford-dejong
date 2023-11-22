@@ -4,7 +4,7 @@ export function hsv2rgb(h: number, s: number, v: number) {
 	var f, p, q, t;
 
 	// Make sure our arguments stay in-range
-	h = Math.max(0, Math.min(360, h));
+	h = Math.max(0, Math.min(359, h)); // -> this one, this one...!!!
 	s = Math.max(0, Math.min(100, s));
 	v = Math.max(0, Math.min(100, v));
 

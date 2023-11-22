@@ -29,24 +29,55 @@ export function ui(
   // setProgress
   const { setProgress, setColor } = progressReport()
 
-  // footer, for color
+  // footer, body for color
   const footer = document.querySelector('footer') as HTMLElement
+  const body = document.querySelector('body') as HTMLElement
+
+  // get hsl from options
+  function getHsl(options: Options, minBrightness:number = 40){
+    return `hsl(${options.hue},${options.saturation}%,${Math.max(
+      minBrightness,options.brightness/2
+    )}%)`
+  }
 
   /// option panel
   function localOnChange(options: Options, paused: boolean){
     onChange(options, paused)
-    setColor(`hsl(${options.hue},${options.saturation}%,50%)`)
+    setColor(getHsl(options))
 
     // also set footer color
     footer && footer.style.setProperty(
       '--footer-color', 
-      `hsl(${options.hue},${options.saturation}%,50%)`
+      getHsl(options)
     )
+
+    if(options.brightness < 5){
+      body.style.setProperty(
+        '--background-color',
+        '#202020'
+      )
+    }else{
+      body.style.removeProperty(
+        '--background-color'
+      )
+    }
   }
 
   const init = optionPanel( localOnChange )
   initOptions(init)
-  setColor(`hsl(${init.hue},${init.saturation}%,50%)`)
+  setColor(getHsl(init))
+  
+  footer && footer.style.setProperty(
+    '--footer-color', 
+    getHsl(init)
+  )
+
+  if(init.brightness < 5){
+    body.style.setProperty(
+      '--background-color',
+      '#202020'
+    )
+  }
 
 
   return setProgress

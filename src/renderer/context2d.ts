@@ -16,19 +16,24 @@ function getColorData(
   density: number, 
   maxDensity: number,
   h: number,
-  s: number
+  s: number,
+  v: number
 ) : number{
   
   const mdens = Math.log(maxDensity)
   const pdens = Math.log(density)
-  const v = lightnesBezier(pdens / mdens) * 100
+  let localV = lightnesBezier(pdens / mdens) * v
 
-  if(v<10) return 0 // this is black, return transparent instead
+  // this is manual labour, because i don't have anything better to do
+  // pardon the static value
+  if(v <= 5 && (density/maxDensity) < 0.0025){
+    return 0
+  }
 
   const [ r, g, b ] = hsv2rgb(
     h,
     s - saturationBezier(pdens / mdens) * s,
-    v,
+    localV,
   )
   
   return 255 << 24 | b << 16 | g << 8 | r
@@ -43,11 +48,12 @@ export class Context2d {
   height: number
   centerX: number
   centerY: number
-  centerXPercent: number
-  centerYPercent: number
+  centerXRatio: number = 0
+  centerYRatio: number = 0
   
   anim: number = 0
   scale: number = 150
+  scaleRatio: number = 1
   itt = 0
   maxItt = 100
   perItt = 100000
@@ -59,15 +65,8 @@ export class Context2d {
 
   paused = false
 
-  // pixelsX: number[] = [] // dx
-  // pixelsY: number[] = [] // dy
-  // pixelsCount: number[] = [] // pixelCount
-
-  // using map, instead of array
-  // i believe it's faster
-  // independent of screen size, it will only record used pixels
-  // key = "x,y"
-  // pixels: {[key:string]: number} // dx, dy, pixelCount 
+  // a place to put pixel data
+  // somehow, this faster than using map
   pixels: number[]
 
   attractor: ((x:number,y:number,a:number,b:number,c:number,d:number) => number[])|null = null
@@ -86,11 +85,9 @@ export class Context2d {
     this.context = canvas.getContext('2d') as CanvasRenderingContext2D
     this.width = canvas.width
     this.height = canvas.height
-    this.centerXPercent = 0.5
-    this.centerYPercent = 0.5
-    this.centerX = this.width * this.centerXPercent
-    this.centerY = this.height * this.centerYPercent
-    this.context.translate(this.width/2, this.height/2)
+    this.centerX = this.width - (this.width/2) + (this.centerXRatio * this.width)
+    this.centerY = this.height - (this.height/2) + (this.centerYRatio * this.height)
+    this.context.translate(this.centerX, this.centerY)
     this.pixels = new Array(this.width*this.height).fill(0)
 
     this.setOptions(options, false)
@@ -101,40 +98,41 @@ export class Context2d {
   }
 
   setOptions(options: UIOptions, paused: boolean){
-    this.attractor = options.attractor === 'clifford' ? clifford : dejong
     this.options = options
     this.paused = paused
     this.reset()
   }
 
   reset(){
+
     if(this.anim) cancelAnimationFrame(this.anim)
-    this.clear()
     
+    this.attractor = this.options?.attractor === 'clifford' ? clifford : dejong
     this.pixels = new Array(this.width*this.height).fill(0)
     this.x = [0]
     this.y = [0]
     this.itt = 0
+
+    this.context.setTransform(1,0,0,1,0,0)
+    this.context.clearRect(0, 0, this.width, this.height)
+    this.scaleRatio = Math.max(0.001, this.options?.scale as number)
+    this.centerXRatio = this.options?.left as number
+    this.centerYRatio = this.options?.top as number
+    this.centerX = this.width - (this.width/2) + (this.centerXRatio * this.width)
+    this.centerY = this.height - (this.height/2) + (this.centerYRatio * this.height)
+    this.context.translate(this.centerX, this.centerY)
+
     this.maxDensity = 0
     this.reportProgress(0)
     this.onStart && this.onStart()
     this.start()
+
   }
   
   onResize( canvas: HTMLCanvasElement ){
     this.width = canvas.width
     this.height = canvas.height
-    this.centerX = this.width * this.centerXPercent
-    this.centerY = this.height * this.centerYPercent
-    this.context.translate(this.centerX, this.centerY)
     this.reset()
-  }
-
-  clear(){
-    this.context.save()
-    this.context.setTransform(1,0,0,1,0,0)
-    this.context.clearRect(0, 0, this.width, this.height)
-    this.context.restore()
   }
 
   drawBitmap(){
@@ -153,13 +151,13 @@ export class Context2d {
           this.pixels[ i ],
           this.maxDensity,
           this.options?.hue as number,
-          this.options?.saturation as number
+          this.options?.saturation as number,
+          this.options?.brightness as number
         )
       ) : this.background;
     }
         
     bitmap.data.set(buf8);
-    this.clear()
 	  this.context.putImageData(bitmap, 0,0);
 
   }
@@ -216,11 +214,11 @@ export class Context2d {
       a, b, c, d
     )
     
-    const thisX = smoothing(x, this.scale) 
-    const thisY = smoothing(y, this.scale)
+    const thisX = smoothing(x, this.scale * this.scaleRatio) 
+    const thisY = smoothing(y, this.scale * this.scaleRatio)
 
-    const screenX = Math.round(thisX * this.scale)
-    const screenY = Math.round(thisY * this.scale)
+    const screenX = Math.round(thisX * this.scale * this.scaleRatio)
+    const screenY = Math.round(thisY * this.scale * this.scaleRatio)
     
     // translate index to 0,0
     // it will be used to calculate bitmap
@@ -268,7 +266,7 @@ export class Context2d {
       ctx.fillStyle = `hsla(`+
         `${this.options?.hue},`+
         `${(this.options?.saturation||0)}%,`+
-        `50%, ${this.paused ? '1' : '0.1'})`
+        `${(this.options?.brightness||0)/3}%, ${this.paused ? '1' : '0.1'})`
 
       ctx.fill()
       n++
