@@ -18,6 +18,7 @@ export default function optionPanel(
   const gui = new GUI();
 
   const options:Options = {
+    
     attractor: 'clifford',
     a: 2,
     b: -2,
@@ -25,6 +26,7 @@ export default function optionPanel(
     d: -1,
     hue: 333,
     saturation: 100
+
     // attractor: 'dejong',
     // a: -0.59,
     // b: -4.82,

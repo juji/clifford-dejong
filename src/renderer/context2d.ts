@@ -7,6 +7,9 @@ import BezierEasing from 'bezier-easing'
 // clifford
 // dejong
 const saturationBezier = BezierEasing(.79,-0.34,.54,1.18)
+
+// .75,.38,.24,1.33 *
+// cubic-bezier(.63,.46,.24,1.33)
 const lightnesBezier = BezierEasing(.75,.38,.24,1.33)
 
 
@@ -106,13 +109,13 @@ export class Context2d {
 
   reset(){
     if(this.anim) cancelAnimationFrame(this.anim)
+    this.clear()
     
     this.pixels = {}
-
-    this.clear()
     this.x = [0]
     this.y = [0]
     this.itt = 0
+    this.maxDensity = 0
     this.reportProgress(0)
     this.start()
   }
@@ -178,9 +181,7 @@ export class Context2d {
     if(this.paused && this.itt>=20) return;
     if(this.itt >= this.maxItt) {
       console.log('before done', new Date().valueOf() - this.startat.valueOf() + 'ms')
-      requestAnimationFrame(() => {
-        this.drawBitmap()
-      })
+      this.drawBitmap()
       return console.log('done', new Date().valueOf() - this.startat.valueOf() + 'ms');
     }
 
