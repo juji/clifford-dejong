@@ -38,10 +38,14 @@ export class Context2d {
 
   context: CanvasRenderingContext2D
   options: UIOptions|null = null
+  
   width: number
   height: number
   centerX: number
   centerY: number
+  centerXPercent: number
+  centerYPercent: number
+  
   anim: number = 0
   scale: number = 150
   itt = 0
@@ -82,8 +86,10 @@ export class Context2d {
     this.context = canvas.getContext('2d') as CanvasRenderingContext2D
     this.width = canvas.width
     this.height = canvas.height
-    this.centerX = this.width/2
-    this.centerY = this.height/2
+    this.centerXPercent = 0.5
+    this.centerYPercent = 0.5
+    this.centerX = this.width * this.centerXPercent
+    this.centerY = this.height * this.centerYPercent
     this.context.translate(this.width/2, this.height/2)
     this.pixels = new Array(this.width*this.height).fill(0)
 
@@ -118,6 +124,8 @@ export class Context2d {
   onResize( canvas: HTMLCanvasElement ){
     this.width = canvas.width
     this.height = canvas.height
+    this.centerX = this.width * this.centerXPercent
+    this.centerY = this.height * this.centerYPercent
     this.context.translate(this.centerX, this.centerY)
     this.reset()
   }
