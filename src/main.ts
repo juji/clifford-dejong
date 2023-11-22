@@ -4,7 +4,6 @@ import './index.css'
 import './button.css'
 import './info-button.css'
 
-// import { registerEvents } from './events'
 import Renderer from './renderer'
 import { ui, type UIOptions } from './ui'
 const canvas = document.querySelector('canvas')

@@ -19,11 +19,11 @@ function smoothing(num: number, scale: number){
 }
 
 function getColorData(
-  dx: number, 
-  dy: number, 
+  // dx: number, 
+  // dy: number, 
   density: number, 
-  width: number,
-  height: number,
+  // width: number,
+  // height: number,
   maxDensity: number,
   h: number,
   s: number
@@ -146,11 +146,11 @@ export class Context2d {
         data[ x + (y*this.width) ] = this.pixels[`${x},${y}`] ? (
           // this.green
           getColorData(
-            this.pixels[`${x},${y}`][0],
-            this.pixels[`${x},${y}`][1],
+            // this.pixels[`${x},${y}`][0],
+            // this.pixels[`${x},${y}`][1],
             this.pixels[`${x},${y}`][2],
-            this.width,
-            this.height,
+            // this.width,
+            // this.height,
             this.maxDensity,
             this.options?.hue as number,
             this.options?.saturation as number
