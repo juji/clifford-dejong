@@ -8,13 +8,19 @@ export function touchEvents(){
 
   if(!window.matchMedia("(any-hover: none)").matches) return;
   
-  const { getState, subscribe } = optionStore
-  const { setScale, setTopLeft, setPaused, options } = getState()
+  const { getState, 
+    // subscribe 
+  } = optionStore
+  const { 
+    // setScale, 
+    setTopLeft, setPaused, options } = getState()
 
-  let { scale, top, left } = options
-  subscribe((state) => state.options,(options) => {
-    scale = options.scale
-  })
+  let { 
+    // scale, 
+    top, left } = options
+  // subscribe((state) => state.options,(options) => {
+  //   scale = options.scale
+  // })
 
   let initX = 0
   let initY = 0
