@@ -6,6 +6,7 @@ import { footer } from './footer'
 import { body } from './body'
 import { reset } from './reset'
 import { mouseWheel } from './mouse-events'
+import { touchEvents } from './touch-events'
 
 export function ui(){
 
@@ -45,5 +46,6 @@ export function ui(){
 
   //
   mouseWheel()
+  touchEvents()
 
 }

@@ -16,7 +16,8 @@ function getColorData(
   maxDensity: number,
   h: number,
   s: number,
-  v: number
+  v: number,
+  background: boolean
 ) : number{
   
   const mdens = Math.log(maxDensity)
@@ -26,7 +27,7 @@ function getColorData(
   // this is manual labour, because i don't have anything better to do
   // pardon the static value
   if(v <= 5 && (density/maxDensity) < 0.0025){
-    return 0
+    return background ? 255<<24|0<<16|255<<0|0 : 0
   }
 
   const [ r, g, b ] = hsv2rgb(
@@ -70,6 +71,7 @@ export class Context2d {
 
   attractor: ((x:number,y:number,a:number,b:number,c:number,d:number) => number[])|null = null
   background = 0
+  black = 255<<24|0<<16|255<<0|0
   maxDensity = 0
   // green = 255<<24|0<<16|255<<8|0
 
@@ -135,7 +137,7 @@ export class Context2d {
     this.reset()
   }
 
-  drawBitmap(){
+  drawBitmap( background = false ){
 
     let bitmap = this.context.createImageData(this.width, this.height);
     let buf = new ArrayBuffer(bitmap.data.length);
@@ -152,9 +154,10 @@ export class Context2d {
           this.maxDensity,
           this.options?.hue as number,
           this.options?.saturation as number,
-          this.options?.brightness as number
+          this.options?.brightness as number,
+          background
         )
-      ) : this.background;
+      ) : background ? this.black : this.background;
     }
         
     bitmap.data.set(buf8);
@@ -177,7 +180,7 @@ export class Context2d {
     let n = 0
     this.x = []
     this.y = []
-    const itteration = this.paused ? 5000 : this.perItt
+    const itteration = this.paused ? this.perItt / 20 : this.perItt
     while(n<itteration){
       this.calculate()
       n++

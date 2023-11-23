@@ -52,6 +52,7 @@ body{
   --background-color: #000000;
   background-color: var(--background-color);
   transition: background-color 2000ms;
+  touch-action: none;
 }
 
 .noscript{
@@ -166,6 +167,7 @@ main{
   position: relative;
   z-index: 2;
   display: flex;
+  touch-action: none;
 }
 
 main canvas{
@@ -175,6 +177,7 @@ main canvas{
   width: 100%;
   height: 100%;
   aspect-ratio: unset;
+  touch-action: none;
 }
 
 main canvas:active{
