@@ -75,13 +75,13 @@ export const optionStore = createStore<UiStore>()(subscribeWithSelector(
     }),
 
     image: '',
-    setImage: (image: string|null) => set(s => ({ image })),
+    setImage: (image: string|null) => set(() => ({ image })),
 
     progress: 0,
-    setProgress: (progress: number) => set(s => ({ progress })),
+    setProgress: (progress: number) => set(() => ({ progress })),
 
     paused: false,
-    setPaused: (paused: boolean) => set(s => ({ paused })),
+    setPaused: (paused: boolean) => set(() => ({ paused })),
 
   })
   
