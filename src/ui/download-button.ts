@@ -56,6 +56,7 @@ export function downloadButton(){
       link.classList.add('on')
       link.setAttribute('href', image)
     }else{
+      link.setAttribute('href', '#')
       link.classList.remove('on')
     }
 

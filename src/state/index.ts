@@ -17,6 +17,12 @@ export type Options = {
   left: number
 }
 
+export const VALUELIMIT = {
+  scale: [0.001, 5],
+  top: [-1, 1],
+  left: [-1, 1],
+}
+
 const init: Options = {
   attractor: 'clifford',
   a: 2,
@@ -35,6 +41,10 @@ export type UiStore = {
   
   options: Options
   setOptions: (options: Partial<Options>) => void
+  setScale: (scale:number) => void
+  setTopLeft: (top:number, left: number) => void
+
+  resetOptions: () => void
 
   image: string | null
   setImage: (img:string|null) => void
@@ -74,6 +84,36 @@ export const optionStore = createStore<UiStore>()(subscribeWithSelector(
 
     }),
 
+    setScale: (scale:number) => set(state => ({
+      options: {
+        ...state.options,
+        scale: Math.max(
+          VALUELIMIT.scale[0],
+          Math.min(scale, VALUELIMIT.scale[1])
+        )
+      }
+    })),
+
+    setTopLeft: (top:number, left: number) => set(state => ({
+      options: {
+        ...state.options,
+        top: Math.max(
+          VALUELIMIT.top[0],
+          Math.min(top, VALUELIMIT.top[1])
+        ),
+        left: Math.max(
+          VALUELIMIT.left[0],
+          Math.min(left, VALUELIMIT.left[1])
+        )
+      }
+    })),
+
+    resetOptions: () => set(() => {
+      localStorage.setItem(LSKEY, JSON.stringify(init))
+      console.log('resetOptions')
+      return { options: init }
+    }),
+
     image: '',
     setImage: (image: string|null) => set(() => ({ image })),
 
@@ -81,7 +121,11 @@ export const optionStore = createStore<UiStore>()(subscribeWithSelector(
     setProgress: (progress: number) => set(() => ({ progress })),
 
     paused: false,
-    setPaused: (paused: boolean) => set(() => ({ paused })),
+    setPaused: (paused: boolean) => {
+      // console.trace();
+      // console.log('set paused', paused)
+      return set(() => ({ paused }))
+    },
 
   })
   

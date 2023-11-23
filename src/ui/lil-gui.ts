@@ -1,13 +1,13 @@
 import './lil-gui.css'
 import GUI from 'lil-gui'; 
 
-import { optionStore, type Options } from '@/state'
+import { optionStore, type Options, VALUELIMIT } from '@/state'
 
 export default function optionPanel(){
 
   const gui = new GUI();
 
-  const { getState } = optionStore
+  const { getState, subscribe } = optionStore
   const { setOptions, options, setPaused } = getState()
 
   gui.add( options, 'attractor', [
@@ -24,20 +24,40 @@ export default function optionPanel(){
   gui.add( options, 'saturation', 0, 100);
   gui.add( options, 'brightness', 0, 100);
 
-  gui.add( options, 'scale', 0.001, 5);
-  gui.add( options, 'top', -1, 1);
-  gui.add( options, 'left', -1, 1);
+  gui.add( options, 'scale', VALUELIMIT.scale[0], VALUELIMIT.scale[1]);
+  gui.add( options, 'top', VALUELIMIT.top[0], VALUELIMIT.top[1]);
+  gui.add( options, 'left', VALUELIMIT.left[0], VALUELIMIT.left[1]);
 
+  let updateFromOutside = false
   gui.onChange( event => {
+    if(updateFromOutside) return;
     setPaused(true)
     setOptions(event.object as Partial<Options>)
   })
 
   gui.onFinishChange( event => {
+    if(updateFromOutside) return;
+    console.log('pausing...')
     setPaused(false)
     setOptions(event.object as Partial<Options>)
   })
 
   // gui.controllers
+
+  subscribe((state) => state.options, (opt) => {
+
+    gui.controllers.forEach(controller => {
+      const key = controller._name as keyof typeof opt
+      if(opt[key] !== controller.getValue()) {
+        updateFromOutside = true
+        controller.setValue(opt[key])
+      }
+    })
+
+    if(updateFromOutside) setTimeout(() => {
+      updateFromOutside = false
+    },100)
+
+  })
 
 }

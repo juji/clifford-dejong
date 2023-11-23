@@ -4,6 +4,8 @@ import { progressReport } from './progress'
 import { downloadButton } from './download-button'
 import { footer } from './footer'
 import { body } from './body'
+import { reset } from './reset'
+import { mouseWheel } from './mouse-events'
 
 export function ui(){
 
@@ -25,9 +27,6 @@ export function ui(){
     }
   })
 
-  // ui panel
-  optionPanel()
-
   // setProgress
   progressReport()
 
@@ -36,10 +35,15 @@ export function ui(){
   body()
 
   // download button
-  const setimageState = downloadButton()
+  downloadButton()
 
-  return {
-    setimageState
-  }
+  // option panel
+  optionPanel()
+
+  // reset button
+  reset()
+
+  //
+  mouseWheel()
 
 }
