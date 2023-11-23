@@ -63,16 +63,20 @@ export function ui(
     }
   }
 
-  const init = optionPanel( localOnChange )
-  initOptions(init)
-  setColor(getHsl(init))
+  const { 
+    options, 
+    // controllers 
+  } = optionPanel( localOnChange )
+
+  initOptions(options)
+  setColor(getHsl(options))
   
   footer && footer.style.setProperty(
     '--footer-color', 
-    getHsl(init)
+    getHsl(options)
   )
 
-  if(init.brightness < 5){
+  if(options.brightness < 5){
     body.style.setProperty(
       '--background-color',
       '#202020'
