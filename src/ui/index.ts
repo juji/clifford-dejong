@@ -1,11 +1,11 @@
-import optionPanel, { type Options } from './lil-gui'
-import { progressReport } from './progress'
 
-export type UIOptions = Options;
-export function ui( 
-  onChange: (options: Options, paused: boolean) => void,
-  initOptions: (options: Options) => void,
-){
+import optionPanel from './lil-gui'
+import { progressReport } from './progress'
+import { downloadButton } from './download-button'
+import { footer } from './footer'
+import { body } from './body'
+
+export function ui(){
 
   const button = document.querySelector('button.info-button')
   const content = document.querySelector('.info-content')
@@ -25,66 +25,21 @@ export function ui(
     }
   })
 
+  // ui panel
+  optionPanel()
 
   // setProgress
-  const { setProgress, setColor } = progressReport()
+  progressReport()
 
-  // footer, body for color
-  const footer = document.querySelector('footer') as HTMLElement
-  const body = document.querySelector('body') as HTMLElement
+  //
+  footer()
+  body()
 
-  // get hsl from options
-  function getHsl(options: Options, minBrightness:number = 40){
-    return `hsl(${options.hue},${options.saturation}%,${Math.max(
-      minBrightness,options.brightness/2
-    )}%)`
+  // download button
+  const setimageState = downloadButton()
+
+  return {
+    setimageState
   }
-
-  /// option panel
-  function localOnChange(options: Options, paused: boolean){
-    onChange(options, paused)
-    setColor(getHsl(options))
-
-    // also set footer color
-    footer && footer.style.setProperty(
-      '--footer-color', 
-      getHsl(options)
-    )
-
-    if(options.brightness < 5){
-      body.style.setProperty(
-        '--background-color',
-        '#202020'
-      )
-    }else{
-      body.style.removeProperty(
-        '--background-color'
-      )
-    }
-  }
-
-  const { 
-    options, 
-    // controllers 
-  } = optionPanel( localOnChange )
-
-  initOptions(options)
-  setColor(getHsl(options))
-  
-  footer && footer.style.setProperty(
-    '--footer-color', 
-    getHsl(options)
-  )
-
-  if(options.brightness < 5){
-    body.style.setProperty(
-      '--background-color',
-      '#202020'
-    )
-  }
-
-
-  return setProgress
-
 
 }

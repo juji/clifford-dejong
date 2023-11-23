@@ -1,54 +1,56 @@
-
-import { type UIOptions } from '../ui'
 import { Context2d } from './context2d'
+import { type Options } from '@/state'
 
 export default class Renderer {
 
   canvas: HTMLCanvasElement
-  options: UIOptions|null = null
   context: Context2d|null = null
-
-  onFinishCallback: (( pngDataUrl: string ) => void) | null = null
-  onBeforeStartCallback: (() => void) | null = null
+  setImage: (img: string|null) => void | null
+  
 
   constructor(
     canvas: HTMLCanvasElement,
     width: number,
     height: number,
+    options: Options,
+    setProgress: (num: number) => void,
+    setImage: (img: string|null) => void
   ){
 
     this.canvas = canvas
     this.canvas.width = width
     this.canvas.height = height
-
-  }
-
-  setOptions( options: UIOptions, paused: boolean ){
-    if(this.context) {
-      this.context.setOptions(options, paused)
-    }else{
-      this.context = new Context2d( 
-        this.canvas, 
-        options
-      )
-      this.context.onFinish = this.onFinish
-      this.context.onStart = this.onStart
-    }
-  }
-
-  onFinish(){
-    this.onFinishCallback && this.onFinishCallback(
-      this.canvas.toDataURL("image/png")
+    this.setImage = setImage
+    this.context = new Context2d(
+      this.canvas, 
+      options,
+      setProgress
     )
+
+    this.context.onStart = () => {
+      this.setImage && this.setImage(null)
+    }
+
+    this.context.onFinish = () => {
+      this.setImage && this.setImage(
+        this.canvas.toDataURL('image/png')
+      )
+    }
+
   }
 
-  onStart(){
-    this.onBeforeStartCallback && this.onBeforeStartCallback()
+  onUpdate(options: Options){
+    this.context && this.context.setOptions(options)
   }
-  
-  setOnProgress(onProgress: (n: number) => void){
+
+  onPaused(){
     if(!this.context) return;
-    this.context.onProgress = onProgress
+    this.context.paused = true
+  }
+
+  onPlay(){
+    if(!this.context) return;
+    this.context.paused = false
   }
 
   onResize(width: number, height: number){

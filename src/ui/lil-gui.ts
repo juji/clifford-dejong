@@ -1,58 +1,14 @@
 import './lil-gui.css'
-import GUI, { type Controller } from 'lil-gui'; 
+import GUI from 'lil-gui'; 
 
-export type Options = {
-  attractor: 'clifford'|'dejong',
-  a: number
-  b: number
-  c: number
-  d: number
-  hue: number
-  saturation: number
-  brightness: number
-  scale: number
-  top: number
-  left: number
-}
+import { optionStore, type Options } from '@/state'
 
-export default function optionPanel( 
-  onChange: (options: Options, paused: boolean) => void,
-): {
-  options: Options
-  controllers: Controller[]
-} {
+export default function optionPanel(){
 
   const gui = new GUI();
 
-  // get option from local storage
-  const lskey = 'juji-cd-data'
-  let ls = localStorage.getItem(lskey) 
-  const savedOpt = ls ? JSON.parse(ls) as Options : {}
-
-  const options:Options = {
-    
-    attractor: 'clifford',
-    a: 2,
-    b: -2,
-    c: 1,
-    d: -1,
-    hue: 333,
-    saturation: 100,
-    brightness: 100,
-    scale: 1,
-    top: 0,
-    left: 0,
-
-    ...savedOpt
-
-    // attractor: 'dejong',
-    // a: -0.59,
-    // b: -4.82,
-    // c: 2.42,
-    // d: 1.46,
-    // hue: 333,
-    // saturation: 100
-  }
+  const { getState } = optionStore
+  const { setOptions, options, setPaused } = getState()
 
   gui.add( options, 'attractor', [
     'clifford',
@@ -73,22 +29,15 @@ export default function optionPanel(
   gui.add( options, 'left', -1, 1);
 
   gui.onChange( event => {
-    onChange(event.object as Options, true)
+    setPaused(true)
+    setOptions(event.object as Partial<Options>)
   })
 
   gui.onFinishChange( event => {
-    localStorage.setItem(lskey, JSON.stringify(event.object))
-    onChange(event.object as Options, false)
+    setPaused(false)
+    setOptions(event.object as Partial<Options>)
   })
 
-  return {
-    options,
-    controllers: gui.controllers
-  }
-
-  // const colornode = document.createElement("div");
-  // colornode.classList.add('h-color')
-  // gui.$children.appendChild(colornode)
-  // console.log(gui.$children)
+  // gui.controllers
 
 }

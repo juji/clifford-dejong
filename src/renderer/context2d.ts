@@ -1,5 +1,4 @@
-
-import { type UIOptions } from '../ui'
+import { type Options } from '@/state'
 import { hsv2rgb } from './hsv2rgb'
 import { clifford, dejong } from './attractors'
 import BezierEasing from 'bezier-easing'
@@ -42,7 +41,7 @@ function getColorData(
 export class Context2d {
 
   context: CanvasRenderingContext2D
-  options: UIOptions|null = null
+  options: Options|null = null
   
   width: number
   height: number
@@ -77,10 +76,12 @@ export class Context2d {
   onProgress: ((n:number) => void)|null = null
   onFinish: (() => void)|null = null
   onStart: (() => void)|null = null
+  onImageReady: ((img: string) => void)|null = null
 
   constructor( 
     canvas: HTMLCanvasElement, 
-    options: UIOptions,
+    options: Options,
+    setProgress: (num: number) => void
   ){
     this.context = canvas.getContext('2d') as CanvasRenderingContext2D
     this.width = canvas.width
@@ -89,17 +90,16 @@ export class Context2d {
     this.centerY = this.height - (this.height/2) + (this.centerYRatio * this.height)
     this.context.translate(this.centerX, this.centerY)
     this.pixels = new Array(this.width*this.height).fill(0)
-
-    this.setOptions(options, false)
+    this.setOptions(options)
+    this.onProgress = setProgress
   }
 
   reportProgress(n: number){
     this.onProgress && this.onProgress(n)
   }
 
-  setOptions(options: UIOptions, paused: boolean){
+  setOptions(options: Options){
     this.options = options
-    this.paused = paused
     this.reset()
   }
 
@@ -170,13 +170,14 @@ export class Context2d {
     if(this.itt >= this.maxItt) {
       this.drawBitmap()
       this.onFinish && this.onFinish()
+      this.reportProgress(100 * this.itt / this.maxItt)
       return;
     }
 
     let n = 0
     this.x = []
     this.y = []
-    const itteration = this.paused ? 10000 : this.perItt
+    const itteration = this.paused ? 5000 : this.perItt
     while(n<itteration){
       this.calculate()
       n++
@@ -198,7 +199,7 @@ export class Context2d {
         this.perItt = this.perItt / 2
       }
 
-      this.reportProgress(100 * this.itt / this.maxItt)
+      this.reportProgress(98 * this.itt / this.maxItt)
       this.start()
     })
   }

@@ -5,7 +5,6 @@
   align-items: center;
   appearance: none;
   border: 0;
-  border-radius: 6px;
   box-sizing: border-box;
   color: #fff;
   cursor: pointer;
@@ -15,8 +14,6 @@
   line-height: 1;
   list-style: none;
   overflow: hidden;
-  padding-left: 16px;
-  padding-right: 16px;
   position: relative;
   text-align: left;
   text-decoration: none;
@@ -26,8 +23,11 @@
   touch-action: manipulation;
   white-space: nowrap;
   will-change: background-image;
-  font-size: 18px;
   outline: 0px;
+
+  padding: 8px 21px;
+  font-size: 1rem;
+  border-radius: 3px;
 
   background-image: radial-gradient(100% 100% at 100% 0, #6f6f6f 0, #2e2e2e 100%);
   box-shadow: rgba(45, 35, 66, .4) 0 4px 8px, rgba(45, 35, 66, .3) 0 7px 13px -3px, #201c31 0 -3px 0 inset;
