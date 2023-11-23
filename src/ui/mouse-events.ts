@@ -1,4 +1,4 @@
-import { optionStore, type Options, VALUELIMIT } from '@/state'
+import { optionStore } from '@/state'
 
 export function mouseWheel(){
 
@@ -40,11 +40,6 @@ export function mouseWheel(){
 
   const main = document.querySelector('main')
   if(!main) return;
-
-  let dim = main.getBoundingClientRect()
-  window.addEventListener('resize',() => {
-    dim = main.getBoundingClientRect()
-  })
 
   let initMouseDown = { x:0, y:0}
   let mouseDownListener = (e:MouseEvent) => {
