@@ -47,9 +47,9 @@ export class Context2d {
   scale: number = 150
   scaleRatio: number = 1
   itt = 0
-  maxItt = 100
+  maxItt = 200
   perItt = 100000
-  drawAt = 25
+  drawAt = 50
 
   x: number[] = [0];
   y: number[] = [0];

@@ -86,18 +86,23 @@ export const optionStore = createStore<UiStore>()(subscribeWithSelector(
 
     }),
 
-    setScale: (scale:number) => set(state => ({
-      options: {
+    setScale: (scale:number) => set(state => {
+
+      const options = {
         ...state.options,
         scale: Math.max(
           VALUELIMIT.scale[0],
           Math.min(scale, VALUELIMIT.scale[1])
         )
       }
-    })),
+      localStorage.setItem(LSKEY, JSON.stringify(options))
+      return { options }
 
-    setTopLeft: (top:number, left: number) => set(state => ({
-      options: {
+    }),
+
+    setTopLeft: (top:number, left: number) => set(state => {
+
+      const options = {
         ...state.options,
         top: Math.max(
           VALUELIMIT.top[0],
@@ -108,7 +113,10 @@ export const optionStore = createStore<UiStore>()(subscribeWithSelector(
           Math.min(left, VALUELIMIT.left[1])
         )
       }
-    })),
+      localStorage.setItem(LSKEY, JSON.stringify(options))
+      return { options }
+
+    }),
 
     resetOptions: () => set(() => {
       localStorage.setItem(LSKEY, JSON.stringify(init))
