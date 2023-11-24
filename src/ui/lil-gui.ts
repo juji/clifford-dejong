@@ -11,21 +11,17 @@ export default function optionPanel(){
   const { setOptions, options, setPaused } = getState()
 
   
-  gui.add( options, 'attractor', [
-    'clifford',
-    'dejong'
-  ]);
+  gui.add( options, 'attractor', VALUELIMIT.attractor); 
   
-  
-  gui.add( options, 'a', -5, 5);
-  gui.add( options, 'b', -5, 5);
-  gui.add( options, 'c', -5, 5);
-  gui.add( options, 'd', -5, 5);
+  gui.add( options, 'a', VALUELIMIT.a[0], VALUELIMIT.a[1]);
+  gui.add( options, 'b', VALUELIMIT.b[0], VALUELIMIT.b[1]);
+  gui.add( options, 'c', VALUELIMIT.c[0], VALUELIMIT.c[1]);
+  gui.add( options, 'd', VALUELIMIT.d[0], VALUELIMIT.d[1]);
 
   
-  gui.add( options, 'hue', 0, 360);
-  gui.add( options, 'saturation', 0, 100);
-  gui.add( options, 'brightness', 0, 100);
+  gui.add( options, 'hue', VALUELIMIT.hue[0], VALUELIMIT.hue[1]);
+  gui.add( options, 'saturation', VALUELIMIT.saturation[0], VALUELIMIT.saturation[1]);
+  gui.add( options, 'brightness', VALUELIMIT.brightness[0], VALUELIMIT.brightness[1]);
   // gui.addColor( options, 'background', 255);
 
   gui.add( options, 'scale', VALUELIMIT.scale[0], VALUELIMIT.scale[1]);

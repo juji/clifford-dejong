@@ -19,6 +19,15 @@ export type Options = {
 }
 
 export const VALUELIMIT = {
+  attractor: ['clifford', 'dejong'],
+  a: [-5,5],
+  b: [-5,5],
+  c: [-5,5],
+  d: [-5,5],
+  background: [], // ??
+  hue: [0, 360],
+  saturation: [0, 100],
+  brightness: [0, 100],
   scale: [0.001, 5],
   top: [-1, 1],
   left: [-1, 1],
