@@ -199,7 +199,7 @@ footer{
   }
 }
 
-@media (display-mode: fullscreen) {
+@media all and (display-mode: fullscreen) {
   footer{
     padding: 0rem 2rem;
     height: 0px;
