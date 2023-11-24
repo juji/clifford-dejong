@@ -9,6 +9,7 @@ export type Options = {
   b: number
   c: number
   d: number
+  background: number[]
   hue: number
   saturation: number
   brightness: number
@@ -32,6 +33,7 @@ const init: Options = {
   hue: 333,
   saturation: 100,
   brightness: 100,
+  background: [0,0,0],
   scale: 1,
   top: 0,
   left: 0,

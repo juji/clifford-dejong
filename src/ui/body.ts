@@ -6,18 +6,10 @@ export function body(){
   const body = document.querySelector('body') as HTMLElement
 
   subscribe((state) => state.options, (options) => {
-
-    if(options.brightness < 5){
-      body.style.setProperty(
-        '--background-color',
-        '#202020'
-      )
-    }else{
-      body.style.removeProperty(
-        '--background-color'
-      )
-    }
-
+    body.style.setProperty(
+      '--background-color',
+      `rgb(${options.background[0]},${options.background[1]},${options.background[2]})`
+    )
   },{
     fireImmediately: true
   })

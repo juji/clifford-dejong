@@ -16,24 +16,16 @@ function getColorData(
   maxDensity: number,
   h: number,
   s: number,
-  v: number,
-  background: boolean
+  v: number
 ) : number{
   
   const mdens = Math.log(maxDensity)
   const pdens = Math.log(density)
-  let localV = lightnesBezier(pdens / mdens) * v
-
-  // this is manual labour, because i don't have anything better to do
-  // pardon the static value
-  if(v <= 5 && (density/maxDensity) < 0.0025){
-    return background ? 255<<24|0<<16|255<<0|0 : 0
-  }
 
   const [ r, g, b ] = hsv2rgb(
     h,
-    s - saturationBezier(pdens / mdens) * s,
-    localV,
+    s - (saturationBezier(pdens / mdens) * s),
+    (lightnesBezier(pdens / mdens) * v)
   )
   
   return 255 << 24 | b << 16 | g << 8 | r
@@ -57,6 +49,7 @@ export class Context2d {
   itt = 0
   maxItt = 100
   perItt = 100000
+  drawAt = 25
 
   x: number[] = [0];
   y: number[] = [0];
@@ -71,7 +64,6 @@ export class Context2d {
 
   attractor: ((x:number,y:number,a:number,b:number,c:number,d:number) => number[])|null = null
   background = 0
-  black = 255<<24|0<<16|255<<0|0
   maxDensity = 0
   // green = 255<<24|0<<16|255<<8|0
 
@@ -137,7 +129,7 @@ export class Context2d {
     this.reset()
   }
 
-  drawBitmap( background = false ){
+  drawBitmap( background?: boolean ){
 
     let bitmap = this.context.createImageData(this.width, this.height);
     let buf = new ArrayBuffer(bitmap.data.length);
@@ -145,6 +137,12 @@ export class Context2d {
     let data = new Uint32Array(buf);
     
     let dataLen = this.height * this.width
+    const bg = background ? (
+      255<<24 |
+      this.options?.background[2] as number << 16 |
+      this.options?.background[1] as number << 8 |
+      this.options?.background[0] as number
+    ) : this.background
 
     for(let i=0; i<dataLen;i++){
       data[ i ] = this.pixels[ i ] ? (
@@ -155,9 +153,8 @@ export class Context2d {
           this.options?.hue as number,
           this.options?.saturation as number,
           this.options?.brightness as number,
-          background
         )
-      ) : background ? this.black : this.background;
+      ) : bg;
     }
         
     bitmap.data.set(buf8);
@@ -171,7 +168,7 @@ export class Context2d {
     
     if(this.paused && this.itt>=20) return;
     if(this.itt >= this.maxItt) {
-      this.drawBitmap()
+      this.drawBitmap( true )
       this.onFinish && this.onFinish()
       this.reportProgress(100 * this.itt / this.maxItt)
       return;
@@ -181,11 +178,7 @@ export class Context2d {
     this.x = []
     this.y = []
     
-    const itteration = this.paused ? 
-      // Math.min(Math.max(this.perItt / 20,1000),10000) : 
-      5000 :
-      this.perItt
-
+    const itteration = this.paused ? 5000 : this.perItt
     while(n<itteration){
       this.calculate()
       n++
@@ -194,19 +187,21 @@ export class Context2d {
     this.draw()
     
     this.itt++;
-    // if(!(this.itt%100)) console.log(`itt ${this.itt}`)
 
-    this.anim = requestAnimationFrame(() => {
+    if(!this.paused){
       const end = new Date().valueOf() - start
       
       // if this takes more than 150ms
       // lower run per itterration
       // and increase total itteration
-      if(end > 150 && !this.paused){
-        this.maxItt = this.maxItt * 2
-        this.perItt = this.perItt / 2
+      if(end > 500){
+        this.maxItt *= 2
+        this.perItt /= 2
+        this.drawAt = Math.round(this.maxItt/4)
       }
+    }
 
+    this.anim = requestAnimationFrame(() => {
       this.reportProgress(98 * this.itt / this.maxItt)
       this.start()
     })
@@ -256,7 +251,7 @@ export class Context2d {
   draw(){
 
     if(!this.paused &&
-      (this.itt%50 === 0) &&
+      (this.itt%this.drawAt === 0) &&
       this.maxItt !== this.itt
     ){
       this.drawBitmap()

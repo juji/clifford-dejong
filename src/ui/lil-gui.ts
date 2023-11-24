@@ -10,19 +10,23 @@ export default function optionPanel(){
   const { getState, subscribe } = optionStore
   const { setOptions, options, setPaused } = getState()
 
+  
   gui.add( options, 'attractor', [
     'clifford',
     'dejong'
   ]);
-
+  
+  
   gui.add( options, 'a', -5, 5);
   gui.add( options, 'b', -5, 5);
   gui.add( options, 'c', -5, 5);
   gui.add( options, 'd', -5, 5);
 
+  
   gui.add( options, 'hue', 0, 360);
   gui.add( options, 'saturation', 0, 100);
   gui.add( options, 'brightness', 0, 100);
+  // gui.addColor( options, 'background', 255);
 
   gui.add( options, 'scale', VALUELIMIT.scale[0], VALUELIMIT.scale[1]);
   gui.add( options, 'top', VALUELIMIT.top[0], VALUELIMIT.top[1]);
