@@ -46,16 +46,11 @@ export function touchEvents(){
     );
   }
 
-  let pinchX = 0
-  let pinchY = 0
   let distance = 0
   function onPinchStart(e: TouchEvent){
     if(e.touches.length < 2) return;
     e.preventDefault()
     setPaused(true)
-    // Calculate where the fingers have started on the X and Y axis
-    pinchX = (e.touches[0].pageX + e.touches[1].pageX) / 2;
-    pinchY = (e.touches[0].pageY + e.touches[1].pageY) / 2;
     distance = calcDistance(e);
     main && main.addEventListener('touchmove', onPinchMove)
   }
