@@ -15,7 +15,7 @@ export function infoButton(){
       to = setTimeout(() => {
         button.classList.remove('on')
         content?.classList.remove('on')
-      }, 5000)
+      }, 60000)
     }
   })
 }

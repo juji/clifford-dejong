@@ -113,17 +113,9 @@ header svg{
   top: 21px;
   right: 21px;
   
-  & > button{
-    padding: 8px 21px;
-    font-size: 1rem;
-    border-radius: 3px;
-    border: none;
-    cursor: pointer;
-  }
-  
   & > .info-content{
-    background: rgba(0,0,0,0.4);
-    padding: 1rem 2rem;
+    background: rgba(0,0,0,0.8);
+    padding: 2rem;
     position: fixed;
     z-index: 30;
     top: 79px;
@@ -196,6 +188,11 @@ footer{
 
   & a{
     color: var(--footer-color);
+  }
+  /* on chrome mobile the display-mode: fullscreen doesn't work  */
+  &.full-screen{
+    padding: 0rem 2rem;
+    height: 0px;
   }
 }
 
