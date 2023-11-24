@@ -4,7 +4,7 @@
   --input-font-size: 14px;
   --title-height: unset;
   --background-color: rgba(0,0,0,0.8);
-  --title-background-color: rgb(61 61 61 / 50%);
+  --title-background-color: rgb(61 61 61 / 30%);
   --widget-height: 24px;
   --widget-padding: 0 0 0 5px;
   --widget-color: #303030;
@@ -18,9 +18,17 @@
   max-width: 400px;
   width: 100%;
 
+  &.full-screen{
+    bottom: 0px;
+    bottom: 0vh;
+    bottom: 0dvh;
+  }
+
   @media (display-mode: fullscreen) {
     &{
       bottom: 0px;
+      bottom: 0vh;
+      bottom: 0dvh;
     }
   }
 
