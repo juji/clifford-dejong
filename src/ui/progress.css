@@ -7,7 +7,7 @@
   z-index: 100;
   top:0;
   left: 0;
-  height: 2px;
+  height: 3px;
   width: var(--progress);
   background-color: var(--color);
   /* transition: width 500ms; */
