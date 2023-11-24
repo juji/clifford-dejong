@@ -180,7 +180,12 @@ export class Context2d {
     let n = 0
     this.x = []
     this.y = []
-    const itteration = this.paused ? this.perItt / 20 : this.perItt
+    
+    const itteration = this.paused ? 
+      // Math.min(Math.max(this.perItt / 20,1000),10000) : 
+      5000 :
+      this.perItt
+
     while(n<itteration){
       this.calculate()
       n++
@@ -197,7 +202,7 @@ export class Context2d {
       // if this takes more than 150ms
       // lower run per itterration
       // and increase total itteration
-      if(end > 150){
+      if(end > 150 && !this.paused){
         this.maxItt = this.maxItt * 2
         this.perItt = this.perItt / 2
       }
@@ -270,7 +275,8 @@ export class Context2d {
       ctx.fillStyle = `hsla(`+
         `${this.options?.hue},`+
         `${(this.options?.saturation||0)}%,`+
-        `${(this.options?.brightness||0)/3}%, ${this.paused ? '1' : '0.1'})`
+        `${(this.options?.brightness||0)/3}%,`+
+        `${this.paused ? '1' : '0.1'})`
 
       ctx.fill()
       n++

@@ -8,19 +8,10 @@ export function touchEvents(){
 
   if(!window.matchMedia("(any-hover: none)").matches) return;
   
-  const { getState, 
-    // subscribe 
-  } = optionStore
-  const { 
-    // setScale, 
-    setTopLeft, setPaused, options } = getState()
+  const { getState } = optionStore
+  const { setScale, setTopLeft, setPaused, options } = getState()
 
-  let { 
-    // scale, 
-    top, left } = options
-  // subscribe((state) => state.options,(options) => {
-  //   scale = options.scale
-  // })
+  let { scale, top, left } = options
 
   let initX = 0
   let initY = 0
@@ -37,7 +28,7 @@ export function touchEvents(){
   function onTouchMove(e: TouchEvent){
     if(e.touches.length > 1) return;
     e.preventDefault()
-    setPaused(false)
+    setPaused(true)
     const topDelta = (initY - e.touches[0].pageY) / window.innerHeight
     const leftDelta = (initX - e.touches[0].pageX) / window.innerWidth
     setTopLeft(
@@ -47,18 +38,53 @@ export function touchEvents(){
     return false
   }
 
+  // pinch
+  function calcDistance(e: TouchEvent){
+    return Math.hypot(
+      e.touches[0].pageX - e.touches[1].pageX, 
+      e.touches[0].pageY - e.touches[1].pageY
+    );
+  }
+
+  let pinchX = 0
+  let pinchY = 0
+  let distance = 0
+  function onPinchStart(e: TouchEvent){
+    if(e.touches.length < 2) return;
+    e.preventDefault()
+    setPaused(true)
+    // Calculate where the fingers have started on the X and Y axis
+    pinchX = (e.touches[0].pageX + e.touches[1].pageX) / 2;
+    pinchY = (e.touches[0].pageY + e.touches[1].pageY) / 2;
+    distance = calcDistance(e);
+    main && main.addEventListener('touchmove', onPinchMove)
+  }
+
+  function onPinchMove(e: TouchEvent){
+    if(e.touches.length < 2) return;
+    e.preventDefault()
+    setPaused(true)
+    const deltaDistance = calcDistance(e);
+    let touchScale = deltaDistance / distance;
+    setScale(
+      Math.max(scale * touchScale, 0.01)
+    )
+  }
+
   function onTouchEnd(e: TouchEvent){
-    if(e.touches.length > 1) return;
     e.preventDefault()
     setPaused(false)
     const { options } = getState()
     top = options.top
-    left = options.left 
+    left = options.left
+    scale = options.scale
     main && main.removeEventListener('touchmove', onTouchMove)
+    main && main.removeEventListener('touchmove', onPinchMove)
     return false
   }
 
   main.addEventListener('touchstart', onTouchStart)
+  main.addEventListener('touchstart', onPinchStart)
   main.addEventListener('touchend', onTouchEnd)
   
 

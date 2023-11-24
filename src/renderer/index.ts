@@ -51,6 +51,7 @@ export default class Renderer {
   onPlay(){
     if(!this.context) return;
     this.context.paused = false
+    this.context.reset()
   }
 
   onResize(width: number, height: number){
