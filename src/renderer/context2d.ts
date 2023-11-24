@@ -86,6 +86,11 @@ export class Context2d {
     this.pixels = new Array(this.width*this.height).fill(0)
     this.setOptions(options)
     this.onProgress = setProgress
+
+    // for larger screen
+    if(window.innerWidth > 1920){
+      this.maxItt = 1000
+    }
   }
 
   reportProgress(n: number){
