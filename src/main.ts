@@ -42,6 +42,7 @@ if(canvas) {
   // renderer.onFinish(onImageReady)
 
   window.addEventListener('resize', () => {
+    const footerDim = footer.getBoundingClientRect()
     renderer.onResize(
       window.innerWidth,
       window.innerHeight - footerDim.height

@@ -98,8 +98,13 @@ header{
 }
 
 header svg{
-  width: 89px;
-  height: 89px;
+  width: 55px;
+  height: 55px;
+
+  @media screen and (min-width: 323px){
+    width: 89px;
+    height: 89px;
+  }
 }
 
 .info{
@@ -187,8 +192,27 @@ main canvas:active{
 footer{
   padding: 1rem 2rem;
   background-color: #151515;
+  overflow:hidden;
 
   & a{
     color: var(--footer-color);
   }
+}
+
+@media (display-mode: fullscreen) {
+  footer{
+    padding: 0rem 2rem;
+    height: 0px;
+  }
+}
+
+.button-group{
+  position: fixed;
+  top: 21px;
+  right: 21px;
+  display: grid;
+  grid-gap: 13px;
+  z-index: 34;
+  grid-template-columns: auto 48px 48px;
+  grid-template-rows: 1fr;
 }

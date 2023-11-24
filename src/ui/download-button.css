@@ -2998,10 +2998,6 @@
 
 
 .download-button{
-  position: fixed;
-  z-index: 31;
-  top: 21px;
-  right: 78px;
 
   &>a{
 

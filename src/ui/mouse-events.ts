@@ -48,7 +48,7 @@ export function mouseWheel(){
     idle = false
     initMouseDown = { x: e.pageX, y: e.pageY }
     main.addEventListener('mousemove', mouseMoveListener)
-    setPaused(true)
+    // setPaused(true)
     return false
   }
 
@@ -72,6 +72,8 @@ export function mouseWheel(){
     idle = true
     const topDelta = (initMouseDown.y - e.pageY) / window.innerHeight
     const leftDelta = (initMouseDown.x - e.pageX) / window.innerWidth
+    if(!topDelta && !leftDelta) return;
+    
     setTopLeft(
       top - topDelta,
       left - leftDelta

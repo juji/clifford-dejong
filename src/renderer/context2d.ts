@@ -165,9 +165,10 @@ export class Context2d {
   start(){
 
     const start = new Date().valueOf()
-    
+    let draw = false
     if(this.paused && this.itt>=20) return;
     if(this.itt >= this.maxItt) {
+      draw = true
       this.drawBitmap( true )
       this.onFinish && this.onFinish()
       this.reportProgress(100 * this.itt / this.maxItt)
@@ -183,21 +184,26 @@ export class Context2d {
       this.calculate()
       n++
     }
+
+    if(!this.paused &&
+      (this.itt%this.drawAt === 0) &&
+      this.maxItt !== this.itt
+    ){
+      draw = true
+      this.drawBitmap()
+    }
     
     this.draw()
     
     this.itt++;
 
-    if(!this.paused){
+    if(!this.paused && !draw){
       const end = new Date().valueOf() - start
       
-      // if this takes more than 150ms
+      // if this takes more than N[ms]
       // lower run per itterration
-      // and increase total itteration
-      if(end > 500){
-        this.maxItt *= 2
+      if(end > 100){
         this.perItt /= 2
-        this.drawAt = Math.round(this.maxItt/4)
       }
     }
 
@@ -249,13 +255,6 @@ export class Context2d {
   }
 
   draw(){
-
-    if(!this.paused &&
-      (this.itt%this.drawAt === 0) &&
-      this.maxItt !== this.itt
-    ){
-      this.drawBitmap()
-    }
 
     let n = 0;
     const ctx = this.context
