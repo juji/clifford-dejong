@@ -2,7 +2,6 @@
 
 import './index.css'
 import './button.css'
-import './info-button.css'
 
 import { optionStore } from '@/state'
 

@@ -41,7 +41,6 @@ export default function optionPanel(){
 
   gui.onFinishChange( event => {
     if(updateFromOutside) return;
-    console.log('pausing...')
     setPaused(false)
     setOptions(event.object as Partial<Options>)
   })
@@ -63,5 +62,13 @@ export default function optionPanel(){
     },100)
 
   })
+  
+
+  // add button to gui
+  const resetButton = document.createElement('button');
+  resetButton.textContent = 'Reset'
+  resetButton.classList.add('button')
+  resetButton.classList.add('reset-button')
+  gui.$children.appendChild(resetButton)
 
 }

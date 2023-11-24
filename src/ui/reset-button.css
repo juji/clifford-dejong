@@ -1,0 +1,13 @@
+
+
+.reset-button{
+  display: block;
+  text-align: center;
+  box-sizing: border-box;
+  height: auto !important;
+  padding: 1rem;
+  margin: 10px;
+  margin-right: 21px;
+  margin-bottom: 3px;
+  width: calc(100% - 21px) !important;
+}

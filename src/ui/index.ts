@@ -4,52 +4,30 @@ import { progressReport } from './progress'
 import { downloadButton } from './download-button'
 import { footer } from './footer'
 import { body } from './body'
-import { reset } from './reset'
+import { resetButton } from './reset-button'
 import { mouseWheel } from './mouse-events'
 import { touchEvents } from './touch-events'
 import { fullScreenButton } from './full-screen'
+import { infoButton } from './info-button'
 
 export function ui(){
-
-  const button = document.querySelector('button.info-button')
-  const content = document.querySelector('.info-content')
-
-  let to: ReturnType<typeof setTimeout>
-  button?.addEventListener('click', () => { 
-    
-    button.classList.toggle('on')
-    content?.classList.toggle('on')
-    to && clearTimeout(to)
-    
-    if(content?.classList.contains('on')) {
-      to = setTimeout(() => {
-        button.classList.remove('on')
-        content?.classList.remove('on')
-      }, 5000)
-    }
-  })
-
-  // setProgress
-  progressReport()
-
-  //
-  footer()
-  body()
-
-  // download button
-  downloadButton()
-
+  
   // option panel
   optionPanel()
-
-  // reset button
-  reset()
+  
+  //
+  progressReport()
+  footer()
+  body()
+  
+  // buttons
+  infoButton()
+  downloadButton()
+  resetButton()
+  fullScreenButton()
 
   //
   mouseWheel()
   touchEvents()
-
-  //
-  fullScreenButton()
 
 }

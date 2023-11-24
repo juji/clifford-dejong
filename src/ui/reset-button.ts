@@ -1,7 +1,8 @@
+import './reset-button.css'
 import { optionStore } from '@/state'
 
 
-export function reset(){
+export function resetButton(){
 
   const { getState } = optionStore
   const { resetOptions, setPaused } = getState()

@@ -9,6 +9,8 @@
   --widget-padding: 0 0 0 5px;
   --widget-color: #303030;
 
+  /* outline: 1px solid red; */
+
   top: auto;
   bottom: 56px; /* 56 is the height of footer */
   right: auto;
