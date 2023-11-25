@@ -209,8 +209,8 @@ export class Context2d {
       // lower run per itterration
       if(end > 100){
         this.perItt /= 2
-        this.maxItt *= 2
-        this.drawAt *= 2
+        this.maxItt = Math.round(this.maxItt * 1.5)
+        this.drawAt = Math.round(this.drawAt * 1.5)
       }
     }
 
