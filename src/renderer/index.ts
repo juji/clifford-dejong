@@ -33,7 +33,7 @@ export default class Renderer {
 
     this.context.onFinish = () => {
       this.setImage && this.setImage(
-        this.canvas.toDataURL('image/png')
+        this.canvas.toDataURL('image/jpeg')
       )
     }
 
