@@ -1,14 +1,14 @@
 import { optionStore } from '@/state'
 import { getHsl } from './utils'
 
-export function footer(){
+export function link(){
   
   const { subscribe } = optionStore
-  const footer = document.querySelector('footer') as HTMLElement
+  const html = document.querySelector('html') as HTMLElement
 
   subscribe((state) => state.options, (options) => {
-    footer && footer.style.setProperty(
-      '--footer-color', 
+    html && html.style.setProperty(
+      '--link-color', 
       getHsl(options)
     )
   },{

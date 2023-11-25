@@ -2,7 +2,7 @@
 :root {
   --logo-fg: #fff;
   --logo-bg: #000;
-  --footer-color: hsl(333,100%,50%);
+  --link-color: hsl(333,100%,50%);
 
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -55,6 +55,10 @@ body{
   background-color: var(--background-color);
   transition: background-color 200ms;
   touch-action: none;
+}
+
+a{
+  color: var(--link-color);
 }
 
 .noscript{
@@ -113,7 +117,7 @@ header svg{
 
 .info{
   position: fixed;
-  z-index: 30;
+  z-index: 1002;
   top: 21px;
   right: 21px;
   
@@ -190,9 +194,6 @@ footer{
   background-color: #151515;
   overflow:hidden;
 
-  & a{
-    color: var(--footer-color);
-  }
   /* on chrome mobile the display-mode: fullscreen doesn't work  */
   &.full-screen{
     padding: 0rem 2rem;

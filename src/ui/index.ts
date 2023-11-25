@@ -2,7 +2,7 @@
 import optionPanel from './lil-gui'
 import { progressReport } from './progress'
 import { downloadButton } from './download-button'
-import { footer } from './footer'
+import { link } from './link'
 import { body } from './body'
 import { resetButton } from './reset-button'
 import { mouseWheel } from './mouse-events'
@@ -17,7 +17,7 @@ export function ui(){
   
   //
   progressReport()
-  footer()
+  link()
   body()
   
   // buttons
