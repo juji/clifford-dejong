@@ -7,10 +7,11 @@ export function detectWebGL() {
 
   // Get WebGLRenderingContext from canvas element.
   const gl = canvas.getContext("webgl");
+  const support = gl instanceof WebGLRenderingContext
   canvas.remove()
 
   // Report the result.
-  return gl instanceof WebGLRenderingContext
-      ? "Congratulations! Your browser supports WebGL."
-      : "Failed. Your browser or device may not support WebGL.";
+  return support
+      // ? "Congratulations! Your browser supports WebGL."
+      // : "Failed. Your browser or device may not support WebGL.";
 }

@@ -3,6 +3,6 @@
 Wallpaper creator for dejong & clifford attractor ....
 
 
-[https://clifford-dejong.jujiplay.com/](https://clifford-dejong.jujiplay.com/)
+[https://wallpaper.jujiplay.com/](https://wallpaper.jujiplay.com/)
 
 Deployed in [https://cloudflare.com/](https://cloudflare.com/)
