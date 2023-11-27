@@ -55,13 +55,9 @@ export default class Renderer {
   }
 
   onResize(width: number, height: number){
-
     this.canvas.width = width
     this.canvas.height = height
-    this.context && this.context.onResize(
-      this.canvas
-    )
-
+    this.context && this.context.onResize()
   }
 
 }

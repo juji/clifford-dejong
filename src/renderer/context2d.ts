@@ -88,7 +88,7 @@ export class Context2d {
     this.onProgress = setProgress
 
     // for larger screen
-    if(window.innerWidth > 1920){
+    if(this.width > 1920){
       this.maxItt = 1000
     }
   }
@@ -112,6 +112,11 @@ export class Context2d {
     this.y = [0]
     this.itt = 0
 
+    // for larger screen
+    if(this.width > 1920){
+      this.maxItt = 1000
+    }
+
     this.context.setTransform(1,0,0,1,0,0)
     this.context.clearRect(0, 0, this.width, this.height)
     this.scaleRatio = Math.max(0.001, this.options?.scale as number)
@@ -128,9 +133,9 @@ export class Context2d {
 
   }
   
-  onResize( canvas: HTMLCanvasElement ){
-    this.width = canvas.width
-    this.height = canvas.height
+  onResize(){
+    this.width = this.context.canvas.width
+    this.height = this.context.canvas.height
     this.reset()
   }
 
