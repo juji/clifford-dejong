@@ -1,12 +1,10 @@
-import { Context2d } from './context2d'
-import { type Options } from '@/state'
+import { Context2d } from './context2d';
+import { type Options } from '@/state';
 
 export default class Renderer {
-
-  canvas: HTMLCanvasElement
-  context: Context2d|null = null
-  setImage: (img: string|null) => void | null
-  
+  canvas: HTMLCanvasElement;
+  context: Context2d | null = null;
+  setImage: (img: string | null) => void | null;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -14,50 +12,34 @@ export default class Renderer {
     height: number,
     options: Options,
     setProgress: (num: number) => void,
-    setImage: (img: string|null) => void
-  ){
+    setImage: (img: string | null) => void
+  ) {
+    this.canvas = canvas;
+    this.canvas.width = width;
+    this.canvas.height = height;
+    this.setImage = setImage;
 
-    this.canvas = canvas
-    this.canvas.width = width
-    this.canvas.height = height
-    this.setImage = setImage
-    this.context = new Context2d(
-      this.canvas, 
-      options,
-      setProgress
-    )
-
-    this.context.onStart = () => {
-      this.setImage && this.setImage(null)
-    }
-
-    this.context.onFinish = () => {
-      this.setImage && this.setImage(
-        this.canvas.toDataURL('image/jpeg')
-      )
-    }
-
+    this.context = new Context2d(this.canvas, options, setProgress);
   }
 
-  onUpdate(options: Options){
+  onUpdate(options: Options) {
     this.context && this.context.setOptions(options)
   }
 
-  onPaused(){
+  onPaused() {
     if(!this.context) return;
     this.context.paused = true
   }
 
-  onPlay(){
+  onPlay() {
     if(!this.context) return;
     this.context.paused = false
     this.context.reset()
   }
 
-  onResize(width: number, height: number){
+  onResize(width: number, height: number) {
     this.canvas.width = width
     this.canvas.height = height
     this.context && this.context.onResize()
   }
-
 }
