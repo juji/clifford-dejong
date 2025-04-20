@@ -9,7 +9,7 @@ type RenderingContext = Context2d | ContextWebGL;
 export default class Renderer {
   canvas: HTMLCanvasElement;
   context: RenderingContext | null = null; // Use the union type
-  private currentRenderMethod: 'original2d' | 'points2d' | 'modernWebGL'; // Store the current method
+  private currentRenderMethod: 'original' | 'direct2d' | 'modernWebGL'; // <-- Corrected type
   // Store callbacks for potential re-initialization (though we'll start with reload message)
   private setProgress: (num: number) => void;
   private setFinish: () => void;
