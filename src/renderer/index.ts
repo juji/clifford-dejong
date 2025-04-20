@@ -46,7 +46,7 @@ export default class Renderer {
 
     const method = options.renderMethod;
 
-    if (method === 'original2d' || method === 'points2d') {
+    if (method === 'original' || method === 'points2d') { // <-- Changed from original2d
       console.log(`Initializing 2D Canvas renderer (method: ${method}).`);
       this.context = new Context2d(this.canvas, options, this.setProgress, this.setFinish, this.setStart);
     } else { // method === 'modernWebGL'

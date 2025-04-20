@@ -630,9 +630,9 @@ export class ContextWebGL {
 
     // --- Enable Blending ---
     gl.enable(gl.BLEND);
-    // Additive blending seems appropriate for the desired effect
-    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE); // Simpler additive
+    // Use simpler additive blending for brightness accumulation
+    // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE); // Simpler additive
 
     // --- Bind Buffers and Attributes ---
     gl.bindBuffer(gl.ARRAY_BUFFER, this.pointIndexBuffer);
