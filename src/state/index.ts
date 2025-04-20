@@ -5,7 +5,7 @@ const LSKEY = 'juji-cd-data'
 
 export type Options = {
   attractor: 'clifford'|'dejong',
-  renderMethod: 'original' | 'points2d' | 'modernWebGL'; // <-- Renamed from original2d
+  renderMethod: 'original' | 'direct2d' | 'modernWebGL'; // <-- Renamed from points2d
   a: number
   b: number
   c: number
@@ -21,7 +21,7 @@ export type Options = {
 
 export const VALUELIMIT = {
   attractor: ['clifford', 'dejong'],
-  renderMethod: ['original', 'points2d', 'modernWebGL'], // <-- Renamed from original2d
+  renderMethod: ['original', 'direct2d', 'modernWebGL'], // <-- Renamed from points2d
   a: [-5,5],
   b: [-5,5],
   c: [-5,5],
