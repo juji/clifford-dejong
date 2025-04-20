@@ -5,8 +5,7 @@ const LSKEY = 'juji-cd-data'
 
 export type Options = {
   attractor: 'clifford'|'dejong',
-  renderStrategy: 'original' | 'updated'; // <-- Keep this for now, might remove later
-  renderMode: 'original' | 'modern'; // <-- Add new render mode
+  renderMethod: 'original2d' | 'points2d' | 'modernWebGL'; // <-- Add new method
   a: number
   b: number
   c: number
@@ -22,8 +21,7 @@ export type Options = {
 
 export const VALUELIMIT = {
   attractor: ['clifford', 'dejong'],
-  renderStrategy: ['original', 'updated'], // <-- Keep this for now
-  renderMode: ['original', 'modern'], // <-- Add limits for render mode
+  renderMethod: ['original2d', 'points2d', 'modernWebGL'], // <-- Add limits for method
   a: [-5,5],
   b: [-5,5],
   c: [-5,5],
@@ -39,8 +37,7 @@ export const VALUELIMIT = {
 
 const init: Options = {
   attractor: 'clifford',
-  renderStrategy: 'original', // <-- Keep this for now
-  renderMode: 'original', // <-- Add default render mode
+  renderMethod: 'modernWebGL', // <-- Add default method (modernWebGL)
   a: 2,
   b: -2,
   c: 1,

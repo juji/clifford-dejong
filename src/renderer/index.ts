@@ -9,7 +9,7 @@ type RenderingContext = Context2d | ContextWebGL;
 export default class Renderer {
   canvas: HTMLCanvasElement;
   context: RenderingContext | null = null; // Use the union type
-  private currentRenderMode: 'original' | 'modern'; // Store the current mode
+  private currentRenderMethod: 'original2d' | 'points2d' | 'modernWebGL'; // Store the current method
   // Store callbacks for potential re-initialization (though we'll start with reload message)
   private setProgress: (num: number) => void;
   private setFinish: () => void;
@@ -32,7 +32,7 @@ export default class Renderer {
     this.setFinish = setFinish;
     this.setStart = setStart;
 
-    this.currentRenderMode = options.renderMode; // Store initial mode
+    this.currentRenderMethod = options.renderMethod; // Store initial method
     this._initializeContext(options); // Call private method to create context
   }
 
@@ -44,39 +44,41 @@ export default class Renderer {
         this.context = null;
     }
 
-    if (options.renderMode === 'original') {
-      console.log("Initializing 2D Canvas renderer (original mode).");
+    const method = options.renderMethod;
+
+    if (method === 'original2d' || method === 'points2d') {
+      console.log(`Initializing 2D Canvas renderer (method: ${method}).`);
       this.context = new Context2d(this.canvas, options, this.setProgress, this.setFinish, this.setStart);
-    } else { // renderMode === 'modern'
+    } else { // method === 'modernWebGL'
       const webglSupported = detectWebGL(this.canvas);
-      console.log(`Modern mode selected. WebGL Supported: ${webglSupported}`);
+      console.log(`ModernWebGL method selected. WebGL Supported: ${webglSupported}`);
       if (webglSupported) {
         try {
-          console.log("Initializing WebGL renderer (modern mode).");
+          console.log("Initializing WebGL renderer.");
           this.context = new ContextWebGL(this.canvas, options, this.setProgress, this.setFinish, this.setStart);
         } catch (error) {
           console.error("Failed to initialize WebGL context:", error);
-          console.log("Falling back to 2D Canvas renderer.");
-          this.context = new Context2d(this.canvas, options, this.setProgress, this.setFinish, this.setStart);
+          console.log("Falling back to 2D Canvas renderer (points2d).");
+          // Fallback to points2d when WebGL fails
+          const fallbackOptions = { ...options, renderMethod: 'points2d' as const };
+          this.context = new Context2d(this.canvas, fallbackOptions, this.setProgress, this.setFinish, this.setStart);
         }
       } else {
-        console.log("WebGL not supported, using 2D Canvas renderer even in modern mode.");
-        this.context = new Context2d(this.canvas, options, this.setProgress, this.setFinish, this.setStart);
+        console.log("WebGL not supported, falling back to 2D Canvas renderer (points2d).");
+        // Fallback to points2d when WebGL not supported
+        const fallbackOptions = { ...options, renderMethod: 'points2d' as const };
+        this.context = new Context2d(this.canvas, fallbackOptions, this.setProgress, this.setFinish, this.setStart);
       }
     }
   }
 
   onUpdate(options: Options) {
-    if (options.renderMode !== this.currentRenderMode) {
-      console.warn(`Render mode changed from '${this.currentRenderMode}' to '${options.renderMode}'. Please reload the page for the change to take full effect.`);
-      // Update the current mode, but don't dynamically switch contexts yet
-      this.currentRenderMode = options.renderMode;
-      // We still call setOptions in case the fallback 2D context needs the update
-      // or if other non-mode options changed simultaneously.
-      // Ideally, we'd re-initialize fully here, but that's more complex.
-      this._initializeContext(options); // Attempt re-initialization
+    if (options.renderMethod !== this.currentRenderMethod) {
+      console.warn(`Render method changed from '${this.currentRenderMethod}' to '${options.renderMethod}'. Re-initializing context.`);
+      this.currentRenderMethod = options.renderMethod;
+      this._initializeContext(options); // Re-initialize with new options
     } else {
-      // Only call setOptions if the mode hasn't changed
+      // Only call setOptions if the method hasn't changed
       this.context?.setOptions(options);
     }
   }

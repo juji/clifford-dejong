@@ -10,9 +10,10 @@ export default function optionPanel(){
   const { getState, subscribe } = optionStore
   const { setOptions, options, setPaused } = getState()
 
-  gui.add( options, 'renderMode', VALUELIMIT.renderMode); // <-- Add render mode control
+  // gui.add( options, 'renderMode', VALUELIMIT.renderMode); // <-- Remove render mode control
+  gui.add( options, 'renderMethod', VALUELIMIT.renderMethod); // <-- Add render method control
   gui.add( options, 'attractor', VALUELIMIT.attractor); 
-  gui.add( options, 'renderStrategy', VALUELIMIT.renderStrategy); // <-- Keep this for now
+  // gui.add( options, 'renderStrategy', VALUELIMIT.renderStrategy); // <-- Remove render strategy control
   
   gui.add( options, 'a', VALUELIMIT.a[0], VALUELIMIT.a[1]);
   gui.add( options, 'b', VALUELIMIT.b[0], VALUELIMIT.b[1]);

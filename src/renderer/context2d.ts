@@ -239,19 +239,31 @@ export class Context2d {
 
     // --- Draw ---
     // Decide whether to draw the full bitmap (less frequent) or just new points
-    if (!this.paused && (this.itt % this.drawBitmapInterval === 0)) {
-      this.drawBitmap(false); // Draw intermediate bitmap (transparent background)
-      needsBitmapDraw = true;
-    } else {
-      // Draw only the points calculated in this frame
-      this.drawPoints();
+    // --- MODIFIED LOGIC based on renderMethod ---
+    if (this.options.renderMethod === 'points2d') { // <-- Check for 'points2d'
+        // Always draw points if method is 'points2d'
+        this.drawPoints();
+        needsBitmapDraw = false; // Ensure performance adjustment logic doesn't skip
+    } else { // Default to 'original2d' strategy (bitmap accumulation)
+        if (!this.paused && (this.itt % this.drawBitmapInterval === 0)) {
+            this.drawBitmap(false); // Draw intermediate bitmap (transparent background)
+            needsBitmapDraw = true;
+        } else {
+            // Draw only the points calculated in this frame
+            this.drawPoints();
+            needsBitmapDraw = false; // Ensure performance adjustment logic doesn't skip
+        }
     }
+    // --- END MODIFIED LOGIC ---
 
     // --- Update State and Loop ---
     this.itt++;
 
     // Dynamically adjust points per iteration based on performance
-    if (!this.paused && !needsBitmapDraw) { // Only adjust if we didn't do a full bitmap draw
+    // --- MODIFIED CONDITION based on renderMethod ---
+    // Only adjust if we didn't do a full bitmap draw OR if we are in 'points2d' mode
+    if (!this.paused && (!needsBitmapDraw || this.options.renderMethod === 'points2d')) { // <-- Check for 'points2d'
+    // --- END MODIFIED CONDITION ---
       const frameEndTime = performance.now();
       const frameDuration = frameEndTime - frameStartTime;
 
