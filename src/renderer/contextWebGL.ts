@@ -1,6 +1,4 @@
 import { type Options } from '@/state';
-// Import attractors
-import { clifford, dejong } from './attractors';
 // Import shader source code as strings using Vite's raw loader
 import passthroughVertShaderSource from './shaders/passthrough.vert?raw';
 import calculatorFragShaderSource from './shaders/calculator.frag?raw';
@@ -16,44 +14,6 @@ const LARGE_SCREEN_THRESHOLD_WIDTH = 1920;
 const BASE_SCALE = 150;
 
 // --- Shaders ---
-
-// Vertex Shader (remains the same)
-const vsSource = `
-  attribute vec2 aVertexPosition;
-  uniform vec2 uResolution;
-  uniform float uPointSize;
-
-  void main() {
-    vec2 zeroToOne = aVertexPosition / uResolution;
-    vec2 zeroToTwo = zeroToOne * 2.0;
-    vec2 clipSpace = zeroToTwo - 1.0;
-    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-    gl_PointSize = uPointSize;
-  }
-`;
-
-// Fragment Shader (Original single-pass version)
-const fsSource = `
-  precision mediump float;
-
-  uniform vec3 uBaseHSV; // Base color (H:[0,1], S:[0,1], V:[0,1])
-  uniform float uAlpha;   // Base alpha
-
-  // Function to convert HSV to RGB
-  vec3 hsv2rgb(vec3 c) {
-      vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-      vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-      return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-  }
-
-  void main() {
-    // Calculate color based on base HSV
-    vec3 rgb = hsv2rgb(uBaseHSV);
-
-    // Output the final color with the specified alpha
-    gl_FragColor = vec4(rgb, uAlpha);
-  }
-`;
 
 // Helper function to check and log GL errors
 function checkGLError(gl: WebGLRenderingContext | WebGL2RenderingContext, location: string) {
@@ -187,7 +147,7 @@ export class ContextWebGL {
 
   // Iteration tracking
   private itt: number = 0;
-  private maxItt: number = 200; // TODO: Make this dynamic like in Context2d
+  private maxItt: number = DEFAULT_MAX_ITT; // Initialize with default
 
   // Callbacks
   private onProgress: ((n: number) => void) | null = null;
@@ -201,11 +161,15 @@ export class ContextWebGL {
     setFinish?: () => void,
     setStart?: () => void
   ) {
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (!gl) {
+    // --- Get Context ---
+    const glContext = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (!glContext) {
       throw new Error('WebGL not supported');
     }
-    this.gl = gl;
+    // Explicitly cast during assignment
+    this.gl = glContext as (WebGLRenderingContext | WebGL2RenderingContext);
+    checkGLError(this.gl, 'Context Creation');
+
     this.options = options;
     this.width = canvas.width;
     this.height = canvas.height;
@@ -214,6 +178,19 @@ export class ContextWebGL {
     this.onStart = setStart || null;
 
     console.log('Initializing WebGL Context...');
+
+    // --- Check for Extensions ---
+    this.floatTexturesExt = this.gl.getExtension('OES_texture_float');
+    if (!this.floatTexturesExt) {
+        // Check for WebGL2 support for float textures
+        if (!(this.gl instanceof WebGL2RenderingContext && this.gl.getExtension('EXT_color_buffer_float'))) {
+            throw new Error('Floating point textures not supported. Needed for calculations.');
+        }
+        console.log('Using WebGL2 float texture support.');
+    } else {
+        console.log('Using OES_texture_float extension.');
+    }
+    checkGLError(this.gl, 'After Extensions');
 
     // --- Initialize Shaders and Programs ---
     console.log('Compiling and linking calculation program...');
@@ -231,6 +208,7 @@ export class ContextWebGL {
 
     // --- Get Attribute/Uniform Locations ---
     this.getLocations();
+    checkGLError(this.gl, 'After Get Locations');
     if (!this.calcLocations || !this.pointRenderLocations) { // Check new locations
         throw new Error('Failed to get shader locations.');
     }
@@ -238,10 +216,21 @@ export class ContextWebGL {
 
     // --- Setup Buffers ---
     this.setupBuffers(); // Will now create pointIndexBuffer too
+    checkGLError(this.gl, 'After Setup Buffers');
     if (!this.quadVertexBuffer || !this.pointIndexBuffer) { // Check new buffer
         throw new Error('Failed to setup buffers.');
     }
     console.log('WebGL buffers created.');
+
+    // --- Setup Textures & Framebuffers ---
+    this.setupTextures(); // Implement this
+    checkGLError(this.gl, 'After Setup Textures');
+    this.setupFramebuffers(); // Implement this
+    checkGLError(this.gl, 'After Setup Framebuffers');
+    if (!this.positionTextureA || !this.positionTextureB || !this.fboA || !this.fboB) {
+        throw new Error('Failed to setup textures or framebuffers.');
+    }
+    console.log('WebGL textures and framebuffers created.');
 
     // --- Setup Initial GL State ---
     this.gl.viewport(0, 0, this.width, this.height);
@@ -251,8 +240,19 @@ export class ContextWebGL {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     console.log('Initial WebGL state set.');
 
-    // TODO: Setup textures and Framebuffer Objects (FBOs) for ping-pong calculation
-    // TODO: Start rendering loop
+    // --- Setup Initial GL State & Ping-Pong ---
+    // Set initial ping-pong state
+    this.readTexture = this.positionTextureA;
+    this.writeTexture = this.positionTextureB;
+    this.writeFBO = this.fboB;
+    checkGLError(this.gl, 'After Initial GL State');
+
+    // --- Set Initial Max Iterations ---
+    this.updateMaxIterations(); // Implement this
+
+    // --- Update Uniforms ---
+    this.updateAllUniforms(); // Set initial uniforms
+    checkGLError(this.gl, 'After Initial Uniforms');
 
     // --- Start Rendering ---
     this.onStart && this.onStart();
@@ -325,8 +325,126 @@ export class ContextWebGL {
     gl.bindBuffer(gl.ARRAY_BUFFER, null); // Unbind
   }
 
-  // ... rest of the class methods (setOptions, reset, onResize, pause, play) ...
-  // Note: These methods will need to be updated to interact with WebGL state later.
+  /** Sets up the textures needed for position storage and ping-ponging */
+  private setupTextures(): void {
+    const gl = this.gl;
+    const initialData = this.createInitialPositionData();
+
+    this.positionTextureA = this.createAndSetupTexture(initialData);
+    // Create texture B initially empty (or with zeros)
+    this.positionTextureB = this.createAndSetupTexture(new Float32Array(NUM_POINTS * 4));
+
+    // Unbind texture after setup
+    gl.bindTexture(gl.TEXTURE_2D, null);
+  }
+
+  /** Creates and configures a single floating-point texture */
+  private createAndSetupTexture(initialData: Float32Array | null): WebGLTexture | null {
+    const gl = this.gl;
+    const texture = gl.createTexture();
+    if (!texture) {
+        console.error("Failed to create texture");
+        return null;
+    }
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    // Set texture parameters
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); // Use NEAREST for data textures
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    // Upload the texture data
+    gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,                     // level
+        (gl instanceof WebGL2RenderingContext) ? gl.RGBA32F : gl.RGBA, // internal format (use high precision float if WebGL2)
+        POINTS_TEXTURE_SIZE,   // width
+        POINTS_TEXTURE_SIZE,   // height
+        0,                     // border (must be 0)
+        gl.RGBA,               // format
+        gl.FLOAT,              // type (requires OES_texture_float or WebGL2/EXT_color_buffer_float)
+        initialData            // data
+    );
+
+    checkGLError(gl, 'Texture Creation/Setup');
+    return texture;
+  }
+
+  /** Generates initial random positions for the points */
+  private createInitialPositionData(): Float32Array {
+    const data = new Float32Array(NUM_POINTS * 4); // RGBA for each point
+    for (let i = 0; i < NUM_POINTS; i++) {
+        // Initial positions spread randomly around the center (-1 to 1 range is typical for attractors)
+        data[i * 4 + 0] = Math.random() * 2 - 1; // R (x)
+        data[i * 4 + 1] = Math.random() * 2 - 1; // G (y)
+        data[i * 4 + 2] = 0;                     // B (unused, maybe velocity x?)
+        data[i * 4 + 3] = 0;                     // A (unused, maybe velocity y?)
+    }
+    return data;
+  }
+
+  /** Creates Framebuffer Objects (FBOs) to render into textures */
+  private setupFramebuffers(): void {
+    const gl = this.gl;
+
+    this.fboA = this.createAndSetupFramebuffer(this.positionTextureA);
+    checkGLError(gl, 'Setup FBO A');
+    this.fboB = this.createAndSetupFramebuffer(this.positionTextureB);
+    checkGLError(gl, 'Setup FBO B');
+
+    // Unbind FBO after setup
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  }
+
+  /** Creates and configures a single FBO attached to a texture */
+  private createAndSetupFramebuffer(texture: WebGLTexture | null): WebGLFramebuffer | null {
+    if (!texture) return null;
+    const gl = this.gl;
+    const fbo = gl.createFramebuffer();
+    if (!fbo) {
+        console.error("Failed to create framebuffer");
+        return null;
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+
+    // Attach the texture as the FBO's color attachment
+    gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0, // attachment point
+        gl.TEXTURE_2D,        // texture target
+        texture,              // texture
+        0                     // mip level
+    );
+
+    // Check FBO status
+    const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if (status !== gl.FRAMEBUFFER_COMPLETE) {
+        console.error(`Framebuffer incomplete: ${status.toString(16)}`);
+        gl.deleteFramebuffer(fbo);
+        return null;
+    }
+
+    return fbo;
+  }
+
+  /** Swaps the read/write textures and FBOs for ping-ponging */
+  private swapPingPong(): void {
+    // Swap textures
+    let tempTexture = this.readTexture;
+    this.readTexture = this.writeTexture;
+    this.writeTexture = tempTexture;
+
+    // Swap FBOs
+    let tempFBO = this.writeFBO; // We only need to swap the FBO we write to
+    this.writeFBO = (tempFBO === this.fboA) ? this.fboB : this.fboA;
+  }
+
+  /** Update max iterations based on canvas size */
+  private updateMaxIterations(): void {
+      this.maxItt = this.width > LARGE_SCREEN_THRESHOLD_WIDTH ? LARGE_SCREEN_MAX_ITT : DEFAULT_MAX_ITT;
+      console.log(`Set max iterations to: ${this.maxItt}`);
+  }
 
   setOptions(options: Options): void {
     const needsFullReset = options.attractor !== this.options.attractor;
@@ -344,9 +462,32 @@ export class ContextWebGL {
     this.animFrameId = 0;
     this.itt = 0;
     console.log('Resetting WebGL Context...');
-    // TODO: Reset WebGL state (textures, framebuffers etc.)
-    // TODO: Update uniforms based on new options
-    // TODO: Restart rendering loop
+
+    // Re-initialize position textures
+    const initialPositions = this.createInitialPositionData();
+    const gl = this.gl;
+    gl.bindTexture(gl.TEXTURE_2D, this.positionTextureA);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, POINTS_TEXTURE_SIZE, POINTS_TEXTURE_SIZE, gl.RGBA, gl.FLOAT, initialPositions);
+    checkGLError(gl, 'Reset Texture A');
+    gl.bindTexture(gl.TEXTURE_2D, this.positionTextureB);
+    // Clear texture B by uploading zeros
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, POINTS_TEXTURE_SIZE, POINTS_TEXTURE_SIZE, gl.RGBA, gl.FLOAT, new Float32Array(NUM_POINTS * 4));
+    checkGLError(gl, 'Reset Texture B');
+    gl.bindTexture(gl.TEXTURE_2D, null);
+
+    // Reset ping-pong state
+    this.readTexture = this.positionTextureA;
+    this.writeTexture = this.positionTextureB;
+    this.writeFBO = this.fboB;
+
+    // Update max iterations
+    this.updateMaxIterations();
+
+    // Update all uniforms based on current options
+    this.updateAllUniforms();
+    checkGLError(gl, 'Reset Uniforms');
+
+    // Restart rendering loop
     this.onStart && this.onStart();
     this.startRenderingLoop();
   }
@@ -659,10 +800,4 @@ export class ContextWebGL {
 
       // Note: positionTextureUniform is set during the render step
   }
-
-  // TODO: Add private methods for rendering loop, buffer/texture setup etc.
-  // private startRenderingLoop(): void { ... }
-  // private setupTextures(): void { ... }
-  // private setupFramebuffers(): void { ... }
-  // private getUniformLocations(): void { ... }
 }

@@ -146,10 +146,10 @@ export class Context2d {
     this.backgroundColorPacked = (255 << 24) | (bgB << 16) | (bgG << 8) | bgR;
 
     // Reset canvas transform and clear
-    this.context.setTransform(1, 0, 0, 1, 0, 0);
-    this.context.clearRect(0, 0, this.width, this.height);
+    this.context!.setTransform(1, 0, 0, 1, 0, 0);
+    this.context!.clearRect(0, 0, this.width, this.height);
     // Apply new translation for centering
-    this.context.translate(this.centerX, this.centerY);
+    this.context!.translate(this.centerX, this.centerY);
   }
 
   /** Reports progress via the callback */
@@ -176,8 +176,8 @@ export class Context2d {
   /** Handles canvas resize events */
   onResize(): void {
     // Update dimensions from canvas
-    this.width = this.context.canvas.width;
-    this.height = this.context.canvas.height;
+    this.width = this.context!.canvas.width;
+    this.height = this.context!.canvas.height;
     // Re-allocate pixel buffer for new size
     this.pixels = new Array(this.width * this.height).fill(0);
     // Reset and restart simulation with new dimensions
@@ -186,7 +186,7 @@ export class Context2d {
 
   /** Draws the complete attractor based on the pixel density map */
   private drawBitmap(finalRender: boolean = false): void {
-    const imageData = this.context.createImageData(this.width, this.height);
+    const imageData = this.context!.createImageData(this.width, this.height);
     // Use ArrayBuffer and typed arrays for performance
     const buf = new ArrayBuffer(imageData.data.length);
     const buf8 = new Uint8ClampedArray(buf); // Clamped byte view
@@ -206,10 +206,10 @@ export class Context2d {
 
     imageData.data.set(buf8); // Copy data back to ImageData
     // Draw the bitmap relative to the canvas origin (ignoring translation)
-    this.context.save();
-    this.context.setTransform(1, 0, 0, 1, 0, 0); // Reset transform for putImageData
-    this.context.putImageData(imageData, 0, 0);
-    this.context.restore(); // Restore translation
+    this.context!.save();
+    this.context!.setTransform(1, 0, 0, 1, 0, 0); // Reset transform for putImageData
+    this.context!.putImageData(imageData, 0, 0);
+    this.context!.restore(); // Restore translation
   }
 
   /** Main animation loop */
@@ -321,7 +321,7 @@ export class Context2d {
 
   /** Draws the points calculated in the current frame */
   private drawPoints(): void {
-    const ctx = this.context;
+    const ctx = this.context!;
     const numPoints = this.currentFramePointsX.length;
 
     // Set fill style (low opacity for accumulation effect, unless paused)
