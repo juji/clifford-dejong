@@ -5,7 +5,7 @@ const LSKEY = 'juji-cd-data'
 
 export type Options = {
   attractor: 'clifford'|'dejong',
-  renderMethod: 'original' | 'direct2d' | 'modernWebGL'; // <-- Renamed from points2d
+  renderMethod: 'original' | 'coGem-21-apr' | 'Crimson Void'; // <-- Renamed from direct2d
   a: number
   b: number
   c: number
@@ -21,7 +21,7 @@ export type Options = {
 
 export const VALUELIMIT = {
   attractor: ['clifford', 'dejong'],
-  renderMethod: ['original', 'direct2d', 'modernWebGL'], // <-- Renamed from points2d
+  renderMethod: ['original', 'coGem-21-apr', 'Crimson Void'], // <-- Renamed from direct2d
   a: [-5,5],
   b: [-5,5],
   c: [-5,5],
@@ -37,7 +37,7 @@ export const VALUELIMIT = {
 
 const init: Options = {
   attractor: 'clifford',
-  renderMethod: 'modernWebGL', // Default remains modernWebGL
+  renderMethod: 'Crimson Void', // <-- Renamed from modernWebGL
   a: 2,
   b: -2,
   c: 1,
@@ -96,6 +96,11 @@ function getInit(){
     baseOptions.renderMethod = methodFromUrl;
   } else {
     console.log('No valid renderMethod in URL, using value from localStorage or default:', baseOptions.renderMethod);
+    // Ensure the default/localStorage value is also valid
+    if (!VALUELIMIT.renderMethod.includes(baseOptions.renderMethod)) {
+      console.warn(`Invalid renderMethod '${baseOptions.renderMethod}' found in localStorage/default, falling back to '${init.renderMethod}'.`);
+      baseOptions.renderMethod = init.renderMethod; // Fallback to the new default
+    }
   }
 
   console.log('Final initial options:', baseOptions);
