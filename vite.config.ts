@@ -8,4 +8,12 @@ export default defineConfig({
     // @ts-ignore
     tsconfigPaths()
   ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: './index.html',
+        sw: './public/sw.js'
+      }
+    }
+  }
 })

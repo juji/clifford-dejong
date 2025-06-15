@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# TWA (Trusted Web Activity) files
+twa/android/
+twa/icons/
+twa/*.keystore
+twa/*.jks
+twa/*.p12
+.bubblewrap/

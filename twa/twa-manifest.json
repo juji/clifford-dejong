@@ -1,0 +1,43 @@
+{
+  "packageId": "com.jujiplay.clifforddejong",
+  "host": "cdw.jujiplay.com",
+  "name": "Clifford-Dejong Wallpaper Creator",
+  "launcherName": "CDW",
+  "display": "standalone",
+  "orientation": "default",
+  "themeColor": "#000000",
+  "navigationColor": "#000000",
+  "backgroundColor": "#000000",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://cdw.jujiplay.com/favicon.svg",
+  "maskableIconUrl": "https://cdw.jujiplay.com/favicon.svg",
+  "monochromeIconUrl": "https://cdw.jujiplay.com/favicon.svg",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "../android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://cdw.jujiplay.com/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": false,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "retainedBundles": [],
+  "appVersion": "1.0.0"
+}
