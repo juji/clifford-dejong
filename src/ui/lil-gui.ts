@@ -67,4 +67,9 @@ export default function optionPanel(){
   resetButton.classList.add('reset-button')
   gui.$children.appendChild(resetButton)
 
+  // Close GUI by default on small screens (phones)
+  if (window.innerWidth <= 768) {
+    gui.close();
+  }
+
 }
