@@ -53,7 +53,7 @@ function getColorData(
 // --- Main Class ---
 
 export class Context2d {
-  private context: CanvasRenderingContext2D | null = null;
+  private context: CanvasRenderingContext2D;
   private options: Options;
 
   private width: number;
@@ -98,14 +98,6 @@ export class Context2d {
     setStart?: () => void
   ) {
     this.context = canvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D; // willReadFrequently for getImageData/putImageData performance
-
-    // Add null check for the 2D context
-    if (!this.context) {
-        console.error("Failed to get 2D rendering context from canvas.");
-        // Prevent further execution if context is null
-        throw new Error("Could not initialize 2D context");
-    }
-
     this.width = canvas.width;
     this.height = canvas.height;
     this.pixels = new Array(this.width * this.height).fill(0);
