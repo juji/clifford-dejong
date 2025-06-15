@@ -13,6 +13,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Initialize TWA detection and external link handling
+import { initTWADetection } from './ui/twa-detection';
+initTWADetection();
+
 import './index.css'
 import './button.css'
 
