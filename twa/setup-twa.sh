@@ -2,9 +2,6 @@
 
 # Script to set up TWA (Trusted Web Activity) for Clifford-Dejong
 
-# Change to project root
-cd "$(dirname "$0")/.."
-
 echo "Setting up TWA for Clifford-Dejong..."
 
 # Check if Node.js is installed
@@ -26,11 +23,11 @@ if ! command -v bubblewrap &> /dev/null; then
 fi
 
 echo "Building the web app..."
-npm run build
+cd .. && npm run build && cd twa
 
 echo "Initializing TWA project..."
 # This will create the Android project structure
-bubblewrap init --manifest twa/twa-manifest.json
+bubblewrap init --manifest https://cdw.jujiplay.com/manifest.json
 
 echo "To build the TWA:"
 echo "1. cd into the generated android project directory"

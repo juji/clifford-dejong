@@ -30,7 +30,7 @@ async function generateIcons() {
   // Paths
   const projectRoot = path.join(__dirname, '..');
   const inputSvg = path.join(projectRoot, 'public', 'favicon.svg');
-  const outputDir = path.join(__dirname, 'icons');
+  const outputDir = path.join(projectRoot, 'public', 'icons');
   
   // Check if source file exists
   if (!fs.existsSync(inputSvg)) {
