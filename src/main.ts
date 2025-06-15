@@ -71,17 +71,7 @@ if(canvas) {
   const footer = document.querySelector('footer') as HTMLElement
   const footerDim = footer.getBoundingClientRect()
   const { subscribe } = optionStore
-  const { options, setProgress, setImage, setPaused, resetOptions } = optionStore.getState()
-
-  // Define dummy setStart and setFinish functions for now
-  // TODO: Implement proper start/finish logic if needed
-  const setStart = () => console.log('Renderer started');
-  const setFinish = () => {
-    console.log('Renderer finished');
-    // Example: Maybe automatically save the image?
-    // const dataURL = canvas?.toDataURL('image/png');
-    // if (dataURL) setImage(dataURL);
-  };
+  const { options, setProgress, setImage } = optionStore.getState()
 
   ui()
 
@@ -91,8 +81,7 @@ if(canvas) {
     window.innerHeight - footerDim.height,
     options,
     setProgress,
-    setFinish, // Pass the setFinish callback
-    setStart   // Pass the setStart callback
+    setImage
   )
 
 
