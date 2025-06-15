@@ -46,7 +46,7 @@ export default class Renderer {
 
     const method = options.renderMethod;
 
-    if (method === 'original' || method === 'direct2d') { // <-- Changed from points2d
+    if (method === 'original' || method === 'points2d') { // <-- Changed from original2d
       console.log(`Initializing 2D Canvas renderer (method: ${method}).`);
       this.context = new Context2d(this.canvas, options, this.setProgress, this.setFinish, this.setStart);
     } else { // method === 'modernWebGL'
@@ -58,15 +58,15 @@ export default class Renderer {
           this.context = new ContextWebGL(this.canvas, options, this.setProgress, this.setFinish, this.setStart);
         } catch (error) {
           console.error("Failed to initialize WebGL context:", error);
-          console.log("Falling back to 2D Canvas renderer (direct2d).");
-          // Fallback to direct2d when WebGL fails
-          const fallbackOptions = { ...options, renderMethod: 'direct2d' as const };
+          console.log("Falling back to 2D Canvas renderer (points2d).");
+          // Fallback to points2d when WebGL fails
+          const fallbackOptions = { ...options, renderMethod: 'points2d' as const };
           this.context = new Context2d(this.canvas, fallbackOptions, this.setProgress, this.setFinish, this.setStart);
         }
       } else {
-        console.log("WebGL not supported, falling back to 2D Canvas renderer (direct2d).");
-        // Fallback to direct2d when WebGL not supported
-        const fallbackOptions = { ...options, renderMethod: 'direct2d' as const };
+        console.log("WebGL not supported, falling back to 2D Canvas renderer (points2d).");
+        // Fallback to points2d when WebGL not supported
+        const fallbackOptions = { ...options, renderMethod: 'points2d' as const };
         this.context = new Context2d(this.canvas, fallbackOptions, this.setProgress, this.setFinish, this.setStart);
       }
     }

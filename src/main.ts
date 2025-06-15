@@ -45,15 +45,7 @@ console.log(`
    //_____\\\\
 `);
 
-/*
-  =================================
-  = Why do programmers prefer     =
-  =     D A R K   M O D E ?       =
-  =                               =
-  = Because light attracts BUGS!  =
-  =        <(-_-)>                =
-  =================================
-*/
+
 
 // chat
 console.log(`
