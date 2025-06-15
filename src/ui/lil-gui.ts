@@ -33,42 +33,17 @@ export default function optionPanel(){
   let updateFromOutside = false
   gui.onChange( event => {
     if(updateFromOutside) return;
-
-    const changedOption = event.property as keyof Options;
-    const newValue = event.value;
-
-    // Special handling for renderMethod: Reload page with query param
-    if (changedOption === 'renderMethod') {
-      console.log(`RenderMethod changed to: ${newValue}. Reloading page.`);
-      setPaused(true); // Pause potentially running animation
-      // Update localStorage immediately so other settings aren't lost on reload
-      setOptions({ renderMethod: newValue }); 
-      
-      const currentUrl = new URL(window.location.href);
-      currentUrl.searchParams.set('renderMethod', newValue);
-      window.location.href = currentUrl.toString();
-      return; // Stop further processing for this change
-    }
-
-    // Default handling for other options
     setPaused(true)
     setOptions(event.object as Partial<Options>)
   })
 
   gui.onFinishChange( event => {
     if(updateFromOutside) return;
-
-    const changedOption = event.property as keyof Options;
-
-    // No special handling needed on finish for renderMethod as page reloads on change
-    if (changedOption === 'renderMethod') {
-      return; 
-    }
-
-    // Default handling for other options
     setPaused(false)
     setOptions(event.object as Partial<Options>)
   })
+
+  // gui.controllers
 
   subscribe((state) => state.options, (opt) => {
 

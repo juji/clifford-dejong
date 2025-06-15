@@ -72,88 +72,70 @@ export type UiStore = {
 }
 
 function getInit(){
-  const urlParams = new URLSearchParams(window.location.search);
-  const methodFromUrl = urlParams.get('renderMethod') as Options['renderMethod'] | null;
-
-  let baseOptions = init; // Start with defaults
-
-  // 1. Load from localStorage first (to get other settings)
-  let ls = localStorage.getItem(LSKEY)
-  if (ls) {
-    try {
-      const savedOpt = JSON.parse(ls) as Partial<Options>; // Load as partial
-      console.log('Loaded state from localStorage:', savedOpt);
-      baseOptions = { ...baseOptions, ...savedOpt }; // Merge defaults with saved
-    } catch (e) {
-      console.error('Failed to parse localStorage state:', e);
-      localStorage.removeItem(LSKEY);
-    }
-  }
-
-  // 2. Override renderMethod if present in URL
-  if (methodFromUrl && VALUELIMIT.renderMethod.includes(methodFromUrl)) {
-    console.log('Overriding renderMethod from URL parameter:', methodFromUrl);
-    baseOptions.renderMethod = methodFromUrl;
-  } else {
-    console.log('No valid renderMethod in URL, using value from localStorage or default:', baseOptions.renderMethod);
-  }
-
-  console.log('Final initial options:', baseOptions);
-  return baseOptions;
+  let ls = localStorage.getItem(LSKEY) 
+  const savedOpt = ls ? JSON.parse(ls) as Options : {}
+  return savedOpt
 }
 
 export const optionStore = createStore<UiStore>()(subscribeWithSelector(
-  (set, get) => ({
+  (set) => ({
 
-    options: getInit(), // Use the updated getInit function
+    options: {
+      ...init,
+      ...getInit(),
+    },
 
     setOptions:( options: Partial<Options> ) => set(state => {
-      // IMPORTANT: Do not reload page here. Only save to localStorage.
+        
       const nextOptions = {
         ...state.options,
         ...options
-      };
-      console.log('[State] setOptions saving to localStorage:', nextOptions);
-      localStorage.setItem(LSKEY, JSON.stringify(nextOptions));
-      return { options: nextOptions };
+      }
+
+      localStorage.setItem(LSKEY, JSON.stringify(nextOptions))
+
+      return { options: nextOptions }
+
     }),
 
-    // setScale, setTopLeft, etc. should just call setOptions
-    setScale: (scale:number) => {
-      const currentOptions = get().options;
-      const newScale = Math.max(
-        VALUELIMIT.scale[0],
-        Math.min(scale, VALUELIMIT.scale[1])
-      );
-      if (currentOptions.scale !== newScale) {
-        get().setOptions({ scale: newScale });
+    setScale: (scale:number) => set(state => {
+
+      const options = {
+        ...state.options,
+        scale: Math.max(
+          VALUELIMIT.scale[0],
+          Math.min(scale, VALUELIMIT.scale[1])
+        )
       }
-    },
+      localStorage.setItem(LSKEY, JSON.stringify(options))
+      return { options }
 
-    setTopLeft: (top:number, left: number) => {
-      const currentOptions = get().options;
-      const newTop = Math.max(
-        VALUELIMIT.top[0],
-        Math.min(top, VALUELIMIT.top[1])
-      );
-      const newLeft = Math.max(
-        VALUELIMIT.left[0],
-        Math.min(left, VALUELIMIT.left[1])
-      );
-      if (currentOptions.top !== newTop || currentOptions.left !== newLeft) {
-        get().setOptions({ top: newTop, left: newLeft });
+    }),
+
+    setTopLeft: (top:number, left: number) => set(state => {
+
+      const options = {
+        ...state.options,
+        top: Math.max(
+          VALUELIMIT.top[0],
+          Math.min(top, VALUELIMIT.top[1])
+        ),
+        left: Math.max(
+          VALUELIMIT.left[0],
+          Math.min(left, VALUELIMIT.left[1])
+        )
       }
-    },
+      localStorage.setItem(LSKEY, JSON.stringify(options))
+      return { options }
 
-    resetOptions: () => {
-      localStorage.removeItem(LSKEY);
-      // Reload the page without the query parameter
-      window.location.href = window.location.pathname + window.location.search.replace(/[?&]renderMethod=[^&]+/, '').replace(/^&/, '?');
-      // No need to call setOptions here as the page reloads with defaults
-      console.log('resetOptions: Reloading page to defaults.');
-    },
+    }),
 
-    // ... other methods (setImage, setProgress, setPaused) remain the same ...
+    resetOptions: () => set(() => {
+      localStorage.setItem(LSKEY, JSON.stringify(init))
+      console.log('resetOptions')
+      return { options: init }
+    }),
+
     image: '',
     setImage: (image: string|null) => set(() => ({ image })),
 
@@ -162,9 +144,11 @@ export const optionStore = createStore<UiStore>()(subscribeWithSelector(
 
     paused: false,
     setPaused: (paused: boolean) => {
+      // console.trace();
+      // console.log('set paused', paused)
       return set(() => ({ paused }))
     },
 
   })
-
-));
+  
+))
