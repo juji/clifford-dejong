@@ -33,6 +33,7 @@ function getColorData(
 
 export class Context2d {
 
+  private canvas: HTMLCanvasElement
   context: CanvasRenderingContext2D
   options: Options|null = null
   
@@ -50,9 +51,7 @@ export class Context2d {
   maxItt = 200
   perItt = 100000
   drawAt = 50
-  finalFadeAlpha: number = 0.7
-  isFinalRender: boolean = false
-  fadeDuration: number = 70 // milliseconds
+  numItt = Math.ceil(this.maxItt / this.drawAt)
 
   x: Float32Array = new Float32Array(0);
   y: Float32Array = new Float32Array(0);
@@ -82,6 +81,7 @@ export class Context2d {
     options: Options,
     setProgress: (num: number) => void
   ){
+    this.canvas = canvas
     this.context = canvas.getContext('2d') as CanvasRenderingContext2D
     this.width = canvas.width
     this.height = canvas.height
@@ -96,6 +96,9 @@ export class Context2d {
     if(this.width > 1920){
       this.maxItt = 1000
     }
+
+    this.numItt = Math.ceil(this.maxItt / this.drawAt)
+
   }
 
   reportProgress(n: number){
@@ -134,8 +137,6 @@ export class Context2d {
     this.context.translate(this.centerX, this.centerY)
 
     this.maxDensity = 0
-    this.finalFadeAlpha = 0.5
-    this.isFinalRender = false
     this.reportProgress(0)
     this.onStart && this.onStart()
     this.start()
@@ -163,55 +164,20 @@ export class Context2d {
       this.options?.background[0] as number
     ) : this.background
 
-    // Apply fade-in effect only for final render
-    if (background && this.isFinalRender) {
-      // Calculate fade speed based on desired duration in milliseconds
-      // At 60fps, increment per frame = 0.5 / (duration / 1000 * 60)
-      const fadeSpeed = 0.5 / (this.fadeDuration / 1000 * 60)
-      this.finalFadeAlpha = Math.min(1, this.finalFadeAlpha + fadeSpeed)
-    }
-
     for(let i=0; i<dataLen;i++){
-      if(this.pixels[ i ]) {
-        const colorData = getColorData(
+      data[ i ] = this.pixels[ i ] ? (
+        getColorData(
           this.pixels[ i ],
           this.maxDensity,
           this.options?.hue as number,
           this.options?.saturation as number,
           this.options?.brightness as number,
         )
-        
-        // Apply fade-in only for final render
-        if (background && this.isFinalRender && this.finalFadeAlpha < 1) {
-          const r = colorData & 0xFF
-          const g = (colorData >> 8) & 0xFF
-          const b = (colorData >> 16) & 0xFF
-          const a = (colorData >> 24) & 0xFF
-          
-          const bgR = bg & 0xFF
-          const bgG = (bg >> 8) & 0xFF
-          const bgB = (bg >> 16) & 0xFF
-          
-          const blendedR = Math.round(bgR + (r - bgR) * this.finalFadeAlpha)
-          const blendedG = Math.round(bgG + (g - bgG) * this.finalFadeAlpha)
-          const blendedB = Math.round(bgB + (b - bgB) * this.finalFadeAlpha)
-          
-          data[i] = a << 24 | blendedB << 16 | blendedG << 8 | blendedR
-        } else {
-          data[i] = colorData
-        }
-      } else {
-        data[i] = bg
-      }
+      ) : bg;
     }
         
     bitmap.data.set(buf8);
-	  this.context.putImageData(bitmap, 0,0);
-
-    // Continue animation for fade-in effect
-    if (background && this.isFinalRender && this.finalFadeAlpha < 1) {
-      requestAnimationFrame(() => this.drawBitmap(true))
-    }
+    this.context.putImageData(bitmap, 0, 0);
 
   }
 
@@ -222,7 +188,6 @@ export class Context2d {
     if(this.paused && this.itt>=20) return;
     if(this.itt >= this.maxItt) {
       draw = true
-      this.isFinalRender = true
       this.drawBitmap( true )
       this.onFinish && this.onFinish()
       this.reportProgress(100 * this.itt / this.maxItt)
@@ -249,7 +214,9 @@ export class Context2d {
       this.drawBitmap()
     }
     
-    this.draw()
+    if(this.paused){
+      this.draw()
+    }
     
     this.itt++;
 
@@ -262,6 +229,19 @@ export class Context2d {
         this.perItt /= 2
       }
     }
+
+    // set opacity based on progress
+    const progress = this.itt / this.maxItt
+    let phaseProgress = (progress / (1/this.numItt)) - Math.floor(progress / (1/this.numItt)) 
+    const phase = Math.ceil(progress / (1/this.numItt))
+    if(!phaseProgress) phaseProgress = 1
+    if(phaseProgress<1){
+      phaseProgress = Math.max(phaseProgress,  0.3 * (phase / this.numItt))
+    }
+
+    this.canvas.style.setProperty('opacity',
+      this.paused ? '1' : `${Math.min(phaseProgress, 1)}`
+    )
 
     this.anim = requestAnimationFrame(() => {
       this.reportProgress(98 * this.itt / this.maxItt)
@@ -335,7 +315,5 @@ export class Context2d {
     }
 
   }
-
-
 
 }
