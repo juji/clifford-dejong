@@ -14,12 +14,13 @@ const canvas = document.querySelector('canvas')
 
 // coGem
 console.log(`
-    /\\_/\\
-   / o o \\
-  (   ^   )
-   \ === /
-    ----- 
-`);
+  .--.
+ |o_o |
+ |:_/ |
+//   \\ \\\\
+(|     | )
+/'\\_   _/\`\\\\
+\\___)=(___/\n`);
 
 // coCld
 console.log(`
