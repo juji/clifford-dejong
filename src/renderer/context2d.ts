@@ -50,6 +50,8 @@ export class Context2d {
   itt = 0
   maxItt = 200
   perItt = 100000
+  onPausedPerItt = 5000
+  onPausedMaxItt = 33
   drawAt = 50
   numItt = Math.ceil(this.maxItt / this.drawAt)
 
@@ -185,7 +187,7 @@ export class Context2d {
 
     const start = new Date().valueOf()
     let draw = false
-    if(this.paused && this.itt>=20) return;
+    if(this.paused && this.itt >= this.onPausedMaxItt) return;
     if(this.itt >= this.maxItt) {
       draw = true
       this.drawBitmap( true )
@@ -196,12 +198,12 @@ export class Context2d {
     }
 
     let n = 0
-    this.x = new Float32Array(this.paused ? 5000 : this.perItt)
-    this.y = new Float32Array(this.paused ? 5000 : this.perItt)
+    this.x = new Float32Array(this.paused ? this.onPausedPerItt : this.perItt)
+    this.y = new Float32Array(this.paused ? this.onPausedPerItt : this.perItt)
     this.xIndex = 0
     this.yIndex = 0
     
-    const itteration = this.paused ? 5000 : this.perItt
+    const itteration = this.paused ? this.onPausedPerItt : this.perItt
     while(n<itteration){
       this.calculate()
       n++
