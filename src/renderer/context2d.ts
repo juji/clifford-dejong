@@ -50,17 +50,21 @@ export class Context2d {
   maxItt = 200
   perItt = 100000
   drawAt = 50
+  finalFadeAlpha: number = 0.5
+  isFinalRender: boolean = false
 
-  x: number[] = [0];
-  y: number[] = [0];
+  x: Float32Array = new Float32Array(0);
+  y: Float32Array = new Float32Array(0);
+  xIndex: number = 0;
+  yIndex: number = 0;
   lastX:number = 0
   lastY:number = 0
 
   paused = false
 
   // a place to put pixel data
-  // somehow, this faster than using map
-  pixels: number[]
+  // Use typed array for better performance
+  pixels: Uint32Array
 
   attractor: ((x:number,y:number,a:number,b:number,c:number,d:number) => number[])|null = null
   background = 0
@@ -83,7 +87,7 @@ export class Context2d {
     this.centerX = this.width - (this.width/2) + (this.centerXRatio * this.width)
     this.centerY = this.height - (this.height/2) + (this.centerYRatio * this.height)
     this.context.translate(this.centerX, this.centerY)
-    this.pixels = new Array(this.width*this.height).fill(0)
+    this.pixels = new Uint32Array(this.width*this.height)
     this.setOptions(options)
     this.onProgress = setProgress
 
@@ -107,9 +111,11 @@ export class Context2d {
     if(this.anim) cancelAnimationFrame(this.anim)
     
     this.attractor = this.options?.attractor === 'clifford' ? clifford : dejong
-    this.pixels = new Array(this.width*this.height).fill(0)
-    this.x = [0]
-    this.y = [0]
+    this.pixels = new Uint32Array(this.width*this.height)
+    this.x = new Float32Array(0)
+    this.y = new Float32Array(0)
+    this.xIndex = 0
+    this.yIndex = 0
     this.itt = 0
 
     // for larger screen
@@ -127,6 +133,8 @@ export class Context2d {
     this.context.translate(this.centerX, this.centerY)
 
     this.maxDensity = 0
+    this.finalFadeAlpha = 0.5
+    this.isFinalRender = false
     this.reportProgress(0)
     this.onStart && this.onStart()
     this.start()
@@ -154,21 +162,52 @@ export class Context2d {
       this.options?.background[0] as number
     ) : this.background
 
+    // Apply fade-in effect only for final render
+    if (background && this.isFinalRender) {
+      this.finalFadeAlpha = Math.min(1, this.finalFadeAlpha + 0.15)
+    }
+
     for(let i=0; i<dataLen;i++){
-      data[ i ] = this.pixels[ i ] ? (
-        // this.green
-        getColorData(
+      if(this.pixels[ i ]) {
+        const colorData = getColorData(
           this.pixels[ i ],
           this.maxDensity,
           this.options?.hue as number,
           this.options?.saturation as number,
           this.options?.brightness as number,
         )
-      ) : bg;
+        
+        // Apply fade-in only for final render
+        if (background && this.isFinalRender && this.finalFadeAlpha < 1) {
+          const r = colorData & 0xFF
+          const g = (colorData >> 8) & 0xFF
+          const b = (colorData >> 16) & 0xFF
+          const a = (colorData >> 24) & 0xFF
+          
+          const bgR = bg & 0xFF
+          const bgG = (bg >> 8) & 0xFF
+          const bgB = (bg >> 16) & 0xFF
+          
+          const blendedR = Math.round(bgR + (r - bgR) * this.finalFadeAlpha)
+          const blendedG = Math.round(bgG + (g - bgG) * this.finalFadeAlpha)
+          const blendedB = Math.round(bgB + (b - bgB) * this.finalFadeAlpha)
+          
+          data[i] = a << 24 | blendedB << 16 | blendedG << 8 | blendedR
+        } else {
+          data[i] = colorData
+        }
+      } else {
+        data[i] = bg
+      }
     }
         
     bitmap.data.set(buf8);
 	  this.context.putImageData(bitmap, 0,0);
+
+    // Continue animation for fade-in effect
+    if (background && this.isFinalRender && this.finalFadeAlpha < 1) {
+      requestAnimationFrame(() => this.drawBitmap(true))
+    }
 
   }
 
@@ -179,6 +218,7 @@ export class Context2d {
     if(this.paused && this.itt>=20) return;
     if(this.itt >= this.maxItt) {
       draw = true
+      this.isFinalRender = true
       this.drawBitmap( true )
       this.onFinish && this.onFinish()
       this.reportProgress(100 * this.itt / this.maxItt)
@@ -186,8 +226,10 @@ export class Context2d {
     }
 
     let n = 0
-    this.x = []
-    this.y = []
+    this.x = new Float32Array(this.paused ? 5000 : this.perItt)
+    this.y = new Float32Array(this.paused ? 5000 : this.perItt)
+    this.xIndex = 0
+    this.yIndex = 0
     
     const itteration = this.paused ? 5000 : this.perItt
     while(n<itteration){
@@ -259,8 +301,10 @@ export class Context2d {
     
     this.lastX = thisX
     this.lastY = thisY
-    this.x.push(screenX)
-    this.y.push(screenY)
+    this.x[this.xIndex] = screenX
+    this.y[this.yIndex] = screenY
+    this.xIndex++
+    this.yIndex++
 
   }
 
