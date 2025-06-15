@@ -6,7 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:mobile": "pnpm build && npx cap sync",
+    "android:dev": "npx cap run android",
+    "android:build": "pnpm build:mobile && npx cap build android",
+    "ios:dev": "npx cap run ios",
+    "ios:build": "pnpm build:mobile && npx cap build ios",
+    "mobile:sync": "npx cap sync"
   },
   "devDependencies": {
     "lil-gui": "^0.19.1",
@@ -15,6 +21,14 @@
     "vite-tsconfig-paths": "^4.2.1"
   },
   "dependencies": {
+    "@capacitor/android": "^7.3.0",
+    "@capacitor/cli": "^7.3.0",
+    "@capacitor/core": "^7.3.0",
+    "@capacitor/haptics": "^7.0.1",
+    "@capacitor/ios": "^7.3.0",
+    "@capacitor/share": "^7.0.1",
+    "@capacitor/splash-screen": "^7.0.1",
+    "@capacitor/status-bar": "^7.0.1",
     "bezier-easing": "^2.1.0",
     "get-contrast": "^3.0.0",
     "zustand": "^4.4.6"

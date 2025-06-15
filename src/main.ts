@@ -7,6 +7,21 @@ import { optionStore } from '@/state'
 
 import Renderer from './renderer'
 import { ui } from './ui'
+
+// Capacitor imports for mobile features
+import { Capacitor } from '@capacitor/core'
+import { SplashScreen } from '@capacitor/splash-screen'
+import { StatusBar, Style } from '@capacitor/status-bar'
+
+// Initialize mobile app features
+if (Capacitor.isNativePlatform()) {
+  // Hide splash screen when app is ready
+  SplashScreen.hide()
+  
+  // Set status bar style
+  StatusBar.setStyle({ style: Style.Dark })
+  StatusBar.setBackgroundColor({ color: '#000000' })
+}
 const canvas = document.querySelector('canvas')
 
 if(canvas) {

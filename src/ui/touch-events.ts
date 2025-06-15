@@ -1,5 +1,14 @@
 
 import { optionStore } from '@/state'
+import { Capacitor } from '@capacitor/core'
+import { Haptics, ImpactStyle } from '@capacitor/haptics'
+
+// Add haptic feedback for mobile
+function addHapticFeedback(style: ImpactStyle = ImpactStyle.Light) {
+  if (Capacitor.isNativePlatform()) {
+    Haptics.impact({ style })
+  }
+}
 
 export function touchEvents(){
 
@@ -18,6 +27,7 @@ export function touchEvents(){
   function onTouchStart(e: TouchEvent){
     if(e.touches.length > 1) return;
     e.preventDefault()
+    addHapticFeedback(ImpactStyle.Light)
     setPaused(true)
     initX = e.touches[0].pageX
     initY = e.touches[0].pageY
@@ -50,6 +60,7 @@ export function touchEvents(){
   function onPinchStart(e: TouchEvent){
     if(e.touches.length < 2) return;
     e.preventDefault()
+    addHapticFeedback(ImpactStyle.Medium)
     setPaused(true)
     distance = calcDistance(e);
     main && main.addEventListener('touchmove', onPinchMove)

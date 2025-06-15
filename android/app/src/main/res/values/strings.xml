@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Clifford DeJong</string>
+    <string name="title_activity_main">Clifford DeJong</string>
+    <string name="package_name">com.jujiplay.clifforddejong</string>
+    <string name="custom_url_scheme">com.jujiplay.clifforddejong</string>
+</resources>
