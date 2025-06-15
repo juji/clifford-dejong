@@ -191,6 +191,7 @@ export class Context2d {
       this.drawBitmap( true )
       this.onFinish && this.onFinish()
       this.reportProgress(100 * this.itt / this.maxItt)
+      this.canvas.style.setProperty('opacity','1')
       return;
     }
 
