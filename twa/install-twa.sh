@@ -3,9 +3,6 @@
 # Script to install the TWA on a connected Android device
 set -e
 
-# Change to project root
-cd "$(dirname "$0")/.."
-
 echo "📱 Installing Clifford-Dejong TWA on device..."
 
 # Check if ADB is available
@@ -26,10 +23,10 @@ if ! adb devices | grep -q "device$"; then
 fi
 
 # Check if APK exists
-APK_PATH="twa/android/app/build/outputs/apk/debug/app-debug.apk"
+APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
 if [ ! -f "$APK_PATH" ]; then
     echo "❌ APK not found. Please build the TWA first:"
-    echo "./twa/build-twa.sh"
+    echo "./build-twa.sh"
     exit 1
 fi
 

@@ -50,9 +50,6 @@ fi
 
 print_success "Prerequisites check passed"
 
-# Change to project root
-cd "$(dirname "$0")/.."
-
 # Install dependencies
 print_status "Installing dependencies..."
 if command -v pnpm &> /dev/null; then
@@ -73,59 +70,64 @@ fi
 
 # Build the web application
 print_status "Building web application..."
+cd ..
 if command -v pnpm &> /dev/null; then
     pnpm run build
 else
     npm run build
 fi
+cd twa
 print_success "Web application built"
 
 # Generate Android icons
 print_status "Generating Android icons..."
-cd twa
 if command -v pnpm &> /dev/null; then
     pnpm run generate-icons
 else
     npm run generate-icons
 fi
-cd ..
 print_success "Android icons generated"
 
 # Generate signing key if it doesn't exist
-if [ ! -f "twa/android.keystore" ]; then
+if [ ! -f "android.keystore" ]; then
     print_status "Generating Android signing keystore..."
     print_warning "You will be prompted to enter keystore information."
-    keytool -genkey -v -keystore twa/android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000
+    keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000
     print_success "Keystore generated"
 fi
 
 # Generate fingerprint and update assetlinks.json
 print_status "Generating SHA256 fingerprint..."
-./twa/generate-fingerprint.sh
+./update-assetlinks.sh
 
 # Initialize TWA project if it doesn't exist
-if [ ! -d "twa/android" ]; then
+if [ ! -d "android" ]; then
     print_status "Initializing TWA project..."
-    bubblewrap init --manifest twa/twa-manifest.json
+    mkdir -p android
+    cd android
+    bubblewrap init --manifest ../twa-manifest.json
+    cd ..
     print_success "TWA project initialized"
 else
     print_warning "TWA project already exists, updating..."
-    bubblewrap update --manifest twa/twa-manifest.json
+    cd android
+    bubblewrap update --manifest ../twa-manifest.json
+    cd ..
 fi
 
 # Build the Android APK
 print_status "Building Android APK..."
-cd twa/android
+cd android
 ./gradlew assembleDebug
-cd ../..
+cd ..
 print_success "Android APK built successfully"
 
 echo ""
 print_success "TWA build completed! 🎉"
 echo ""
 echo "Next steps:"
-echo "1. Install on device: ./twa/install-twa.sh"
-echo "2. For release build: ./twa/build-release-twa.sh"
+echo "1. Install on device: ./install-twa.sh"
+echo "2. For release build: ./build-release-twa.sh"
 echo "3. Upload assetlinks.json to your web server's /.well-known/ directory"
 echo ""
-echo "APK location: twa/android/app/build/outputs/apk/debug/app-debug.apk"
+echo "APK location: android/app/build/outputs/apk/debug/app-debug.apk"

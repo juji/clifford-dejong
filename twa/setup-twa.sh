@@ -26,18 +26,14 @@ echo "Building the web app..."
 cd .. && npm run build && cd twa
 
 echo "Initializing TWA project..."
-# This will create the Android project structure
+# Create android directory and initialize there
+mkdir -p android
+cd android
 bubblewrap init --manifest https://cdw.jujiplay.com/manifest.json
+cd ..
 
-echo "To build the TWA:"
-echo "1. cd into the generated android project directory"
-echo "2. Run: bubblewrap build"
+echo "Setup completed! TWA project created in twa/android/"
 echo ""
-echo "To run on device:"
-echo "1. Enable USB debugging on your Android device"
-echo "2. Run: bubblewrap install"
-echo ""
-echo "For Play Store release:"
-echo "1. Generate a signing key: keytool -genkey -v -keystore twa/android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000"
-echo "2. Update twa/twa-manifest.json with your signing key path"
-echo "3. Run: bubblewrap build --release"
+echo "Next steps:"
+echo "1. Build TWA: npm run twa:build"
+echo "2. Install on device: npm run twa:install"

@@ -3,9 +3,6 @@
 # Script to validate TWA setup and dependencies
 # Run this before attempting to build the TWA
 
-# Change to project root
-cd "$(dirname "$0")/.."
-
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -104,7 +101,7 @@ REQUIRED_FILES=(
     "twa/build-twa.sh"
     "twa/install-twa.sh"
     "twa/build-release-twa.sh"
-    "twa/generate-fingerprint.sh"
+    "twa/update-assetlinks.sh"
 )
 
 for file in "${REQUIRED_FILES[@]}"; do
@@ -140,7 +137,7 @@ TWA_SCRIPTS=(
     "twa/build-twa.sh"
     "twa/install-twa.sh"
     "twa/build-release-twa.sh"
-    "twa/generate-fingerprint.sh"
+    "twa/update-assetlinks.sh"
     "twa/setup-twa.sh"
 )
 

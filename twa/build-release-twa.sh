@@ -3,28 +3,27 @@
 # Script to build a release version of the TWA for Play Store submission
 set -e
 
-# Change to project root
-cd "$(dirname "$0")/.."
-
 echo "📦 Building release version of Clifford-Dejong TWA..."
 
 # Check if keystore exists
-if [ ! -f "twa/android.keystore" ]; then
-    echo "❌ Keystore not found. Please run ./twa/build-twa.sh first to generate it."
+if [ ! -f "android.keystore" ]; then
+    echo "❌ Keystore not found. Please run ./build-twa.sh first to generate it."
     exit 1
 fi
 
 # Build web app
 echo "🏗️  Building web application..."
+cd ..
 if command -v pnpm &> /dev/null; then
     pnpm run build
 else
     npm run build
 fi
+cd twa
 
 # Build release APK
 echo "🔨 Building release APK..."
-cd twa/android
+cd android
 
 # Clean previous builds
 ./gradlew clean
@@ -32,11 +31,11 @@ cd twa/android
 # Build release
 ./gradlew assembleRelease
 
-cd ../..
+cd ..
 
 echo "✅ Release build completed!"
 echo ""
-echo "📍 Release APK location: twa/android/app/build/outputs/apk/release/app-release.apk"
+echo "📍 Release APK location: android/app/build/outputs/apk/release/app-release.apk"
 echo ""
 echo "Next steps for Play Store:"
 echo "1. Test the release APK thoroughly"
