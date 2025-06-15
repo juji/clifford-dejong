@@ -3,6 +3,20 @@
 # Update assetlinks.json with existing keystore fingerprint
 set -e
 
+# Read package name from twa-manifest.json
+if [ ! -f "twa-manifest.json" ]; then
+    echo "❌ twa-manifest.json not found"
+    exit 1
+fi
+
+PACKAGE_NAME=$(grep -o '"packageId"[[:space:]]*:[[:space:]]*"[^"]*"' twa-manifest.json | cut -d'"' -f4)
+
+if [ -z "$PACKAGE_NAME" ]; then
+    echo "❌ Could not read packageId from twa-manifest.json"
+    exit 1
+fi
+
+echo "🔧 Updating assetlinks.json for TWA package: $PACKAGE_NAME"
 echo "🔗 Updating assetlinks.json with keystore fingerprint..."
 
 # Check if keystore exists
@@ -13,7 +27,13 @@ fi
 
 # Extract SHA256 fingerprint from existing keystore
 echo "📝 Extracting SHA256 fingerprint from keystore..."
-FINGERPRINT=$(keytool -list -v -keystore android.keystore -alias android -storepass qwerasdf -keypass qwerasdf | grep "SHA256:" | cut -d' ' -f3)
+echo "Please enter keystore passwords:"
+read -s -p "Store password: " STORE_PASS
+echo
+read -s -p "Key password: " KEY_PASS
+echo
+
+FINGERPRINT=$(keytool -list -v -keystore android.keystore -alias android -storepass "$STORE_PASS" -keypass "$KEY_PASS" | grep "SHA256:" | cut -d' ' -f3)
 
 if [ -z "$FINGERPRINT" ]; then
     echo "❌ Failed to extract fingerprint from keystore"
@@ -34,7 +54,7 @@ cat > "$ASSETLINKS_PATH" << EOF
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
-    "package_name": "com.jujiplay.cdw.twa",
+    "package_name": "$PACKAGE_NAME",
     "sha256_cert_fingerprints": ["$FINGERPRINT"]
   }
 }]

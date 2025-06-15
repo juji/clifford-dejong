@@ -29,7 +29,7 @@ echo "Initializing TWA project..."
 # Create android directory and initialize there
 mkdir -p android
 cd android
-bubblewrap init --manifest https://cdw.jujiplay.com/manifest.json
+bubblewrap init --manifest ../twa-manifest.json
 cd ..
 
 echo "Setup completed! TWA project created in twa/android/"
