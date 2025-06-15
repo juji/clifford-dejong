@@ -9,7 +9,7 @@ type RenderingContext = Context2d | ContextWebGL;
 export default class Renderer {
   canvas: HTMLCanvasElement;
   context: RenderingContext | null = null; // Use the union type
-  private currentRenderMethod: 'original' | 'coGem-21-apr' | 'Crimson Void'; // <-- Corrected type
+  private currentRenderMethod: 'original' | 'direct2d' | 'modernWebGL'; // <-- Corrected type
   // Store callbacks for potential re-initialization (though we'll start with reload message)
   private setProgress: (num: number) => void;
   private setFinish: () => void;
@@ -46,27 +46,27 @@ export default class Renderer {
 
     const method = options.renderMethod;
 
-    if (method === 'original' || method === 'coGem-21-apr') { // <-- Changed from direct2d
+    if (method === 'original' || method === 'direct2d') { // <-- Changed from points2d
       console.log(`Initializing 2D Canvas renderer (method: ${method}).`);
       this.context = new Context2d(this.canvas, options, this.setProgress, this.setFinish, this.setStart);
-    } else { // method === 'Crimson Void' <-- Changed comment
+    } else { // method === 'modernWebGL'
       const webglSupported = detectWebGL(this.canvas);
-      console.log(`Crimson Void method selected. WebGL Supported: ${webglSupported}`); // <-- Changed log message
+      console.log(`ModernWebGL method selected. WebGL Supported: ${webglSupported}`);
       if (webglSupported) {
         try {
-          console.log("Initializing Crimson Void renderer."); // <-- Changed log message
+          console.log("Initializing WebGL renderer.");
           this.context = new ContextWebGL(this.canvas, options, this.setProgress, this.setFinish, this.setStart);
         } catch (error) {
-          console.error("Failed to initialize Crimson Void context:", error); // <-- Changed log message
-          console.log("Falling back to 2D Canvas renderer (coGem-21-apr)."); // <-- Changed fallback message
-          // Fallback to coGem-21-apr when WebGL fails
-          const fallbackOptions = { ...options, renderMethod: 'coGem-21-apr' as const }; // <-- Changed fallback option
+          console.error("Failed to initialize WebGL context:", error);
+          console.log("Falling back to 2D Canvas renderer (direct2d).");
+          // Fallback to direct2d when WebGL fails
+          const fallbackOptions = { ...options, renderMethod: 'direct2d' as const };
           this.context = new Context2d(this.canvas, fallbackOptions, this.setProgress, this.setFinish, this.setStart);
         }
       } else {
-        console.log("WebGL not supported, falling back to 2D Canvas renderer (coGem-21-apr).");
-        // Fallback to coGem-21-apr when WebGL not supported
-        const fallbackOptions = { ...options, renderMethod: 'coGem-21-apr' as const };
+        console.log("WebGL not supported, falling back to 2D Canvas renderer (direct2d).");
+        // Fallback to direct2d when WebGL not supported
+        const fallbackOptions = { ...options, renderMethod: 'direct2d' as const };
         this.context = new Context2d(this.canvas, fallbackOptions, this.setProgress, this.setFinish, this.setStart);
       }
     }

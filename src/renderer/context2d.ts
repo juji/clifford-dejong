@@ -240,8 +240,8 @@ export class Context2d {
     // --- Draw ---
     // Decide whether to draw the full bitmap (less frequent) or just new points
     // --- MODIFIED LOGIC based on renderMethod ---
-    if (this.options.renderMethod === 'coGem-21-apr') { // <-- Changed from direct2d
-        // Always draw points if method is 'coGem-21-apr'
+    if (this.options.renderMethod === 'direct2d') { // <-- Changed from points2d
+        // Always draw points if method is 'direct2d'
         this.drawPoints();
         needsBitmapDraw = false; // Ensure performance adjustment logic doesn't skip
     } else { // Default to 'original' strategy (bitmap accumulation)
@@ -261,8 +261,8 @@ export class Context2d {
 
     // Dynamically adjust points per iteration based on performance
     // --- MODIFIED CONDITION based on renderMethod ---
-    // Only adjust if we didn't do a full bitmap draw OR if we are in 'coGem-21-apr' mode
-    if (!this.paused && (!needsBitmapDraw || this.options.renderMethod === 'coGem-21-apr')) { // <-- Changed from direct2d
+    // Only adjust if we didn't do a full bitmap draw OR if we are in 'direct2d' mode
+    if (!this.paused && (!needsBitmapDraw || this.options.renderMethod === 'direct2d')) { // <-- Changed from points2d
     // --- END MODIFIED CONDITION ---
       const frameEndTime = performance.now();
       const frameDuration = frameEndTime - frameStartTime;

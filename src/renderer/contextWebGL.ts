@@ -796,8 +796,7 @@ export class ContextWebGL {
       gl.uniform3fv(this.pointRenderLocations.hsvColorUniform, hsv);
 
       // Alpha
-      // Increased from 0.15 to 0.25 to make points even brighter with additive blending
-      gl.uniform1f(this.pointRenderLocations.alphaUniform, 0.25); 
+      gl.uniform1f(this.pointRenderLocations.alphaUniform, 0.05); // Or make this an option
 
       // Note: positionTextureUniform is set during the render step
   }
