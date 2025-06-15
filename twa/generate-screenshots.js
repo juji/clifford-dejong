@@ -73,50 +73,8 @@ async function generateScreenshots() {
       // Wait for the canvas to be ready
       await page.waitForSelector('canvas', { timeout: 10000 });
       
-      // Wait a bit more for the attractor to render
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Click on the lil-gui title to expand controls
-      try {
-        await page.click('.lil-gui.root > .title');
-        console.log(`📋 Clicked lil-gui title for ${config.name}`);
-        
-        // Wait 5 seconds after clicking
-        await new Promise(resolve => setTimeout(resolve, 5000));
-      } catch (error) {
-        console.log(`⚠️  Could not click lil-gui title: ${error.message}`);
-        // Still wait a bit in case the element doesn't exist
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-      
-      // Hide the controls panel for cleaner screenshots
-      await page.evaluate(() => {
-        const controlsPanel = document.querySelector('.dg.ac');
-        if (controlsPanel) {
-          controlsPanel.style.display = 'none';
-        }
-      });
-      
-      // Optional: Trigger a specific attractor pattern
-      try {
-        await page.evaluate((attractorConfig) => {
-          // Try to access the global state/controls if available
-          if (window.gui && window.gui.__controllers) {
-            const controllers = window.gui.__controllers;
-            // Set attractor parameters if controls are available
-            controllers.forEach(controller => {
-              if (controller.property in attractorConfig.params) {
-                controller.setValue(attractorConfig.params[controller.property]);
-              }
-            });
-          }
-        }, attractorConfig);
-        
-        // Wait for the new pattern to render
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      } catch (error) {
-        console.log(`⚠️  Could not set custom attractor config: ${error.message}`);
-      }
+      // Wait a bit more for the attractor to render. wait for 10 seconds
+      await new Promise(resolve => setTimeout(resolve, 10000));
       
       // Take the screenshot
       const outputPath = path.join(outputDir, config.name);
