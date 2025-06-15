@@ -14,7 +14,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // Initialize TWA detection and external link handling
-import { initTWADetection } from './ui/twa-detection';
+import { initTWADetection } from './ui/twa-link-open';
 initTWADetection();
 
 import './index.css'

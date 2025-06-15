@@ -8,7 +8,7 @@ import { mouseWheel } from './mouse-events'
 import { touchEvents } from './touch-events'
 import { fullScreenButton } from './full-screen'
 import { infoButton } from './info-button'
-import { initTWADetection } from './twa-detection'
+import { initTWADetection } from './twa-link-open'
 
 export function ui(){
   
