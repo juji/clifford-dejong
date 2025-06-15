@@ -50,8 +50,9 @@ export class Context2d {
   maxItt = 200
   perItt = 100000
   drawAt = 50
-  finalFadeAlpha: number = 0.5
+  finalFadeAlpha: number = 0.7
   isFinalRender: boolean = false
+  fadeDuration: number = 70 // milliseconds
 
   x: Float32Array = new Float32Array(0);
   y: Float32Array = new Float32Array(0);
@@ -164,7 +165,10 @@ export class Context2d {
 
     // Apply fade-in effect only for final render
     if (background && this.isFinalRender) {
-      this.finalFadeAlpha = Math.min(1, this.finalFadeAlpha + 0.15)
+      // Calculate fade speed based on desired duration in milliseconds
+      // At 60fps, increment per frame = 0.5 / (duration / 1000 * 60)
+      const fadeSpeed = 0.5 / (this.fadeDuration / 1000 * 60)
+      this.finalFadeAlpha = Math.min(1, this.finalFadeAlpha + fadeSpeed)
     }
 
     for(let i=0; i<dataLen;i++){
