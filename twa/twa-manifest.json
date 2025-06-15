@@ -21,8 +21,8 @@
     "path": "/Users/juji/play/clifford-dejong/twa/android.keystore",
     "alias": "android"
   },
-  "appVersionName": "1",
-  "appVersionCode": 1,
+  "appVersionName": "5",
+  "appVersionCode": 5,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://cdw.jujiplay.com/manifest.json",
@@ -43,5 +43,5 @@
   "protocolHandlers": [],
   "fileHandlers": [],
   "launchHandlerClientMode": "",
-  "appVersion": "1"
+  "appVersion": "5"
 }

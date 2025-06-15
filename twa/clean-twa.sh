@@ -36,16 +36,9 @@ if [ -d ".bubblewrap" ]; then
     echo "✅ Removed .bubblewrap/"
 fi
 
-# Remove generated assetlinks.json
-if [ -f "assetlinks.json" ]; then
-    echo "Removing generated assetlinks.json..."
-    rm assetlinks.json
-    echo "✅ Removed assetlinks.json"
-fi
-
 echo ""
 echo "🎉 TWA cleanup completed!"
 echo ""
 echo "Next steps:"
-echo "1. Run validation: npm run twa:validate"
-echo "2. Build TWA: npm run twa:build"
+echo "1. Run validation: pnpm run twa:validate"
+echo "2. Build TWA: pnpm run twa:build"

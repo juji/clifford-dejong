@@ -13,7 +13,7 @@ fi
 
 # Extract SHA256 fingerprint from existing keystore
 echo "📝 Extracting SHA256 fingerprint from keystore..."
-FINGERPRINT=$(keytool -list -v -keystore android.keystore -alias android -storepass android -keypass android | grep "SHA256:" | cut -d' ' -f3)
+FINGERPRINT=$(keytool -list -v -keystore android.keystore -alias android -storepass qwerasdf -keypass qwerasdf | grep "SHA256:" | cut -d' ' -f3)
 
 if [ -z "$FINGERPRINT" ]; then
     echo "❌ Failed to extract fingerprint from keystore"
@@ -22,23 +22,27 @@ fi
 
 echo "✅ SHA256 Fingerprint: $FINGERPRINT"
 
-# Create assetlinks.json
-echo "📄 Updating assetlinks.json..."
-cat > assetlinks.json << EOF
+# Update assetlinks.json in public/.well-known/
+ASSETLINKS_PATH="../public/.well-known/assetlinks.json"
+echo "📄 Updating assetlinks.json at $ASSETLINKS_PATH..."
+
+# Ensure the .well-known directory exists
+mkdir -p "../public/.well-known"
+
+cat > "$ASSETLINKS_PATH" << EOF
 [{
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
-    "package_name": "com.jujiplay.cdw",
+    "package_name": "com.jujiplay.cdw.twa",
     "sha256_cert_fingerprints": ["$FINGERPRINT"]
   }
 }]
 EOF
 
-echo "✅ assetlinks.json created successfully"
+echo "✅ assetlinks.json updated successfully"
 echo ""
-echo "📋 Next steps:"
-echo "1. Upload assetlinks.json to your web server's /.well-known/ directory"
-echo "2. Verify it's accessible at: https://cdw.jujiplay.com/.well-known/assetlinks.json"
-echo ""
-echo "📍 File location: $(pwd)/assetlinks.json"
+echo "📋 Ready for deployment:"
+echo "1. File is now at: $ASSETLINKS_PATH"
+echo "2. Will be accessible at: https://cdw.jujiplay.com/.well-known/assetlinks.json"
+echo "3. Deploy your web app to activate TWA domain verification"

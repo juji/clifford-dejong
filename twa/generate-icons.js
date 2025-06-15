@@ -143,10 +143,10 @@ async function generateIcons() {
     }
     
     // Generate usage instructions
-    const instructionsPath = path.join(outputDir, 'README.md');
+    const instructionsPath = path.join(__dirname, 'icon-instructions.md');
     const instructions = `# Generated Android Icons
 
-This directory contains all the icons generated for your Android TWA.
+Icons have been generated and saved to \`public/icons/\` directory.
 
 ## Icon Types
 
@@ -164,20 +164,21 @@ This directory contains all the icons generated for your Android TWA.
 When setting up your Android project, place icons in these directories:
 
 ### Regular Icons
-- \`icon-36x36.png\` → \`res/mipmap-ldpi/ic_launcher.png\`
-- \`icon-48x48.png\` → \`res/mipmap-mdpi/ic_launcher.png\`
-- \`icon-72x72.png\` → \`res/mipmap-hdpi/ic_launcher.png\`
-- \`icon-96x96.png\` → \`res/mipmap-xhdpi/ic_launcher.png\`
-- \`icon-144x144.png\` → \`res/mipmap-xxhdpi/ic_launcher.png\`
-- \`icon-192x192.png\` → \`res/mipmap-xxxhdpi/ic_launcher.png\`
+- \`public/icons/icon-36x36.png\` → \`res/mipmap-ldpi/ic_launcher.png\`
+- \`public/icons/icon-48x48.png\` → \`res/mipmap-mdpi/ic_launcher.png\`
+- \`public/icons/icon-72x72.png\` → \`res/mipmap-hdpi/ic_launcher.png\`
+- \`public/icons/icon-96x96.png\` → \`res/mipmap-xhdpi/ic_launcher.png\`
+- \`public/icons/icon-144x144.png\` → \`res/mipmap-xxhdpi/ic_launcher.png\`
+- \`public/icons/icon-192x192.png\` → \`res/mipmap-xxxhdpi/ic_launcher.png\`
 
 ### Adaptive Icons
-- \`adaptive-icon-81x81.png\` → \`res/mipmap-ldpi/ic_launcher_foreground.png\`
-- \`background-81x81.png\` → \`res/mipmap-ldpi/ic_launcher_background.png\`
+- \`public/icons/adaptive-icon-81x81.png\` → \`res/mipmap-ldpi/ic_launcher_foreground.png\`
+- \`public/icons/background-81x81.png\` → \`res/mipmap-ldpi/ic_launcher_background.png\`
+- \`public/icons/monochrome-icon-81x81.png\` → \`res/mipmap-ldpi/ic_launcher_monochrome.png\`
 - etc. for other densities...
 
 ### Play Store
-- \`icon-512x512.png\` - Use this for Google Play Store listing
+- \`public/icons/icon-512x512.png\` - Use this for Google Play Store listing
 
 ## Generated: ${new Date().toISOString()}
 `;
@@ -187,12 +188,11 @@ When setting up your Android project, place icons in these directories:
     console.log('');
     console.log('🎉 Icon generation completed!');
     console.log(`📁 Icons saved to: ${outputDir}`);
-    console.log('📖 See README.md in the icons directory for usage instructions');
+    console.log('📖 See icon-instructions.md in the twa directory for usage instructions');
     console.log('');
     console.log('Next steps:');
-    console.log('1. Copy the appropriate icons to your Android project');
-    console.log('2. Update your TWA manifest with the correct icon paths');
-    console.log('3. Build your TWA: npm run twa:build');
+    console.log('1. Icons are ready in public/icons/ directory');
+    console.log('2. Build your TWA: npm run twa:build');
     
   } catch (error) {
     console.error('❌ Error generating icons:', error.message);
