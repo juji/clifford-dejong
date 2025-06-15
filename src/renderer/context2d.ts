@@ -244,7 +244,7 @@ export class Context2d {
         // Always draw points if method is 'points2d'
         this.drawPoints();
         needsBitmapDraw = false; // Ensure performance adjustment logic doesn't skip
-    } else { // Default to 'original' strategy (bitmap accumulation) <-- Changed from original2d
+    } else { // Default to 'original2d' strategy (bitmap accumulation)
         if (!this.paused && (this.itt % this.drawBitmapInterval === 0)) {
             this.drawBitmap(false); // Draw intermediate bitmap (transparent background)
             needsBitmapDraw = true;

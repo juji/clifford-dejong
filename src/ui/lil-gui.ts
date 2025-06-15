@@ -40,12 +40,13 @@ export default function optionPanel(){
     // Special handling for renderMethod: Reload page with query param
     if (changedOption === 'renderMethod') {
       console.log(`RenderMethod changed to: ${newValue}. Reloading page.`);
-      // REMOVED: setPaused(true);
-      // REMOVED: setOptions({ renderMethod: newValue }); 
+      setPaused(true); // Pause potentially running animation
+      // Update localStorage immediately so other settings aren't lost on reload
+      setOptions({ renderMethod: newValue }); 
       
       const currentUrl = new URL(window.location.href);
       currentUrl.searchParams.set('renderMethod', newValue);
-      window.location.href = currentUrl.toString(); // Trigger page reload
+      window.location.href = currentUrl.toString();
       return; // Stop further processing for this change
     }
 
