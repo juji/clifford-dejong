@@ -1,6 +1,6 @@
 // create something awesome!!
 
-// Register service worker for PWA/TWA support
+// Register service worker for PWA support
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
@@ -12,10 +12,6 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
-
-// Initialize TWA detection and external link handling
-import { initTWADetection } from './ui/twa-link-open';
-initTWADetection();
 
 import './index.css'
 import './button.css'

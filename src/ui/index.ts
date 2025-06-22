@@ -8,15 +8,11 @@ import { mouseWheel } from './mouse-events'
 import { touchEvents } from './touch-events'
 import { fullScreenButton } from './full-screen'
 import { infoButton } from './info-button'
-import { initTWADetection } from './twa-link-open'
 
 export function ui(){
   
   // option panel
   optionPanel()
-  
-  // TWA detection and external link handling
-  initTWADetection()
   
   //
   progressReport()

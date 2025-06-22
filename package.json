@@ -6,16 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
-    "postinstall": "cd twa && pnpm install",
-    "twa:setup": "cd twa && ./setup-twa.sh",
-    "twa:build": "cd twa && ./build-twa.sh",
-    "twa:install": "cd twa && ./install-twa.sh",
-    "twa:release": "cd twa && ./build-release-twa.sh",
-    "twa:validate": "cd twa && ./validate-setup.sh",
-    "twa:clean": "cd twa && ./clean-twa.sh",
-    "twa:icons": "cd twa && pnpm run generate-icons",
-    "twa:screenshots": "cd twa && pnpm run generate-screenshots"
+    "preview": "vite preview"
   },
   "devDependencies": {
     "lil-gui": "^0.19.1",

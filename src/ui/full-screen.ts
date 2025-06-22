@@ -1,5 +1,5 @@
 import './full-screen.css'
-import { detectTWA } from './utils'
+import { detectStandaloneMode } from './utils'
 
 export function fullScreenButton(){
   
@@ -8,14 +8,14 @@ export function fullScreenButton(){
   const lilgui = document.querySelector('.lil-gui') as HTMLElement
   if(!fullScreenButton) return;
 
-  // Detect if running in TWA
-  const isTWA = detectTWA();
+  // Detect if running in standalone mode (PWA)
+  const isStandalone = detectStandaloneMode();
 
   fullScreenButton.addEventListener('click',() => {
 
-    if(isTWA) {
-      // In TWA, use CSS-based full screen simulation
-      handleTWAFullscreen(fullScreenButton, footer, lilgui);
+    if(isStandalone) {
+      // In PWA standalone mode, use CSS-based full screen simulation
+      handleStandaloneFullscreen(fullScreenButton, footer, lilgui);
     } else {
       // In regular browser, use native fullscreen API
       handleBrowserFullscreen(fullScreenButton, footer, lilgui);
@@ -23,17 +23,17 @@ export function fullScreenButton(){
   })
 }
 
-function handleTWAFullscreen(button: HTMLElement, footer: HTMLElement, lilgui: HTMLElement) {
+function handleStandaloneFullscreen(button: HTMLElement, footer: HTMLElement, lilgui: HTMLElement) {
   const isCurrentlyFullscreen = button.classList.contains('on');
   
   if (!isCurrentlyFullscreen) {
-    // Enter "fullscreen" mode in TWA
+    // Enter "fullscreen" mode in standalone PWA
     button.classList.add('on');
     footer.classList.add('full-screen');
     lilgui.classList.add('full-screen');
     
   } else {
-    // Exit "fullscreen" mode in TWA
+    // Exit "fullscreen" mode in standalone PWA
     button.classList.remove('on');
     footer.classList.remove('full-screen');
     lilgui.classList.remove('full-screen');

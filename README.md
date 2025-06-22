@@ -4,8 +4,6 @@ A sophisticated web application that generates beautiful mathematical art wallpa
 
 🌐 **Web App**: [https://cdw.jujiplay.com/](https://cdw.jujiplay.com/)
 
-📱 **Android App**: Available as a Trusted Web Activity (TWA)
-
 Deployed on [Cloudflare](https://cloudflare.com/)
 
 ## Features
@@ -20,14 +18,13 @@ Deployed on [Cloudflare](https://cloudflare.com/)
 ### User Interface
 - **Interactive Parameter Panel**: Powered by lil-gui for intuitive control
 - **Download Functionality**: High-quality wallpaper export with animated download button
-- **Full-Screen Mode**: Optimized viewing experience with TWA-specific handling
+- **Full-Screen Mode**: Optimized viewing experience
 - **Reset Controls**: Quick parameter reset to defaults
 - **Responsive Design**: Works seamlessly on desktop and mobile
 
 ### Progressive Web App (PWA)
 - **Service Worker**: Offline functionality and caching
 - **Web Manifest**: Full PWA capabilities
-- **TWA Support**: Complete Android app packaging and distribution
 
 ## Technical Stack
 
@@ -43,24 +40,7 @@ Deployed on [Cloudflare](https://cloudflare.com/)
 - **Modular Design**: Organized into renderer, state, and UI modules
 - **Reactive State**: `optionStore` with subscription-based updates
 - **Color Management**: HSV to RGB conversion utilities
-- **Cross-platform**: Works in browsers and as Android TWA
-
-## TWA (Android App) Setup
-
-This project can be packaged as an Android app using Trusted Web Activity (TWA). See [twa/TWA_README.md](./twa/TWA_README.md) for detailed setup instructions.
-
-### Quick Start for TWA
-
-```bash
-# Build the TWA
-npm run twa:build
-
-# Install on connected Android device
-npm run twa:install
-
-# Build release version for Play Store
-npm run twa:release
-```
+- **Cross-platform**: Works in browsers and as PWA
 
 ## Development
 
@@ -116,14 +96,6 @@ type Options = {
 }
 ```
 
-### TWA Development
-
-For Android app development, see the [`twa/`](./twa/) directory which includes:
-- Complete Android project setup
-- Build scripts and automation
-- Asset generation tools
-- Domain verification setup
-
 ## Mathematical Background
 
 ### Clifford Attractors
@@ -152,9 +124,8 @@ These mathematical systems create beautiful, chaotic patterns that are perfect f
 
 ### Advanced UI
 - **Elastic Animations**: Sophisticated CSS keyframe animations for smooth interactions
-- **TWA Detection**: Automatic detection and optimization for Android TWA environment
 - **Responsive Design**: Optimized for both desktop and mobile experiences
-- **Full-screen Support**: Native browser fullscreen with TWA compatibility
+- **Full-screen Support**: Native browser fullscreen with PWA compatibility
 
 ### Performance Optimizations
 - **WebGL Detection**: Automatic fallback to Canvas 2D when needed
@@ -166,7 +137,6 @@ These mathematical systems create beautiful, chaotic patterns that are perfect f
 - **Modern Browsers**: Chrome, Firefox, Safari, Edge (latest versions)
 - **Mobile Browsers**: iOS Safari, Chrome Mobile, Samsung Internet
 - **PWA Support**: Full Progressive Web App capabilities
-- **Android TWA**: Native Android app experience
 
 ## Contributing
 
