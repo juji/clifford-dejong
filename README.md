@@ -138,10 +138,6 @@ These mathematical systems create beautiful, chaotic patterns that are perfect f
 - **Mobile Browsers**: iOS Safari, Chrome Mobile, Samsung Internet
 - **PWA Support**: Full Progressive Web App capabilities
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
 ## License
 
 This project is open source. Please check the license file for details.
