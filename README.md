@@ -138,9 +138,20 @@ These mathematical systems create beautiful, chaotic patterns that are perfect f
 - **Mobile Browsers**: iOS Safari, Chrome Mobile, Samsung Internet
 - **PWA Support**: Full Progressive Web App capabilities
 
-## License
+## 📄 License
 
-This project is open source. Please check the license file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+**Copyright (c) 2025 Tri Rahmat Gunadi**
+
+The MIT License allows you to:
+- ✅ **Use** the software for any purpose
+- ✅ **Modify** and create derivative works
+- ✅ **Distribute** original and modified versions
+- ✅ **Private use** and commercial use
+- ✅ **Include** in proprietary software
+
+**Requirements**: Include the original copyright notice and license in any copies or substantial portions of the software.
 
 ## Acknowledgments
 
