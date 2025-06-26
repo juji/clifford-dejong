@@ -20,8 +20,8 @@
 - [x] Initialize a new React app in `apps/web`
 - [x] Migrate UI and logic from the current app to React components (in progress/partial)
 - [x] Implement a basic canvas, to ensure correctness. The canvas, should by default draw the attractor with default params
+- [ ] Integrate Zustand for state management
 - [ ] Integrate Tamagui for UI
-- [ ] Integrate Zustand
 - [ ] Create a progress indicator for attractor rendering
 - [ ] Create UI for attractor parameters
 - [ ] Test thoroughly on web
