@@ -30,11 +30,7 @@ function useDebouncedValue<T>(value: T, delay: number): T {
  *   - Too few updates: UI is responsive but animation is choppy.
  *   - Dynamic tuning gives best experience for all users.
  */
-export function AttractorCanvas({
-  progressInterval,
-}: {
-  progressInterval?: number;
-}) {
+export function AttractorCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Zustand selectors for all attractor state
   const attractor = useAttractorStore((s) => s.attractor);
@@ -58,7 +54,6 @@ export function AttractorCanvas({
   const [dynamicProgressInterval, setDynamicProgressInterval] = useState<
     number | null
   >(null);
-  const [benchmarkReady, setBenchmarkReady] = useState(false);
   const [canvasSize, setCanvasSize] = useState<{
     width: number;
     height: number;
@@ -98,23 +93,19 @@ export function AttractorCanvas({
   }, []);
 
   useEffect(() => {
-    if (progressInterval == null) {
-      const result = runAttractorBenchmark();
-      let interval;
-      if (result.msPer100k < 10)
-        interval = 0.5; // 0.5% (200 batches)
-      else if (result.msPer100k < 30)
-        interval = 1; // 1% (100 batches)
-      else interval = 2.5; // 2.5% (40 batches)
-      setDynamicProgressInterval(interval);
-      setBenchmarkReady(true);
-    } else {
-      setBenchmarkReady(true);
-    }
-  }, [progressInterval]);
+    // Always benchmark and set dynamicProgressInterval on mount
+    const result = runAttractorBenchmark();
+    let interval;
+    if (result.msPer100k < 10)
+      interval = 0.5; // 0.5% (200 batches)
+    else if (result.msPer100k < 30)
+      interval = 1; // 1% (100 batches)
+    else interval = 2.5; // 2.5% (40 batches)
+    setDynamicProgressInterval(interval);
+  }, []);
 
   useEffect(() => {
-    if (!benchmarkReady) return;
+    if (dynamicProgressInterval == null) return;
     setError(null);
     setIsRendering(true);
     const canvas = canvasRef.current;
@@ -131,7 +122,7 @@ export function AttractorCanvas({
       workerRef.current.terminate();
       workerRef.current = null;
     }
-    const interval = dynamicProgressInterval ?? progressInterval ?? 1;
+    const interval = dynamicProgressInterval;
     const worker = new Worker(
       new URL("../workers/AttractorWorker.ts", import.meta.url),
       { type: "module" },
@@ -210,10 +201,8 @@ export function AttractorCanvas({
       }
     };
   }, [
-    benchmarkReady,
-    debouncedCanvasSize,
     dynamicProgressInterval,
-    progressInterval,
+    debouncedCanvasSize,
     attractor,
     a,
     b,

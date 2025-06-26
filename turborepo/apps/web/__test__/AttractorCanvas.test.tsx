@@ -70,7 +70,7 @@ describe("AttractorCanvas (detailed)", () => {
   });
 
   it("renders and interacts with mocked Zustand store and Worker", () => {
-    const { container } = render(<AttractorCanvas progressInterval={1} />);
+    const { container } = render(<AttractorCanvas />);
     const canvas = container.querySelector("canvas");
     expect(canvas).toBeInTheDocument();
 
