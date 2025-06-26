@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { clifford, dejong } from "@repo/core";
 import { getColorData } from "@repo/core/color";
 import type { CanvasProps, CanvasOptions } from "@repo/core/canvas-types";
+import { runAttractorBenchmark } from "../lib/attractor-benchmark";
 
 const DEFAULT_OPTIONS: CanvasOptions = {
   attractor: "clifford",
@@ -46,6 +47,12 @@ export function AttractorCanvas({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Benchmark to determine batch size (aim for ~16ms per batch)
+    const bench = runAttractorBenchmark(10000); // quick, small sample
+    const msPerPoint = bench.ms / 10000;
+    const targetMs = 16; // ~60fps
+    const batchSize = Math.max(1000, Math.floor(targetMs / msPerPoint));
+
     // Legacy scaling and centering
     const scale = DEFAULT_SCALE;
     const scaleRatio = Math.max(0.001, opts.scale ?? 1);
@@ -60,57 +67,72 @@ export function AttractorCanvas({
     let x = 0,
       y = 0;
     const attractorFn = opts.attractor === "clifford" ? clifford : dejong;
-    for (let i = 0; i < DEFAULT_POINTS; i++) {
-      const result = attractorFn(x, y, opts.a, opts.b, opts.c, opts.d);
-      const nx =
-        Array.isArray(result) && typeof result[0] === "number"
-          ? result[0]
-          : 0;
-      const ny =
-        Array.isArray(result) && typeof result[1] === "number"
-          ? result[1]
-          : 0;
-      x = smoothing(nx, scale * scaleRatio);
-      y = smoothing(ny, scale * scaleRatio);
-      const screenX = Math.round(x * scale * scaleRatio);
-      const screenY = Math.round(y * scale * scaleRatio);
-      const px = Math.floor(screenX + centerX);
-      const py = Math.floor(screenY + centerY);
-      if (px >= 0 && px < width && py >= 0 && py < height) {
-        const idx = px + py * width;
-        pixels[idx] = (pixels[idx] || 0) + 1;
-        if (pixels[idx] > maxDensity) maxDensity = pixels[idx];
-      }
-    }
+    let processed = 0;
 
-    // Color mapping
-    const imageData = ctx.createImageData(width, height);
-    const data = new Uint32Array(imageData.data.buffer);
-    const bgArr = opts.background ?? [0, 0, 0];
-    const bgColor =
-      (255 << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
-    for (let i = 0; i < pixels.length; i++) {
-      const density = pixels[i] ?? 0;
-      if (density > 0) {
-        data[i] = getColorData(
-          density,
-          maxDensity,
-          opts.hue ?? 120,
-          opts.saturation ?? 100,
-          opts.brightness ?? 100
-        );
+    function processBatch() {
+      // Ensure ctx and canvas are not null (already checked above)
+      const ctxSafe = ctx!;
+      const canvasSafe = canvas!;
+      const end = Math.min(processed + batchSize, DEFAULT_POINTS);
+      for (let i = processed; i < end; i++) {
+        const result = attractorFn(x, y, opts.a, opts.b, opts.c, opts.d);
+        const nx =
+          Array.isArray(result) && typeof result[0] === "number"
+            ? result[0]
+            : 0;
+        const ny =
+          Array.isArray(result) && typeof result[1] === "number"
+            ? result[1]
+            : 0;
+        x = smoothing(nx, scale * scaleRatio);
+        y = smoothing(ny, scale * scaleRatio);
+        const screenX = Math.round(x * scale * scaleRatio);
+        const screenY = Math.round(y * scale * scaleRatio);
+        const px = Math.floor(screenX + centerX);
+        const py = Math.floor(screenY + centerY);
+        if (px >= 0 && px < width && py >= 0 && py < height) {
+          const idx = px + py * width;
+          pixels[idx] = (pixels[idx] || 0) + 1;
+          if (pixels[idx] > maxDensity) maxDensity = pixels[idx];
+        }
+      }
+      processed = end;
+      if (onProgress) {
+        onProgress(Math.round((processed / DEFAULT_POINTS) * 100));
+      }
+      if (processed < DEFAULT_POINTS) {
+        requestAnimationFrame(processBatch);
       } else {
-        data[i] = bgColor;
+        // Color mapping
+        const imageData = ctxSafe.createImageData(width, height);
+        const data = new Uint32Array(imageData.data.buffer);
+        const bgArr = opts.background ?? [0, 0, 0];
+        const bgColor =
+          (255 << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
+        for (let i = 0; i < pixels.length; i++) {
+          const density = pixels[i] ?? 0;
+          if (density > 0) {
+            data[i] = getColorData(
+              density,
+              maxDensity,
+              opts.hue ?? 120,
+              opts.saturation ?? 100,
+              opts.brightness ?? 100
+            );
+          } else {
+            data[i] = bgColor;
+          }
+        }
+        ctxSafe.putImageData(imageData, 0, 0);
+        if (onImageReady) {
+          onImageReady(canvasSafe.toDataURL("image/png"));
+        }
+        if (onProgress) {
+          onProgress(100);
+        }
       }
     }
-    ctx.putImageData(imageData, 0, 0);
-
-    if (onImageReady) {
-      onImageReady(canvas.toDataURL("image/png"));
-    }
-    if (onProgress) {
-      onProgress(100);
-    }
+    processBatch();
   }, [opts, onProgress, onImageReady]);
 
   return (
