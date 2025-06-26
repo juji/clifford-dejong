@@ -158,3 +158,11 @@ The MIT License allows you to:
 - Mathematical concepts based on the work of Clifford Pickover and Peter de Jong
 - UI components powered by [lil-gui](https://lil-gui.georgealways.com/)
 - Built with [Vite](https://vitejs.dev/) for optimal development experience
+
+---
+
+## Migration Notice
+
+We are planning to migrate this project to a monorepo structure using React, React Native, and [Tamagui](https://tamagui.dev/) for cross-platform UI. See `doc/migration-plan.md` for details and progress.
+
+The current working example is now preserved in the `current/` directory.

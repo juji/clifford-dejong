@@ -1,8 +1,0 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "com.jujiplay.cdw.twa",
-    "sha256_cert_fingerprints": ["D8:66:13:D7:05:F0:F2:BE:3E:62:BB:07:77:A9:AB:83:E0:91:A2:5A:94:0F:EF:5C:6B:2B:C7:E3:CB:85:43:B0"]
-  }
-}]
