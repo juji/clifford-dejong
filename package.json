@@ -2,7 +2,11 @@
   "name": "clifford-dejong-root",
   "private": true,
   "devDependencies": {
-    "husky": "^9.1.7"
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "husky": "^9.1.7",
+    "jsdom": "^26.1.0",
+    "vitest": "^3.2.4"
   },
   "scripts": {
     "prepare": "husky install"
