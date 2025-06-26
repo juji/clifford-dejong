@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { clifford, dejong } from "@repo/core";
 import { getColorData } from "@repo/core/color";
 import type { CanvasProps, CanvasOptions } from "@repo/core/canvas-types";
 import { runAttractorBenchmark } from "../lib/attractor-benchmark";
@@ -22,20 +21,6 @@ const DEFAULT_OPTIONS: CanvasOptions = {
 
 const DEFAULT_POINTS = 20000000;
 const DEFAULT_SCALE = 150;
-
-function smoothing(num: number, scale: number) {
-  return num + (Math.random() < 0.5 ? -0.2 : 0.2) * (1 / scale);
-}
-
-// Calculate preview opacity based on percent progress
-function getPreviewOpacity(percent: number): number {
-  // Multi-peak smooth wave, always ends at 1.0
-  const progress = percent / 100;
-  if (percent >= 100) return 1.0;
-  // 2.5 cycles, amplitude fades as progress increases, bias toward 1.0
-  const wave = 0.5 * Math.sin(2.5 * Math.PI * progress) * (1 - progress) + progress;
-  return Math.max(0, Math.min(1, wave));
-}
 
 function useDebouncedValue<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);

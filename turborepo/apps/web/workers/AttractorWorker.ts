@@ -36,6 +36,9 @@ self.onmessage = function (e) {
     const batchSize = Math.max(1000, Math.floor(points / 1000)); // ~1000 batches, min 1000 points per batch
     let i = 0;
     shouldStop = false;
+    function smoothing(num: number, scale: number) {
+      return num + (Math.random() < 0.5 ? -0.2 : 0.2) * (1 / scale);
+    }
     function processBatch() {
       if (shouldStop) {
         return;
@@ -44,8 +47,11 @@ self.onmessage = function (e) {
       for (; i < end; i++) {
         // Calculate next point
         const result = attractorFn(x, y, a, b, c, d);
-        const nx = Array.isArray(result) && typeof result[0] === 'number' ? result[0] : 0;
-        const ny = Array.isArray(result) && typeof result[1] === 'number' ? result[1] : 0;
+        let nx = Array.isArray(result) && typeof result[0] === 'number' ? result[0] : 0;
+        let ny = Array.isArray(result) && typeof result[1] === 'number' ? result[1] : 0;
+        // Apply smoothing to each step
+        nx = smoothing(nx, scale);
+        ny = smoothing(ny, scale);
         x = nx;
         y = ny;
         // Map to screen
