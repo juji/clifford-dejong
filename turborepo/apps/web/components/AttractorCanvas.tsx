@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { clifford, dejong } from "@repo/core";
 import { getColorData } from "@repo/core/color";
 import type { CanvasProps, CanvasOptions } from "@repo/core/canvas-types";
@@ -37,113 +37,143 @@ function getPreviewOpacity(percent: number): number {
   return Math.max(0, Math.min(1, wave));
 }
 
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debounced;
+}
+
+/**
+ * AttractorCanvas
+ *
+ * This React component renders the attractor using an off-main-thread Web Worker.
+ *
+ * - Runs a device benchmark on mount (unless progressInterval is provided).
+ * - Sets progressInterval (percent) dynamically based on device speed:
+ *     - Fast device: smaller interval (more frequent updates, smoother UI)
+ *     - Slow device: larger interval (fewer updates, less UI overhead)
+ * - Sends progressInterval to the worker, which controls how often the worker posts progress updates.
+ * - Receives preview/done/error messages from the worker and updates the canvas.
+ *
+ * Why progressInterval?
+ *   - Too many updates: UI is smooth but can lag on slow devices.
+ *   - Too few updates: UI is responsive but animation is choppy.
+ *   - Dynamic tuning gives best experience for all users.
+ */
 export function AttractorCanvas({
   options = DEFAULT_OPTIONS,
   onProgress,
   onImageReady,
-}: Partial<CanvasProps>) {
-  // Move opts inside useEffect to avoid changing dependencies on every render
+  progressInterval,
+}: Partial<CanvasProps> & { progressInterval?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [dynamicProgressInterval, setDynamicProgressInterval] = useState<number | null>(null);
+  const [benchmarkReady, setBenchmarkReady] = useState(false);
+  const [canvasSize, setCanvasSize] = useState<{ width: number; height: number } | null>(null);
+  const debouncedCanvasSize = useDebouncedValue(canvasSize, 200); // 200ms debounce
+  const workerRef = useRef<Worker | null>(null);
+
+  // Listen for window resize and update canvas size state
+  useEffect(() => {
+    let lastSize = { width: 0, height: 0 };
+    const HEIGHT_THRESHOLD = 40; // px, ignore small height changes (e.g. mobile scroll)
+    function updateSize() {
+      const canvas = canvasRef.current;
+      const parent = canvas?.parentElement;
+      if (canvas && parent) {
+        const newSize = { width: parent.clientWidth, height: parent.clientHeight };
+        const heightDelta = Math.abs(newSize.height - lastSize.height);
+        if (newSize.width !== lastSize.width) {
+          if (workerRef.current) workerRef.current.postMessage({ type: 'stop' });
+          lastSize = newSize;
+          setCanvasSize(newSize);
+        } else if (heightDelta > HEIGHT_THRESHOLD) {
+          if (workerRef.current) workerRef.current.postMessage({ type: 'stop' });
+          lastSize = newSize;
+          setCanvasSize(newSize);
+        }
+        // No log for minor height changes
+      }
+    }
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
 
   useEffect(() => {
+    if (progressInterval == null) {
+      const result = runAttractorBenchmark();
+      let interval;
+      if (result.msPer100k < 10) interval = 0.5; // 0.5% (200 batches)
+      else if (result.msPer100k < 30) interval = 1; // 1% (100 batches)
+      else interval = 2.5; // 2.5% (40 batches)
+      setDynamicProgressInterval(interval);
+      setBenchmarkReady(true);
+    } else {
+      setBenchmarkReady(true);
+    }
+  }, [progressInterval]);
+
+  useEffect(() => {
+    if (!benchmarkReady) return;
+    setError(null);
     const opts = { ...DEFAULT_OPTIONS, ...options };
     const canvas = canvasRef.current;
     if (!canvas) return;
     const parent = canvas.parentElement;
     if (!parent) return;
-    canvas.width = parent.clientWidth;
-    canvas.height = parent.clientHeight;
-    const width = canvas.width;
-    const height = canvas.height;
+    const width = debouncedCanvasSize?.width ?? parent.clientWidth;
+    const height = debouncedCanvasSize?.height ?? parent.clientHeight;
+    canvas.width = width;
+    canvas.height = height;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Benchmark to determine batch size (aim for ~16ms per batch)
-    const bench = runAttractorBenchmark(10000);
-    const msPerPoint = bench.ms / 10000;
-    const targetMs = 16;
-    const batchSize = Math.max(1000, Math.floor(targetMs / msPerPoint));
-    // Legacy scaling and centering
-    const scale = DEFAULT_SCALE;
-    const scaleRatio = Math.max(0.001, opts.scale ?? 1);
-    const centerXRatio = opts.left ?? 0;
-    const centerYRatio = opts.top ?? 0;
-    const centerX = width - width / 2 + centerXRatio * width;
-    const centerY = height - height / 2 + centerYRatio * height;
-
-    // Density buffer
-    const pixels = new Uint32Array(width * height);
-    let maxDensity = 0;
-    let x = 0, y = 0;
-    let processed = 0;
-    let lastPreviewPercent = 0;
-    const attractorFn = opts.attractor === "clifford" ? clifford : dejong;
-
-    function drawPreview() {
-      if (!ctx) return;
-      const imageData = ctx.createImageData(width, height);
-      const data = new Uint32Array(imageData.data.buffer);
-      const bgArr = opts.background ?? DEFAULT_OPTIONS.background;
-      const bgColor = (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
-      for (let i = 0; i < pixels.length; i++) {
-        const density = pixels[i] ?? 0;
-        if (density > 0) {
-          data[i] = getColorData(
-            density,
-            maxDensity,
-            opts.hue ?? 120,
-            opts.saturation ?? 100,
-            opts.brightness ?? 100
-          );
-        } else {
-          data[i] = bgColor;
-        }
-      }
-      ctx.putImageData(imageData, 0, 0);
+    // Terminate any previous worker before starting a new one
+    if (workerRef.current) {
+      workerRef.current.terminate();
+      workerRef.current = null;
     }
 
-    function processBatch() {
-      const end = Math.min(processed + batchSize, DEFAULT_POINTS);
-      for (let i = processed; i < end; i++) {
-        const result = attractorFn(x, y, opts.a, opts.b, opts.c, opts.d);
-        const nx = Array.isArray(result) && typeof result[0] === "number" ? result[0] : 0;
-        const ny = Array.isArray(result) && typeof result[1] === "number" ? result[1] : 0;
-        x = smoothing(nx, scale * scaleRatio);
-        y = smoothing(ny, scale * scaleRatio);
-        const screenX = Math.round(x * scale * scaleRatio);
-        const screenY = Math.round(y * scale * scaleRatio);
-        const px = Math.floor(screenX + centerX);
-        const py = Math.floor(screenY + centerY);
-        if (px >= 0 && px < width && py >= 0 && py < height) {
-          const idx = px + py * width;
-          pixels[idx] = (pixels[idx] || 0) + 1;
-          if (pixels[idx] > maxDensity) maxDensity = pixels[idx];
+    const interval = dynamicProgressInterval ?? progressInterval ?? 1;
+    const worker = new Worker(new URL('../workers/AttractorWorker.ts', import.meta.url), { type: 'module' });
+    workerRef.current = worker;
+    worker.postMessage({
+      attractor: opts.attractor,
+      a: opts.a,
+      b: opts.b,
+      c: opts.c,
+      d: opts.d,
+      points: DEFAULT_POINTS,
+      width,
+      height,
+      scale: DEFAULT_SCALE * (opts.scale ?? 1),
+      left: opts.left ?? 0,
+      top: opts.top ?? 0,
+      progressInterval: interval
+    });
+    worker.onmessage = (e: MessageEvent) => {
+      if (e.data.type === 'stopped') {
+        if (workerRef.current) {
+          workerRef.current.terminate();
+          workerRef.current = null;
         }
+        return;
       }
-      processed = end;
-      const percent = Math.round((processed / DEFAULT_POINTS) * 100);
-      if (onProgress) onProgress(percent);
-      if (canvasRef.current) {
-        canvasRef.current.style.opacity = String(getPreviewOpacity(percent));
-      }
-      // Draw preview at 25% intervals or at 100%
-      if (percent >= lastPreviewPercent + 25 || processed === DEFAULT_POINTS) {
-        lastPreviewPercent = percent;
-        drawPreview();
-      }
-      if (processed < DEFAULT_POINTS) {
-        requestAnimationFrame(processBatch);
-      } else {
-        // Final color mapping
-        if (!ctx) return;
-        const finalImageData = ctx.createImageData(width, height);
-        const finalData = new Uint32Array(finalImageData.data.buffer);
-        const finalBgArr = opts.background ?? DEFAULT_OPTIONS.background;
-        const finalBgColor = (finalBgArr[3] << 24) | (finalBgArr[2] << 16) | (finalBgArr[1] << 8) | finalBgArr[0];
+      if ((e.data.type === 'preview' || e.data.type === 'done') && e.data.pixels) {
+        const { pixels, maxDensity, progress } = e.data;
+        const imageData = ctx.createImageData(width, height);
+        const data = new Uint32Array(imageData.data.buffer);
+        const bgArr = opts.background ?? DEFAULT_OPTIONS.background;
+        const bgColor = (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
         for (let i = 0; i < pixels.length; i++) {
           const density = pixels[i] ?? 0;
           if (density > 0) {
-            finalData[i] = getColorData(
+            data[i] = getColorData(
               density,
               maxDensity,
               opts.hue ?? 120,
@@ -151,30 +181,41 @@ export function AttractorCanvas({
               opts.brightness ?? 100
             );
           } else {
-            finalData[i] = finalBgColor;
+            data[i] = bgColor;
           }
         }
-        ctx.putImageData(finalImageData, 0, 0);
-        if (onImageReady && canvas) {
+        ctx.putImageData(imageData, 0, 0);
+        if (e.data.type === 'done' && onImageReady) {
           onImageReady(canvas.toDataURL("image/png"));
         }
-        if (onProgress) {
-          onProgress(100);
+        if (onProgress && typeof progress === 'number') {
+          onProgress(progress);
         }
+      } else if (e.data.type === 'error') {
+        setError(e.data.error || 'Unknown error in worker');
       }
-    }
-
-    processBatch();
-  }, [options, onProgress, onImageReady]);
+    };
+    return () => {
+      worker.terminate();
+      workerRef.current = null;
+    };
+  }, [options, onProgress, onImageReady, progressInterval, dynamicProgressInterval, benchmarkReady, debouncedCanvasSize]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "block"
-      }}
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "block"
+        }}
+      />
+      {error && (
+        <div style={{ color: 'red', position: 'absolute', top: 0, left: 0, background: 'rgba(0,0,0,0.7)', padding: 8, zIndex: 10 }}>
+          Error: {error}
+        </div>
+      )}
+    </>
   );
 }
