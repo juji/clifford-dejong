@@ -42,10 +42,11 @@ export function AttractorCanvas({
   onProgress,
   onImageReady,
 }: Partial<CanvasProps>) {
-  const opts = { ...DEFAULT_OPTIONS, ...options };
+  // Move opts inside useEffect to avoid changing dependencies on every render
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    const opts = { ...DEFAULT_OPTIONS, ...options };
     const canvas = canvasRef.current;
     if (!canvas) return;
     const parent = canvas.parentElement;
@@ -78,7 +79,7 @@ export function AttractorCanvas({
     let lastPreviewPercent = 0;
     const attractorFn = opts.attractor === "clifford" ? clifford : dejong;
 
-    function drawPreview(percent: number) {
+    function drawPreview() {
       if (!ctx) return;
       const imageData = ctx.createImageData(width, height);
       const data = new Uint32Array(imageData.data.buffer);
@@ -128,7 +129,7 @@ export function AttractorCanvas({
       // Draw preview at 25% intervals or at 100%
       if (percent >= lastPreviewPercent + 25 || processed === DEFAULT_POINTS) {
         lastPreviewPercent = percent;
-        drawPreview(percent);
+        drawPreview();
       }
       if (processed < DEFAULT_POINTS) {
         requestAnimationFrame(processBatch);
@@ -164,7 +165,7 @@ export function AttractorCanvas({
     }
 
     processBatch();
-  }, [opts, onProgress, onImageReady]);
+  }, [options, onProgress, onImageReady]);
 
   return (
     <canvas
