@@ -133,13 +133,12 @@ jobs:
           node-version: '22.14.0'
           cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        working-directory: ./turborepo/apps/web
-
       - name: Install Vercel CLI
         run: pnpm install --global vercel@latest
-        working-directory: ./turborepo/apps/web
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: ./turborepo
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
