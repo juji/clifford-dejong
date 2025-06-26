@@ -3,7 +3,7 @@
 
 import BezierEasing from 'bezier-easing'
 
-export function hsv2rgb(h: number, s: number, v: number) {
+export function hsv2rgb(h: number, s: number, v: number): [ number, number, number ] {
   let r, g, b;
   let i;
   let f, p, q, t;
