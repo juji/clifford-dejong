@@ -1,7 +1,7 @@
 {
   "extends": "../typescript-config/base.json",
   "compilerOptions": {
-    "types": ["vitest/globals"]
+    "types": ["vitest", "vitest/globals"]
   },
   "include": ["index.ts", "color.ts", "test/**/*.test.ts"]
 }

@@ -1,9 +1,7 @@
 {
   "extends": "@repo/typescript-config/nextjs.json",
   "compilerOptions": {
-    "types": [
-      "vitest"
-    ],
+    "types": ["vitest", "vitest/globals"],
     "plugins": [
       {
         "name": "next"
@@ -17,7 +15,5 @@
     "next.config.js",
     ".next/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
