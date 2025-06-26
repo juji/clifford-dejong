@@ -1,3 +1,4 @@
 #!/bin/sh
 
 pnpm --filter turborepo test
+pnpm --filter turborepo lint
