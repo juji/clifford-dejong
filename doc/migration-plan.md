@@ -21,7 +21,7 @@
 - [x] Migrate UI and logic from the current app to React components (in progress/partial)
 - [x] Implement a basic canvas, to ensure correctness. The canvas, should by default draw the attractor with default params
 - [x] use worker to lighten load on main thread
-- [ ] Integrate Zustand for state management
+- [x] Integrate Zustand for state management
 - [ ] Integrate Tamagui for UI
 - [ ] Create a progress indicator for attractor rendering
 - [ ] Create UI for attractor parameters
