@@ -22,6 +22,9 @@ export type AttractorState = {
   showInfo: boolean;
   showSettings: boolean;
   fullscreen: boolean;
+  error: string | null;
+  DEFAULT_POINTS: number;
+  DEFAULT_SCALE: number;
 };
 
 // Separate actions from state for type safety
@@ -39,6 +42,7 @@ export type AttractorActions = {
   toggleSettings: () => void;
   toggleFullscreen: () => void;
   reset: () => void;
+  setError: (error: string | null) => void;
 };
 
 const defaultState: Omit<AttractorState, keyof AttractorActions> = {
@@ -60,6 +64,9 @@ const defaultState: Omit<AttractorState, keyof AttractorActions> = {
   showInfo: false,
   showSettings: false,
   fullscreen: false,
+  error: null,
+  DEFAULT_POINTS: 20000000,
+  DEFAULT_SCALE: 150,
 };
 
 export const useAttractorStore = create<AttractorState & AttractorActions>()(
@@ -79,6 +86,7 @@ export const useAttractorStore = create<AttractorState & AttractorActions>()(
       toggleSettings: () => set((state) => ({ showSettings: !state.showSettings })),
       toggleFullscreen: () => set((state) => ({ fullscreen: !state.fullscreen })),
       reset: () => set({ ...defaultState }),
+      setError: (error) => set({ error }),
     }),
     {
       name: 'attractor-store',

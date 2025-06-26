@@ -1,26 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { getColorData } from "@repo/core/color";
-import type { CanvasProps, CanvasOptions } from "@repo/core/canvas-types";
 import { runAttractorBenchmark } from "../lib/attractor-benchmark";
-
-const DEFAULT_OPTIONS: CanvasOptions = {
-  attractor: "clifford",
-  a: 2,
-  b: -2,
-  c: 1,
-  d: -1,
-  hue: 333,
-  saturation: 100,
-  brightness: 100,
-  background: [0, 0, 0, 255],
-  scale: 1,
-  left: 0,
-  top: 0,
-};
-
-const DEFAULT_POINTS = 20000000;
-const DEFAULT_SCALE = 150;
+import { useAttractorStore } from '../../../packages/state/attractor-store';
 
 function useDebouncedValue<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -49,13 +31,34 @@ function useDebouncedValue<T>(value: T, delay: number): T {
  *   - Dynamic tuning gives best experience for all users.
  */
 export function AttractorCanvas({
-  options = DEFAULT_OPTIONS,
   onProgress,
   onImageReady,
   progressInterval,
-}: Partial<CanvasProps> & { progressInterval?: number }) {
+}: {
+  onProgress?: (progress: number) => void;
+  onImageReady?: (url: string) => void;
+  progressInterval?: number;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [error, setError] = useState<string | null>(null);
+  // Zustand selectors for all attractor state
+  const attractor = useAttractorStore((s) => s.attractor);
+  const a = useAttractorStore((s) => s.a);
+  const b = useAttractorStore((s) => s.b);
+  const c = useAttractorStore((s) => s.c);
+  const d = useAttractorStore((s) => s.d);
+  const hue = useAttractorStore((s) => s.hue);
+  const saturation = useAttractorStore((s) => s.saturation);
+  const brightness = useAttractorStore((s) => s.brightness);
+  const background = useAttractorStore((s) => s.background);
+  const scale = useAttractorStore((s) => s.scale);
+  const left = useAttractorStore((s) => s.left);
+  const top = useAttractorStore((s) => s.top);
+  const setProgress = useAttractorStore((s) => s.setProgress);
+  const setIsRendering = useAttractorStore((s) => s.setIsRendering);
+  const setImageUrl = useAttractorStore((s) => s.setImageUrl);
+  const setError = useAttractorStore((s) => s.setError);
+  const DEFAULT_POINTS = useAttractorStore((s) => s.DEFAULT_POINTS);
+  const DEFAULT_SCALE = useAttractorStore((s) => s.DEFAULT_SCALE);
   const [dynamicProgressInterval, setDynamicProgressInterval] = useState<number | null>(null);
   const [benchmarkReady, setBenchmarkReady] = useState(false);
   const [canvasSize, setCanvasSize] = useState<{ width: number; height: number } | null>(null);
@@ -81,7 +84,6 @@ export function AttractorCanvas({
           lastSize = newSize;
           setCanvasSize(newSize);
         }
-        // No log for minor height changes
       }
     }
     updateSize();
@@ -106,7 +108,7 @@ export function AttractorCanvas({
   useEffect(() => {
     if (!benchmarkReady) return;
     setError(null);
-    const opts = { ...DEFAULT_OPTIONS, ...options };
+    setIsRendering(true);
     const canvas = canvasRef.current;
     if (!canvas) return;
     const parent = canvas.parentElement;
@@ -117,32 +119,34 @@ export function AttractorCanvas({
     canvas.height = height;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
-    // Terminate any previous worker before starting a new one
     if (workerRef.current) {
       workerRef.current.terminate();
       workerRef.current = null;
     }
-
     const interval = dynamicProgressInterval ?? progressInterval ?? 1;
     const worker = new Worker(new URL('../workers/AttractorWorker.ts', import.meta.url), { type: 'module' });
     workerRef.current = worker;
     worker.postMessage({
-      attractor: opts.attractor,
-      a: opts.a,
-      b: opts.b,
-      c: opts.c,
-      d: opts.d,
+      attractor,
+      a,
+      b,
+      c,
+      d,
       points: DEFAULT_POINTS,
       width,
       height,
-      scale: DEFAULT_SCALE * (opts.scale ?? 1),
-      left: opts.left ?? 0,
-      top: opts.top ?? 0,
+      scale: DEFAULT_SCALE * (scale ?? 1),
+      left: left ?? 0,
+      top: top ?? 0,
+      hue,
+      saturation,
+      brightness,
+      background,
       progressInterval: interval
     });
     worker.onmessage = (e: MessageEvent) => {
       if (e.data.type === 'stopped') {
+        setIsRendering(false);
         if (workerRef.current) {
           workerRef.current.terminate();
           workerRef.current = null;
@@ -153,7 +157,7 @@ export function AttractorCanvas({
         const { pixels, maxDensity, progress } = e.data;
         const imageData = ctx.createImageData(width, height);
         const data = new Uint32Array(imageData.data.buffer);
-        const bgArr = opts.background ?? DEFAULT_OPTIONS.background;
+        const bgArr = background;
         const bgColor = (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
         for (let i = 0; i < pixels.length; i++) {
           const density = pixels[i] ?? 0;
@@ -161,46 +165,38 @@ export function AttractorCanvas({
             data[i] = getColorData(
               density,
               maxDensity,
-              opts.hue ?? 120,
-              opts.saturation ?? 100,
-              opts.brightness ?? 100
+              hue ?? 120,
+              saturation ?? 100,
+              brightness ?? 100
             );
           } else {
             data[i] = bgColor;
           }
         }
         ctx.putImageData(imageData, 0, 0);
-        if (e.data.type === 'done' && onImageReady) {
-          onImageReady(canvas.toDataURL("image/png"));
+        if (e.data.type === 'done') {
+          setIsRendering(false);
+          setImageUrl(canvas.toDataURL("image/png"));
+          if (onImageReady) onImageReady(canvas.toDataURL("image/png"));
         }
-        if (onProgress && typeof progress === 'number') {
-          onProgress(progress);
+        if (typeof progress === 'number') {
+          setProgress(progress);
+          if (onProgress) onProgress(progress);
         }
       } else if (e.data.type === 'error') {
+        setIsRendering(false);
         setError(e.data.error || 'Unknown error in worker');
       }
     };
+    // Cleanup function to terminate the worker on unmount
     return () => {
-      worker.terminate();
-      workerRef.current = null;
+      setIsRendering(false);
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
     };
-  }, [options, onProgress, onImageReady, progressInterval, dynamicProgressInterval, benchmarkReady, debouncedCanvasSize]);
+  }, [benchmarkReady, debouncedCanvasSize, dynamicProgressInterval, progressInterval, attractor, a, b, c, d, hue, saturation, brightness, background, left, top, setError, setImageUrl, setIsRendering, setProgress, onImageReady, onProgress, DEFAULT_POINTS, DEFAULT_SCALE]);
 
-  return (
-    <>
-      <canvas
-        ref={canvasRef}
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "block"
-        }}
-      />
-      {error && (
-        <div style={{ color: 'red', position: 'absolute', top: 0, left: 0, background: 'rgba(0,0,0,0.7)', padding: 8, zIndex: 10 }}>
-          Error: {error}
-        </div>
-      )}
-    </>
-  );
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />;
 }
