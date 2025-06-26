@@ -14,7 +14,7 @@ const DEFAULT_OPTIONS: CanvasOptions = {
   hue: 333,
   saturation: 100,
   brightness: 100,
-  background: [0, 0, 0],
+  background: [0, 0, 0, 255], // r g b a
   scale: 1,
   left: 0,
   top: 0,
@@ -32,6 +32,7 @@ export function AttractorCanvas({
   onProgress,
   onImageReady,
 }: Partial<CanvasProps>) {
+
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -106,9 +107,9 @@ export function AttractorCanvas({
         // Color mapping
         const imageData = ctxSafe.createImageData(width, height);
         const data = new Uint32Array(imageData.data.buffer);
-        const bgArr = opts.background ?? [0, 0, 0];
-        const bgColor =
-          (255 << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
+        const bgArr = opts.background ?? DEFAULT_OPTIONS.background;
+        const bgColor = (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
+
         for (let i = 0; i < pixels.length; i++) {
           const density = pixels[i] ?? 0;
           if (density > 0) {
@@ -132,6 +133,10 @@ export function AttractorCanvas({
         }
       }
     }
+    // Fill background with opacity for visual consistency
+    const bgArr = opts.background ?? DEFAULT_OPTIONS.background;
+    ctx.fillStyle = `rgba(${bgArr[0]},${bgArr[1]},${bgArr[2]},${(bgArr[3] ?? 255) / 255})`;
+    ctx.fillRect(0, 0, width, height);
     processBatch();
   }, [opts, onProgress, onImageReady]);
 
