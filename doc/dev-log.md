@@ -21,4 +21,13 @@ This document tracks major changes, migrations, and development milestones for t
 - Added device performance benchmark utility and responsive batching for smooth rendering.
 - Cleaned up project structure and committed all tracked/untracked files.
 
+---
+
+## 2025-06-26 20:00 UTC
+- Planned and scaffolded Zustand state management with cross-platform storage (web: localStorage, React Native: AsyncStorage).
+- Created `packages/state` with a fully-typed attractor store and storage adapter.
+- Updated lint/build scripts to treat warnings as errors and enforce a clean codebase.
+- Refactored `AttractorCanvas.tsx` to remove all lint warnings and unused variables.
+- Committed all outstanding changes, including migration plan, package updates, and lockfile.
+
 Add new entries below as work progresses.
