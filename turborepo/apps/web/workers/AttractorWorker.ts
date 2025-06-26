@@ -7,27 +7,41 @@
 //   Larger values = fewer updates (better for slow devices).
 //   This is set dynamically by the main thread based on device performance.
 
-import { clifford, dejong } from '@repo/core';
+import { clifford, dejong } from "@repo/core";
 
 let shouldStop = false;
 let rafHandle: number | null = null;
 
 self.onmessage = function (e) {
-  if (e.data && e.data.type === 'stop') {
+  if (e.data && e.data.type === "stop") {
     // Stop signal received from main thread
     shouldStop = true;
     if (rafHandle !== null) {
       self.cancelAnimationFrame(rafHandle);
       rafHandle = null;
     }
-    self.postMessage({ type: 'stopped' });
+    self.postMessage({ type: "stopped" });
     return;
   }
   try {
-    const { attractor, a, b, c, d, points, width, height, scale, left, top, progressInterval = 1 } = e.data;
+    const {
+      attractor,
+      a,
+      b,
+      c,
+      d,
+      points,
+      width,
+      height,
+      scale,
+      left,
+      top,
+      progressInterval = 1,
+    } = e.data;
     // Select attractor function
-    const attractorFn = attractor === 'clifford' ? clifford : dejong;
-    let x = 0, y = 0;
+    const attractorFn = attractor === "clifford" ? clifford : dejong;
+    let x = 0,
+      y = 0;
     const pixels = new Uint32Array(width * height);
     let maxDensity = 0;
     // Calculate how many points per progress update
@@ -47,8 +61,14 @@ self.onmessage = function (e) {
       for (; i < end; i++) {
         // Calculate next point
         const result = attractorFn(x, y, a, b, c, d);
-        let nx = Array.isArray(result) && typeof result[0] === 'number' ? result[0] : 0;
-        let ny = Array.isArray(result) && typeof result[1] === 'number' ? result[1] : 0;
+        let nx =
+          Array.isArray(result) && typeof result[0] === "number"
+            ? result[0]
+            : 0;
+        let ny =
+          Array.isArray(result) && typeof result[1] === "number"
+            ? result[1]
+            : 0;
         // Apply smoothing to each step
         nx = smoothing(nx, scale);
         ny = smoothing(ny, scale);
@@ -66,7 +86,13 @@ self.onmessage = function (e) {
         }
         // Post preview at the configured interval or at the end
         if ((i > 0 && i % interval === 0) || i === points - 1) {
-          self.postMessage({ type: i === points - 1 ? 'done' : 'preview', pixels: pixels.slice(0), maxDensity, progress: Math.round((i / points) * 100), batch: i });
+          self.postMessage({
+            type: i === points - 1 ? "done" : "preview",
+            pixels: pixels.slice(0),
+            maxDensity,
+            progress: Math.round((i / points) * 100),
+            batch: i,
+          });
         }
       }
       if (i < points && !shouldStop) {
@@ -76,6 +102,9 @@ self.onmessage = function (e) {
     rafHandle = self.requestAnimationFrame(processBatch);
   } catch (err) {
     // Report errors to main thread
-    self.postMessage({ type: 'error', error: err instanceof Error ? err.message : String(err) });
+    self.postMessage({
+      type: "error",
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
 };

@@ -3,8 +3,12 @@
 import { clifford } from "@repo/core";
 
 export function runAttractorBenchmark(points = 100000) {
-  let x = 0, y = 0;
-  const a = 2, b = -2, c = 1, d = -1;
+  let x = 0,
+    y = 0;
+  const a = 2,
+    b = -2,
+    c = 1,
+    d = -1;
   const start = performance.now();
   for (let i = 0; i < points; i++) {
     const result = clifford(x, y, a, b, c, d);
