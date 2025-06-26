@@ -124,7 +124,7 @@ export function AttractorCanvas() {
     }
     const interval = dynamicProgressInterval;
     const worker = new Worker(
-      new URL("../workers/AttractorWorker.ts", import.meta.url),
+      new URL("../workers/attractor-worker.ts", import.meta.url),
       { type: "module" },
     );
     workerRef.current = worker;

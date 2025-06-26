@@ -1,4 +1,4 @@
-import { AttractorCanvas } from "../components/AttractorCanvas";
+import { AttractorCanvas } from "../components/attractor-canvas";
 
 export default function Home() {
   return (

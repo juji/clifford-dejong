@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react";
-import { AttractorCanvas } from "../components/AttractorCanvas";
+import { AttractorCanvas } from "../components/attractor-canvas";
 import React from "react";
 
 // Create mock functions for Zustand actions
