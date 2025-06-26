@@ -2,3 +2,4 @@
 
 pnpm --filter turborepo test
 pnpm --filter turborepo lint
+pnpm --filter turborepo format
