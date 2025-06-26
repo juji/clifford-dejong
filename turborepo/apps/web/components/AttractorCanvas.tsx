@@ -53,6 +53,7 @@ export function AttractorCanvas({
     const msPerPoint = bench.ms / 10000;
     const targetMs = 16; // ~60fps
     const batchSize = Math.max(1000, Math.floor(targetMs / msPerPoint));
+    console.log("[AttractorCanvas] Benchmark result:", bench, "Batch size:", batchSize);
 
     // Legacy scaling and centering
     const scale = DEFAULT_SCALE;
@@ -69,11 +70,12 @@ export function AttractorCanvas({
       y = 0;
     const attractorFn = opts.attractor === "clifford" ? clifford : dejong;
     let processed = 0;
-
+    let lastDrawnPercent = 0;
     function processBatch() {
       // Ensure ctx and canvas are not null (already checked above)
       const ctxSafe = ctx!;
       const canvasSafe = canvas!;
+      const batchStart = performance.now();
       const end = Math.min(processed + batchSize, DEFAULT_POINTS);
       for (let i = processed; i < end; i++) {
         const result = attractorFn(x, y, opts.a, opts.b, opts.c, opts.d);
@@ -98,18 +100,17 @@ export function AttractorCanvas({
         }
       }
       processed = end;
+      const percent = Math.round((processed / DEFAULT_POINTS) * 100);
       if (onProgress) {
-        onProgress(Math.round((processed / DEFAULT_POINTS) * 100));
+        onProgress(percent);
       }
-      if (processed < DEFAULT_POINTS) {
-        requestAnimationFrame(processBatch);
-      } else {
-        // Color mapping
+      // Draw preview every 25%
+      if (percent >= lastDrawnPercent + 25 || processed === DEFAULT_POINTS) {
+        lastDrawnPercent = percent;
         const imageData = ctxSafe.createImageData(width, height);
         const data = new Uint32Array(imageData.data.buffer);
         const bgArr = opts.background ?? DEFAULT_OPTIONS.background;
         const bgColor = (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
-
         for (let i = 0; i < pixels.length; i++) {
           const density = pixels[i] ?? 0;
           if (density > 0) {
@@ -125,6 +126,31 @@ export function AttractorCanvas({
           }
         }
         ctxSafe.putImageData(imageData, 0, 0);
+      }
+      if (processed < DEFAULT_POINTS) {
+        requestAnimationFrame(processBatch);
+      } else {
+        // Final color mapping
+        const finalImageData = ctxSafe.createImageData(width, height);
+        const finalData = new Uint32Array(finalImageData.data.buffer);
+        const finalBgArr = opts.background ?? DEFAULT_OPTIONS.background;
+        const finalBgColor = (finalBgArr[3] << 24) | (finalBgArr[2] << 16) | (finalBgArr[1] << 8) | finalBgArr[0];
+
+        for (let i = 0; i < pixels.length; i++) {
+          const density = pixels[i] ?? 0;
+          if (density > 0) {
+            finalData[i] = getColorData(
+              density,
+              maxDensity,
+              opts.hue ?? 120,
+              opts.saturation ?? 100,
+              opts.brightness ?? 100
+            );
+          } else {
+            finalData[i] = finalBgColor;
+          }
+        }
+        ctxSafe.putImageData(finalImageData, 0, 0);
         if (onImageReady) {
           onImageReady(canvasSafe.toDataURL("image/png"));
         }
@@ -133,10 +159,6 @@ export function AttractorCanvas({
         }
       }
     }
-    // Fill background with opacity for visual consistency
-    const bgArr = opts.background ?? DEFAULT_OPTIONS.background;
-    ctx.fillStyle = `rgba(${bgArr[0]},${bgArr[1]},${bgArr[2]},${(bgArr[3] ?? 255) / 255})`;
-    ctx.fillRect(0, 0, width, height);
     processBatch();
   }, [opts, onProgress, onImageReady]);
 
