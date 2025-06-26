@@ -31,12 +31,8 @@ function useDebouncedValue<T>(value: T, delay: number): T {
  *   - Dynamic tuning gives best experience for all users.
  */
 export function AttractorCanvas({
-  onProgress,
-  onImageReady,
   progressInterval,
 }: {
-  onProgress?: (progress: number) => void;
-  onImageReady?: (url: string) => void;
   progressInterval?: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -196,11 +192,9 @@ export function AttractorCanvas({
         if (e.data.type === "done") {
           setIsRendering(false);
           setImageUrl(canvas.toDataURL("image/png"));
-          if (onImageReady) onImageReady(canvas.toDataURL("image/png"));
         }
         if (typeof progress === "number") {
           setProgress(progress);
-          if (onProgress) onProgress(progress);
         }
       } else if (e.data.type === "error") {
         setIsRendering(false);
@@ -236,8 +230,6 @@ export function AttractorCanvas({
     setImageUrl,
     setIsRendering,
     setProgress,
-    onImageReady,
-    onProgress,
     DEFAULT_POINTS,
     DEFAULT_SCALE,
   ]);
