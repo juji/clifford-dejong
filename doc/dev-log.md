@@ -30,4 +30,14 @@ This document tracks major changes, migrations, and development milestones for t
 - Refactored `AttractorCanvas.tsx` to remove all lint warnings and unused variables.
 - Committed all outstanding changes, including migration plan, package updates, and lockfile.
 
+---
+
+## 2025-06-26 22:00 UTC
+- Researched off-main-thread computation for attractor rendering in both web and React Native.
+- Determined that on web, Web Workers are the best practice for heavy calculations.
+- For React Native, found that [joltup/react-native-threads](https://github.com/joltup/react-native-threads) is the maintained solution for running JS in a separate process (multi-process, not true threading).
+- Noted that multi-process increases memory usage but is necessary for heavy, blocking calculations to keep the UI responsive.
+- Recommendation: Only use multi-process/threading if profiling shows UI jank; otherwise, keep calculations on the main JS thread for simplicity.
+- Documented the tradeoffs and alternatives for both platforms in the migration plan and dev log.
+
 Add new entries below as work progresses.
