@@ -141,13 +141,13 @@ jobs:
         working-directory: ./turborepo
 
       - name: Pull Vercel Environment Information
-        run: pnpm --filter="@apps/web" exec vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        run: pnpm --filter="./apps/web" exec vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: ./turborepo
 
       - name: Build Project Artifacts
-        run: pnpm --filter="@apps/web" exec vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: pnpm --filter="./apps/web" exec vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: ./turborepo
 
       - name: Deploy Project Artifacts to Vercel
-        run: pnpm --filter="@apps/web" exec vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: pnpm --filter="./apps/web" exec vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: ./turborepo
