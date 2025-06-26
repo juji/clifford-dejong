@@ -8,37 +8,39 @@
 - [x] Document migration plan and update README
 
 ### 2. Monorepo & Tooling Setup
-- [x] Choose and set up a monorepo tool (e.g., Turborepo, Nx, Yarn workspaces)
-  - Turborepo is selected
-- [ ] Create `apps/web` for the new React web app
-- [ ] Create `apps/mobile` for the new React Native app
-- [ ] Decide on a structure for shared code (e.g., `shared/` or similar)
+- [x] Choose and set up a monorepo tool (Turborepo)
+- [x] Create `apps/web` for the new React web app
+- [x] Decide on a structure for shared code (e.g., `packages/`)
 
 ### 3. Core Logic Extraction
-- [ ] Identify and extract all core mathematical calculations (Clifford, de Jong, etc.) into the shared code directory
-- [ ] Write tests for core logic to ensure correctness
+- [x] Identify and extract all core mathematical calculations (Clifford, de Jong, etc.) into the shared code directory
+- [x] Write tests for core logic to ensure correctness
 
-### 4. Web App Migration
-- [ ] Initialize a new React app in `apps/web`
-- [ ] Migrate UI and logic from the current app to React components
+### 4. Web App Migration (First Priority)
+- [x] Initialize a new React app in `apps/web`
+- [x] Migrate UI and logic from the current app to React components (in progress/partial)
+- [x] Implement a basic canvas, to ensure correctness. The canvas, should by default draw the attractor with default params
 - [ ] Integrate Tamagui for UI
+- [ ] Integrate Zustand
+- [ ] Create a progress indicator for attractor rendering
+- [ ] Create UI for attractor parameters
+- [ ] Test thoroughly on web
 
-### 5. Mobile App Setup
+### 5. Mobile App Setup (After Web is Stable)
 - [ ] Initialize a new React Native app in `apps/mobile`
 - [ ] Integrate Tamagui for cross-platform UI
 - [ ] Share code from the shared directory
+- [ ] Migrate UI and logic to React Native components
+- [ ] Test thoroughly on mobile devices
 
 ### 6. Shared UI Components
 - [ ] Create shared Tamagui UI components in the shared directory
 - [ ] Refactor common UI and logic here
 
-### 7. Testing & Validation
-- [ ] Ensure feature parity between old and new apps
-- [ ] Test on web and mobile devices
-
-### 8. Documentation & Cleanup
-- [ ] Update documentation for new structure and usage
-- [ ] Remove obsolete code
+### 7. Documentation & Cleanup
+- [x] Update documentation for new structure and usage
+- [x] Remove obsolete code
+- [ ] Update migration plan and dev log as progress continues
 
 ---
 

@@ -161,6 +161,10 @@ The MIT License allows you to:
 
 ---
 
+## Documentation
+- See `doc/migration-plan.md` for the migration plan.
+- See `doc/dev-log.md` for the migration & development log.
+
 ## Migration Notice
 
 We are planning to migrate this project to a monorepo structure using React, React Native, and [Tamagui](https://tamagui.dev/) for cross-platform UI. See `doc/migration-plan.md` for details and progress.
