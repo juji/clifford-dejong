@@ -22,8 +22,10 @@
 - [x] Implement a basic canvas, to ensure correctness. The canvas, should by default draw the attractor with default params
 - [x] use worker to lighten load on main thread
 - [x] Integrate Zustand for state management
-- [ ] Integrate Tamagui for UI
+- [ ] Add footer, fixed element on the bottom
 - [ ] Create a progress indicator for attractor rendering
+- [ ] Integrate Tamagui for UI
+- [ ] Create dark and light theme using Tamagui and add the button to the screen
 - [ ] Create UI for attractor parameters
 - [ ] Test thoroughly on web
 
