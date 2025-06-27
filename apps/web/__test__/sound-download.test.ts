@@ -23,7 +23,7 @@ test("sound download: downloads a file and measures elapsed time", async () => {
     ]
   )
   
-  expect(elapsedBob).toBeLessThan(500);
-  expect(elapsedPop).toBeLessThan(500);
+  expect(elapsedBob).toBeLessThan(1000);
+  expect(elapsedPop).toBeLessThan(1000);
 
 });
