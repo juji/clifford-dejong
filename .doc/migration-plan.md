@@ -26,6 +26,7 @@
 - [x] Create a progress indicator for attractor rendering
 - [x] use chadcn (shadcn/ui installed and initialized in apps/web)
 - [ ] Create dark and light theme
+- [ ] use howler.js to preloadd and play sound https://howlerjs.com/
 - [ ] Create UI for attractor parameters
 - [ ] Test thoroughly on web
 
