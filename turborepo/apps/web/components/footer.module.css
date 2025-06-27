@@ -1,0 +1,22 @@
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  background: rgba(255,255,255,0.95);
+  color: #222;
+  padding: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 300;
+  border-top: 1px solid #eee;
+  z-index: 100;
+}
+
+@media (prefers-color-scheme: dark) {
+  .footer {
+    background: rgba(20,20,20,0.95);
+    color: #bbb;
+    border-top: 1px solid #333;
+  }
+}
