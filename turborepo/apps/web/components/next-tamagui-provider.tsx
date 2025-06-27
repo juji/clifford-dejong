@@ -1,6 +1,8 @@
 "use client";
+
 import "@tamagui/core/reset.css";
 import "@tamagui/polyfill-dev";
+
 import { ReactNode } from "react";
 import { StyleSheet as RNWStyleSheet } from "react-native-web";
 import { useServerInsertedHTML } from "next/navigation";
@@ -30,14 +32,11 @@ export const NextTamaguiProvider = ({ children }: { children: ReactNode }) => {
   return (
     <NextThemeProvider
       skipNextHead
-      defaultTheme="system"
       onChangeTheme={setTheme as (theme: string) => void}
+      disableTransitionOnChange
+      enableSystem
     >
-      <TamaguiProvider
-        config={tamaguiConfig}
-        disableRootThemeClass
-        defaultTheme={theme}
-      >
+      <TamaguiProvider config={tamaguiConfig} defaultTheme={theme}>
         {children}
       </TamaguiProvider>
     </NextThemeProvider>

@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "tamagui";
+import { Button, useIsomorphicLayoutEffect } from "tamagui";
 import { Sun, Moon } from "lucide-react";
 import { useThemeSetting, useRootTheme } from "@tamagui/next-theme";
 import { useEffect, useState } from "react";
@@ -8,17 +8,20 @@ export default function ThemeToggleButton() {
   const themeSetting = useThemeSetting();
   const [theme] = useRootTheme();
 
-  const [draw, setDraw] = useState(false);
+  const [clientTheme, setClientTheme] = useState<string | undefined>("light");
 
-  // This is a workaround for the Next.js hydration issue with Tamagui themes
-  // It ensures that the theme is set correctly on the client side
+  useIsomorphicLayoutEffect(() => {
+    setClientTheme(themeSetting.forcedTheme || themeSetting.current || theme);
+  }, [themeSetting.current, themeSetting.resolvedTheme]);
+
+  // prevent hyddration mismatch
+  // this is a workaround for the Next.js hydration issue with Tamagui themes
+  const [rendered, setRendered] = useState(false);
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setDraw(true);
-    }
+    setRendered(true);
   }, []);
 
-  return draw ? (
+  return rendered ? (
     <Button
       size="$3"
       chromeless
@@ -31,7 +34,7 @@ export default function ThemeToggleButton() {
       aria-label="Toggle theme"
       onPress={themeSetting.toggle}
     >
-      {theme === "dark" ? <Moon size={20} /> : <Sun size={20} />}
+      {clientTheme === "dark" ? <Moon size={20} /> : <Sun size={20} />}
     </Button>
   ) : null;
 }

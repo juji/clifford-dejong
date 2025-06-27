@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
-import { NextTamaguiProvider } from "../components/NextTamaguiProvider";
+import { NextTamaguiProvider } from "../components/next-tamagui-provider";
 import ThemeToggleButton from "../components/theme-toggle-button";
 
 const inter = Inter({ subsets: ["latin"] });
