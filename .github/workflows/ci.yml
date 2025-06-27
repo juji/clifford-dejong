@@ -136,9 +136,9 @@ jobs:
       - name: Install Vercel CLI
         run: pnpm install --global vercel@latest
         
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        working-directory: ./turborepo
+      # - name: Install dependencies
+      #   run: pnpm install --frozen-lockfile
+      #   working-directory: ./turborepo
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
