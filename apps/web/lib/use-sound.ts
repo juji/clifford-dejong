@@ -21,6 +21,10 @@ export function useSound( url: string, volume: number = 1 ) {
     }
   }
 
+  function loaded() {
+    return sound.current ? sound.current.state() === 'loaded' : false;
+  }
+
   useEffect(() => {
     if (sound.current) {
       sound.current.unload();
@@ -38,6 +42,6 @@ export function useSound( url: string, volume: number = 1 ) {
     };
   },[ url, volume ]);
 
-  return [ play, setVolume ];
+  return [ play, setVolume, loaded ];
 
 }
