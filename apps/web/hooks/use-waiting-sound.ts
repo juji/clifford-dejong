@@ -4,7 +4,7 @@ import { Howl } from "howler";
 const fadeInInterval = 100; // milliseconds
 const fadeOutInterval = 100; // milliseconds
 const fadeInStep = 0.1; // volume step for fade in
-const fadeOutStep = 0.1; // volume step for fade out
+const fadeOutStep = 0.2; // volume step for fade out
 const maxVolume = 1; // maximum volume level
 
 export function useWaitingSound( 
@@ -22,7 +22,12 @@ export function useWaitingSound(
       if(fadeInRef.current) {
         clearInterval(fadeInRef.current);
       }
+      
       sound.current.volume(0);
+      if(!sound.current.playing()) {
+        sound.current.play();
+      }
+      
       fadeInRef.current = setInterval(() => {
         const currentVolume = sound.current?.volume() ?? 0;
         if (currentVolume < maxVolume) {
@@ -50,6 +55,7 @@ export function useWaitingSound(
         } else {
           clearInterval(fadeOutRef.current!);
           fadeOutRef.current = null;
+          sound.current?.stop(); // Stop the sound when faded out
         }
       }, fadeOutInterval)
     }
@@ -64,6 +70,7 @@ export function useWaitingSound(
         src: [url],
         preload: true,
         volume: 0,
+        loop: true, // Loop the sound
       });
     }
 
