@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
-import TamaguiProviderClient from "../components/tamagui-provider-client";
+import { NextTamaguiProvider } from "../components/NextTamaguiProvider";
 import ThemeToggleButton from "../components/theme-toggle-button";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,10 +21,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} ${robotoMono.variable}`}>
-        <TamaguiProviderClient>
+        <NextTamaguiProvider>
           <ThemeToggleButton />
           {children}
-        </TamaguiProviderClient>
+        </NextTamaguiProvider>
       </body>
     </html>
   );
