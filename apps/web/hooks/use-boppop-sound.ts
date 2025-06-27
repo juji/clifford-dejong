@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Howl } from "howler";
 
-export function useBopPop( 
+export function useBopPopSound( 
   url: string = 'https://clifford-dejong.vercel.app/bop-pop.mp3', 
   volume: number = 1, 
 ) {
