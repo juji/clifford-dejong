@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "tamagui";
 import { useTheme } from "next-themes";
+import { Sun, Moon } from "lucide-react";
 
 export default function ThemeToggleButton() {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -28,7 +29,7 @@ export default function ThemeToggleButton() {
       aria-label="Toggle theme"
       onPress={() => setTheme(isDark ? "light" : "dark")}
     >
-      {isDark ? "🌙" : "☀️"}
+      {isDark ? <Moon size={20} /> : <Sun size={20} />}
     </Button>
   );
 }
