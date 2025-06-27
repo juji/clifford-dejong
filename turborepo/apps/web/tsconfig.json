@@ -1,7 +1,7 @@
 {
   "extends": "@repo/typescript-config/nextjs.json",
   "compilerOptions": {
-    "types": ["vitest", "vitest/globals"],
+    "types": ["vitest", "vitest/globals", "react-native-web"],
     "plugins": [
       {
         "name": "next"
