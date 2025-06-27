@@ -32,7 +32,7 @@ export function useBopPop(
     }
   }
 
-  const vol = useRef<number|null>(volume)
+  const vol = useRef(volume)
   useEffect(() => {
     if (sound.current) {
       sound.current.volume(volume);
@@ -59,7 +59,6 @@ export function useBopPop(
     return () => {
       sound.current?.unload();
       sound.current = null;
-      vol.current = null
     };
   },[ url ]);
 
