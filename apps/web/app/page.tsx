@@ -1,5 +1,5 @@
 import { AttractorCanvas } from "../components/attractor-canvas";
-import { Footer } from "../components/footer";
+import { FooterTamagui } from "../components/footer-tamagui";
 import { ProgressIndicator } from "../components/progress-indicator";
 
 export default function Home() {
@@ -17,7 +17,7 @@ export default function Home() {
         <AttractorCanvas />
         <ProgressIndicator />
       </div>
-      <Footer />
+      <FooterTamagui />
     </>
   );
 }

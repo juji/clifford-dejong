@@ -25,7 +25,8 @@
 - [x] Add footer, fixed element on the bottom
 - [x] Create a progress indicator for attractor rendering
 - [x] Integrate Tamagui for UI
-- [ ] Create dark and light theme using Tamagui and add the button to the screen
+- [x] Create dark and light theme using Tamagui and add the button to the screen
+- [ ] Re-create footer using Tamagui
 - [ ] Create UI for attractor parameters
 - [ ] Test thoroughly on web
 
