@@ -1,5 +1,6 @@
 import { AttractorCanvas } from "../components/attractor-canvas";
 import { Footer } from "../components/footer";
+import { ProgressIndicator } from "../components/progress-indicator";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
         }}
       >
         <AttractorCanvas />
+        <ProgressIndicator />
       </div>
       <Footer />
     </>
