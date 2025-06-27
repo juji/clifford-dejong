@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
-import { NextTamaguiProvider } from "../components/next-tamagui-provider";
-import ThemeToggleButton from "../components/theme-toggle-button";
 
 const inter = Inter({ subsets: ["latin"] });
 const robotoMono = Roboto_Mono({ subsets: ["latin"], variable: "--font-mono" });
@@ -21,10 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} ${robotoMono.variable}`}>
-        <NextTamaguiProvider>
-          <ThemeToggleButton />
-          {children}
-        </NextTamaguiProvider>
+        {children}
       </body>
     </html>
   );
