@@ -25,9 +25,12 @@
 - [x] Add footer, fixed element on the bottom
 - [x] Create a progress indicator for attractor rendering
 - [x] use chadcn (shadcn/ui installed and initialized in apps/web)
-- [ ] Create dark and light theme
-- [ ] use howler.js to preloadd and play sound https://howlerjs.com/
+- [x] use howler.js to preload and play sound https://howlerjs.com/
+- [x] Check dark and light theme
+- [ ] Create a Full screen button
+- [ ] on ios, full screen button should not exist
 - [ ] Create UI for attractor parameters
+- [ ] create mute control for sounds
 - [ ] Test thoroughly on web
 
 ### 5. Mobile App Setup (After Web is Stable)
@@ -36,6 +39,7 @@
 - [ ] Share code from the shared directory
 - [ ] Migrate UI and logic to React Native components
 - [ ] Test thoroughly on mobile devices
+- [ ] on web ios, create a popup that recommends the user to download from appstore
 
 ### 6. Shared UI Components
 - [ ] Create shared Tamagui UI components in the shared directory
