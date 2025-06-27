@@ -56,11 +56,9 @@ jobs:
 
       - name: Install dependencies
         run: CI=1 pnpm install --frozen-lockfile
-        working-directory: ./turborepo  
 
       - name: Lint
         run: CI=1 pnpm run lint
-        working-directory: ./turborepo
 
   type-check:
     name: Type Check
@@ -81,11 +79,9 @@ jobs:
 
       - name: Install dependencies
         run: CI=1 pnpm install --frozen-lockfile
-        working-directory: ./turborepo  
 
       - name: Check Types
         run: CI=1 pnpm run check-types
-        working-directory: ./turborepo
 
   test:
     name: Test
@@ -105,12 +101,10 @@ jobs:
           cache: 'pnpm'
       
       - name: Install dependencies
-        run: CI=1 pnpm install --frozen-lockfile
-        working-directory: ./turborepo  
+        run: CI=1 pnpm install --frozen-lockfile  
 
       - name: Test
         run: CI=1 pnpm run test
-        working-directory: ./turborepo
 
   deploy:
     name: Deploy to Vercel
