@@ -108,92 +108,97 @@ export function AttractorCanvas() {
     if (dynamicProgressInterval == null) return;
     setError(null);
     setIsRendering(true);
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const parent = canvas.parentElement;
-    if (!parent) return;
-    const width = debouncedCanvasSize?.width ?? parent.clientWidth;
-    const height = debouncedCanvasSize?.height ?? parent.clientHeight;
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    if (workerRef.current) {
-      workerRef.current.terminate();
-      workerRef.current = null;
-    }
-    const interval = dynamicProgressInterval;
-    const worker = new Worker(
-      new URL("../workers/attractor-worker.ts", import.meta.url),
-      { type: "module" },
-    );
-    workerRef.current = worker;
-    worker.postMessage({
-      attractor,
-      a,
-      b,
-      c,
-      d,
-      points: DEFAULT_POINTS,
-      width,
-      height,
-      scale: DEFAULT_SCALE * (scale ?? 1),
-      left: left ?? 0,
-      top: top ?? 0,
-      hue,
-      saturation,
-      brightness,
-      background,
-      progressInterval: interval,
-    });
-    worker.onmessage = (e: MessageEvent) => {
-      if (e.data.type === "stopped") {
-        setIsRendering(false);
-        if (workerRef.current) {
-          workerRef.current.terminate();
-          workerRef.current = null;
-        }
-        return;
+    setProgress(0);
+    // Debounce the rest of the worker setup to allow progress reset to propagate
+    const debounceId = setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const parent = canvas.parentElement;
+      if (!parent) return;
+      const width = debouncedCanvasSize?.width ?? parent.clientWidth;
+      const height = debouncedCanvasSize?.height ?? parent.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
       }
-      if (
-        (e.data.type === "preview" || e.data.type === "done") &&
-        e.data.pixels
-      ) {
-        const { pixels, maxDensity, progress } = e.data;
-        const imageData = ctx.createImageData(width, height);
-        const data = new Uint32Array(imageData.data.buffer);
-        const bgArr = background;
-        const bgColor =
-          (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
-        for (let i = 0; i < pixels.length; i++) {
-          const density = pixels[i] ?? 0;
-          if (density > 0) {
-            data[i] = getColorData(
-              density,
-              maxDensity,
-              hue ?? 120,
-              saturation ?? 100,
-              brightness ?? 100,
-            );
-          } else {
-            data[i] = bgColor;
-          }
-        }
-        ctx.putImageData(imageData, 0, 0);
-        if (e.data.type === "done") {
+      const interval = dynamicProgressInterval;
+      const worker = new Worker(
+        new URL("../workers/attractor-worker.ts", import.meta.url),
+        { type: "module" },
+      );
+      workerRef.current = worker;
+      worker.postMessage({
+        attractor,
+        a,
+        b,
+        c,
+        d,
+        points: DEFAULT_POINTS,
+        width,
+        height,
+        scale: DEFAULT_SCALE * (scale ?? 1),
+        left: left ?? 0,
+        top: top ?? 0,
+        hue,
+        saturation,
+        brightness,
+        background,
+        progressInterval: interval,
+      });
+      worker.onmessage = (e: MessageEvent) => {
+        if (e.data.type === "stopped") {
           setIsRendering(false);
-          setImageUrl(canvas.toDataURL("image/png"));
+          if (workerRef.current) {
+            workerRef.current.terminate();
+            workerRef.current = null;
+          }
+          return;
         }
-        if (typeof progress === "number") {
-          setProgress(progress);
+        if (
+          (e.data.type === "preview" || e.data.type === "done") &&
+          e.data.pixels
+        ) {
+          const { pixels, maxDensity, progress } = e.data;
+          const imageData = ctx.createImageData(width, height);
+          const data = new Uint32Array(imageData.data.buffer);
+          const bgArr = background;
+          const bgColor =
+            (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
+          for (let i = 0; i < pixels.length; i++) {
+            const density = pixels[i] ?? 0;
+            if (density > 0) {
+              data[i] = getColorData(
+                density,
+                maxDensity,
+                hue ?? 120,
+                saturation ?? 100,
+                brightness ?? 100,
+              );
+            } else {
+              data[i] = bgColor;
+            }
+          }
+          ctx.putImageData(imageData, 0, 0);
+          if (e.data.type === "done") {
+            setIsRendering(false);
+            setImageUrl(canvas.toDataURL("image/png"));
+          }
+          if (typeof progress === "number") {
+            setProgress(progress);
+          }
+        } else if (e.data.type === "error") {
+          setIsRendering(false);
+          setError(e.data.error || "Unknown error in worker");
         }
-      } else if (e.data.type === "error") {
-        setIsRendering(false);
-        setError(e.data.error || "Unknown error in worker");
-      }
-    };
+      };
+    }, 100); // 100ms debounce after setProgress(0)
     // Cleanup function to terminate the worker on unmount
     return () => {
+      clearTimeout(debounceId);
       setIsRendering(false);
       if (workerRef.current) {
         workerRef.current.terminate();
@@ -215,12 +220,12 @@ export function AttractorCanvas() {
     left,
     top,
     scale,
+    DEFAULT_POINTS,
+    DEFAULT_SCALE,
     setError,
     setImageUrl,
     setIsRendering,
     setProgress,
-    DEFAULT_POINTS,
-    DEFAULT_SCALE,
   ]);
 
   return <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />;

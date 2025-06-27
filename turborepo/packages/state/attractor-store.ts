@@ -83,7 +83,9 @@ export const useAttractorStore = create<AttractorState & AttractorActions>()(
       setBackground: (rgba) => set({ background: rgba }),
       setScale: (scale) => set({ scale }),
       setOffset: (left, top) => set({ left, top }),
-      setProgress: (progress) => set({ progress }),
+      setProgress: (progress) => {
+        set({ progress });
+      },
       setIsRendering: (isRendering) => set({ isRendering }),
       setImageUrl: (url) => set({ imageUrl: url }),
       toggleInfo: () => set((state) => ({ showInfo: !state.showInfo })),

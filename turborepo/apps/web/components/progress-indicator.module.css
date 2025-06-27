@@ -1,0 +1,30 @@
+.progressBarContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  background: rgba(255,255,255,0.95);
+  color: #222;
+  z-index: 101;
+  height: 2px;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  display: flex;
+  align-items: stretch;
+}
+.progressBar {
+  height: 100%;
+  background: linear-gradient(90deg, #4f8cff, #00e0c6);
+  border-radius: 0;
+  transition: width 200ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  .progressBarContainer {
+    background: rgba(20,20,20,0.95);
+    color: #eee;
+    box-shadow: none;
+  }
+}
