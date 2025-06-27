@@ -32,7 +32,7 @@ export function useBopPop(
     }
   }
 
-  const vol = useRef(volume)
+  const vol = useRef<number|null>(volume)
   useEffect(() => {
     if (sound.current) {
       sound.current.volume(volume);
@@ -52,13 +52,14 @@ export function useBopPop(
           pop: [97, 73], // start at 97ms, play for 73ms
         },
         preload: true,
-        volume: vol.current,
+        volume: vol.current ?? 1, // use the current volume or default to 1
       });
     }
 
     return () => {
       sound.current?.unload();
       sound.current = null;
+      vol.current = null
     };
   },[ url ]);
 
