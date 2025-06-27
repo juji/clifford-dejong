@@ -1,7 +1,11 @@
 import { useEffect, useRef } from "react";
 import { Howl } from "howler";
 
-export function useSound( url: string, volume: number = 1 ) {
+export function useSound( 
+  url: string, 
+  volume: number = 1, 
+  onload?: () => void
+) {
 
   const sound = useRef<Howl | null>(null);
 
@@ -9,7 +13,7 @@ export function useSound( url: string, volume: number = 1 ) {
     if (sound.current) {
       sound.current.play();
     } else {
-      console.warn("Sound not loaded yet");
+      console.warn("Can't play. Sound not loaded yet");
     }
   }
 
@@ -17,15 +21,12 @@ export function useSound( url: string, volume: number = 1 ) {
     if (sound.current) {
       sound.current.volume(newVolume);
     } else {
-      console.warn("Sound not loaded yet");
+      console.warn("Can't set volume. Sound not loaded yet");
     }
   }
 
-  function loaded() {
-    return sound.current ? sound.current.state() === 'loaded' : false;
-  }
-
   useEffect(() => {
+    
     if (sound.current) {
       sound.current.unload();
     } else {
@@ -33,6 +34,7 @@ export function useSound( url: string, volume: number = 1 ) {
         src: [url],
         preload: true,
         volume,
+        onload,
       });
     }
 
@@ -40,8 +42,8 @@ export function useSound( url: string, volume: number = 1 ) {
       sound.current?.unload();
       sound.current = null;
     };
-  },[ url, volume ]);
+  },[ url, volume, onload ]);
 
-  return [ play, setVolume, loaded ];
+  return { play, setVolume };
 
 }
