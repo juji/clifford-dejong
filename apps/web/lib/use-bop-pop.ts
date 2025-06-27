@@ -24,21 +24,15 @@ export function useBopPop(
     }
   }
 
+  const vol = useRef(volume)
   function setVolume( newVolume: number ) {
     if (sound.current) {
       sound.current.volume(newVolume);
+      vol.current = volume;
     } else {
       console.warn("Can't set volume. Sound not loaded yet");
     }
   }
-
-  const vol = useRef(volume)
-  useEffect(() => {
-    if (sound.current) {
-      sound.current.volume(volume);
-      vol.current = volume;
-    }
-  }, [volume]);
 
   useEffect(() => {
     
