@@ -9,15 +9,20 @@ export function DarkModeToggle() {
   const isDark = theme === "dark";
 
   return (
-    <Button
-      variant="outline"
-      size="icon"
-      aria-label="Toggle dark mode"
-      className="absolute top-4 right-4 z-[200]"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+    <div
+      className={
+        `absolute top-4 right-4 z-[200] rounded-lg p-1 transition-colors ` +
+        (isDark ?  "bg-black/10" : "bg-white/90")
+      }
     >
-      {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-      <span className="sr-only">Toggle dark mode</span>
-    </Button>
+      <Button
+        size="icon"
+        aria-label="Toggle dark mode"
+        onClick={() => setTheme(isDark ? "light" : "dark")}
+      >
+        {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        <span className="sr-only">Toggle dark mode</span>
+      </Button>
+    </div>
   );
 }
