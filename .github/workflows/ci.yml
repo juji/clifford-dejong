@@ -12,109 +12,109 @@ permissions:
   contents: read
 
 jobs:
-  # security-scan:
-  #   permissions:
-  #     contents: read # for actions/checkout to fetch code
-  #     security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-  #     actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
-  #   name: Security Scan
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     # Checkout project source
-  #     - uses: actions/checkout@v4
+  security-scan:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout project source
+      - uses: actions/checkout@v4
 
-  #     # Scan code using project's configuration on https://semgrep.dev/manage
-  #     - uses: returntocorp/semgrep-action@fcd5ab7459e8d91cb1777481980d1b18b4fc6735
-  #       with:
-  #         publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
-  #         publishDeployment: ${{ secrets.SEMGREP_DEPLOYMENT_ID }}
-  #         generateSarif: "1"
+      # Scan code using project's configuration on https://semgrep.dev/manage
+      - uses: returntocorp/semgrep-action@fcd5ab7459e8d91cb1777481980d1b18b4fc6735
+        with:
+          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
+          publishDeployment: ${{ secrets.SEMGREP_DEPLOYMENT_ID }}
+          generateSarif: "1"
 
-  #     # Upload SARIF file generated in previous step
-  #     - name: Upload SARIF file
-  #       uses: github/codeql-action/upload-sarif@v3
-  #       with:
-  #         sarif_file: semgrep.sarif
-  #       if: always()
+      # Upload SARIF file generated in previous step
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+        if: always()
 
-  # lint:
-  #   name: Lint
-  #   runs-on: ubuntu-latest
-  #   needs: [security-scan]
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: [security-scan]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Setup pnpm
-  #       uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: '22.14.0'
-  #         cache: 'pnpm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+          cache: 'pnpm'
 
-  #     - name: Install dependencies
-  #       run: CI=1 pnpm install --frozen-lockfile
-  #       working-directory: ./turborepo  
+      - name: Install dependencies
+        run: CI=1 pnpm install --frozen-lockfile
+        working-directory: ./turborepo  
 
-  #     - name: Lint
-  #       run: CI=1 pnpm run lint
-  #       working-directory: ./turborepo
+      - name: Lint
+        run: CI=1 pnpm run lint
+        working-directory: ./turborepo
 
-  # type-check:
-  #   name: Type Check
-  #   runs-on: ubuntu-latest
-  #   needs: [security-scan]
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  type-check:
+    name: Type Check
+    runs-on: ubuntu-latest
+    needs: [security-scan]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Setup pnpm
-  #       uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: '22.14.0'
-  #         cache: 'pnpm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+          cache: 'pnpm'
 
-  #     - name: Install dependencies
-  #       run: CI=1 pnpm install --frozen-lockfile
-  #       working-directory: ./turborepo  
+      - name: Install dependencies
+        run: CI=1 pnpm install --frozen-lockfile
+        working-directory: ./turborepo  
 
-  #     - name: Check Types
-  #       run: CI=1 pnpm run check-types
-  #       working-directory: ./turborepo
+      - name: Check Types
+        run: CI=1 pnpm run check-types
+        working-directory: ./turborepo
 
-  # test:
-  #   name: Test
-  #   runs-on: ubuntu-latest
-  #   needs: [security-scan]
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: [security-scan]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Setup pnpm
-  #       uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: '22.14.0'
-  #         cache: 'pnpm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+          cache: 'pnpm'
       
-  #     - name: Install dependencies
-  #       run: CI=1 pnpm install --frozen-lockfile
-  #       working-directory: ./turborepo  
+      - name: Install dependencies
+        run: CI=1 pnpm install --frozen-lockfile
+        working-directory: ./turborepo  
 
-  #     - name: Test
-  #       run: CI=1 pnpm run test
-  #       working-directory: ./turborepo
+      - name: Test
+        run: CI=1 pnpm run test
+        working-directory: ./turborepo
 
   deploy:
     name: Deploy to Vercel
-    # needs: [test, lint, type-check]
+    needs: [test, lint, type-check]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/native' && github.event_name == 'push'
     env:
@@ -135,10 +135,6 @@ jobs:
 
       - name: Install Vercel CLI
         run: pnpm install --global vercel@latest
-        
-      # - name: Install dependencies
-      #   run: pnpm install --frozen-lockfile
-      #   working-directory: ./turborepo
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
