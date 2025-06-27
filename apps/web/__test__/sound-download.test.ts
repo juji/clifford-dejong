@@ -14,10 +14,9 @@ async function downloadSound(url: string) {
 test("sound download: downloads a file and measures elapsed time", async () => {
 
   // 72
-  // const bobpop = "https://clifford-dejong.vercel.app/bob-pop.mp3";
-  // const elapsed = await downloadSound(bobpop)
+  const bobpop = "https://clifford-dejong.vercel.app/bop-pop.mp3";
+  const elapsed = await downloadSound(bobpop)
   
-  // expect(elapsed).toBeLessThan(1000);
-  expect(true).toBe(true);
+  expect(elapsed).toBeLessThan(1000);
 
 });
