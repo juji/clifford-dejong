@@ -1,20 +1,30 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Button } from "tamagui";
-import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
 
 export default function ThemeToggleButton() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    setMounted(true);
+    const handler = (e: CustomEvent) => setTheme(e.detail);
+    window.addEventListener("tamagui-theme-toggle", handler as EventListener);
+    return () =>
+      window.removeEventListener(
+        "tamagui-theme-toggle",
+        handler as EventListener,
+      );
   }, []);
 
-  if (!mounted) return null;
-
-  const isDark = (resolvedTheme || theme) === "dark";
+  const toggleTheme = () => {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("tamagui-theme-toggle", { detail: next }),
+      );
+    }
+  };
 
   return (
     <Button
@@ -27,9 +37,9 @@ export default function ThemeToggleButton() {
         zIndex: 1100,
       }}
       aria-label="Toggle theme"
-      onPress={() => setTheme(isDark ? "light" : "dark")}
+      onPress={toggleTheme}
     >
-      {isDark ? <Moon size={20} /> : <Sun size={20} />}
+      {theme === "dark" ? <Moon size={20} /> : <Sun size={20} />}
     </Button>
   );
 }
