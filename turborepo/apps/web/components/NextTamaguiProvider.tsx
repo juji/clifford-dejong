@@ -4,11 +4,7 @@ import "@tamagui/polyfill-dev";
 import { ReactNode } from "react";
 import { StyleSheet as RNWStyleSheet } from "react-native-web";
 import { useServerInsertedHTML } from "next/navigation";
-import {
-  NextThemeProvider,
-  useRootTheme,
-  type ColorScheme,
-} from "@tamagui/next-theme";
+import { NextThemeProvider, useRootTheme } from "@tamagui/next-theme";
 import { TamaguiProvider } from "tamagui";
 import tamaguiConfig from "../tamagui.config";
 
@@ -34,7 +30,8 @@ export const NextTamaguiProvider = ({ children }: { children: ReactNode }) => {
   return (
     <NextThemeProvider
       skipNextHead
-      onChangeTheme={(name) => setTheme(name as ColorScheme)}
+      defaultTheme="system"
+      onChangeTheme={setTheme as (theme: string) => void}
     >
       <TamaguiProvider
         config={tamaguiConfig}
