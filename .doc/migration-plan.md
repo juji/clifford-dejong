@@ -24,14 +24,14 @@
 - [x] Integrate Zustand for state management
 - [x] Add footer, fixed element on the bottom
 - [x] Create a progress indicator for attractor rendering
-- [x] Integrate Tamagui for UI
-- [ ] Create dark and light theme using Tamagui and add the button to the screen
+- [x] use chadcn (shadcn/ui installed and initialized in apps/web)
+- [ ] Create dark and light theme
 - [ ] Create UI for attractor parameters
 - [ ] Test thoroughly on web
 
 ### 5. Mobile App Setup (After Web is Stable)
 - [ ] Initialize a new React Native app in `apps/mobile`
-- [ ] Integrate Tamagui for cross-platform UI
+- [ ] Integrate NativeWind for styling
 - [ ] Share code from the shared directory
 - [ ] Migrate UI and logic to React Native components
 - [ ] Test thoroughly on mobile devices
@@ -47,4 +47,8 @@
 
 ---
 
-*Last updated: 2025-06-26*
+*Last updated: 2025-06-27*
+
+---
+
+**Note:** shadcn/ui (chadcn) was installed and initialized in `apps/web` with Tailwind CSS. The Button component is available for use. See https://ui.shadcn.com/docs/installation/next for usage details.
