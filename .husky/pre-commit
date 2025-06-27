@@ -1,4 +1,4 @@
-CI=1 pnpm --filter turborepo check-types
-CI=1 pnpm --filter turborepo lint
-CI=1 pnpm --filter turborepo test
+CI=1 pnpm check-types
+CI=1 pnpm lint
+CI=1 pnpm test
 pnpm exec lint-staged
