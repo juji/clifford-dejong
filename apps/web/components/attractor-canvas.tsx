@@ -177,6 +177,7 @@ export function AttractorCanvas() {
                 hue ?? 120,
                 saturation ?? 100,
                 brightness ?? 100,
+                progress > 0 ? progress / 100 : 1, // Use progress to adjust opacity
               );
             } else {
               data[i] = bgColor;

@@ -12,6 +12,8 @@ import { clifford, dejong } from "@repo/core";
 let shouldStop = false;
 let rafHandle: number | null = null;
 
+// cubicBezier(1,-0.01,.66,1.01)
+
 self.onmessage = function (e) {
 
   if (e.data && e.data.type === "stop") {
@@ -104,6 +106,7 @@ function runAttractor({
       }
 
       if ((i > 0 && i % interval === 0) || i === points - 1) {
+        console.log(`progress: ${Math.round((i / points) * 100) / 100}`);
         self.postMessage({
           type: i === points - 1 ? "done" : "preview",
           pixels: pixels.slice(0),
