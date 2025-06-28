@@ -106,7 +106,6 @@ function runAttractor({
       }
 
       if ((i > 0 && i % interval === 0) || i === points - 1) {
-        console.log(`progress: ${Math.round((i / points) * 100) / 100}`);
         self.postMessage({
           type: i === points - 1 ? "done" : "preview",
           pixels: pixels.slice(0),
