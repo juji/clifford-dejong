@@ -31,6 +31,26 @@
 - [x] on ios, full screen button should not exist
 - [ ] Create UI for attractor parameters
 - [ ] create mute control for sounds
+- [ ] Add keyboard navigation support to all interactive elements
+- [ ] Ensure all UI is screen reader accessible
+- [ ] Check and improve color contrast
+- [ ] Test accessibility with axe or Lighthouse
+- [ ] Profile attractor rendering on web
+- [ ] Optimize rendering or add progress indicator if slow
+- [ ] Consider lazy loading/code splitting for large modules
+- [ ] Optimize images if needed
+- [ ] Add user-friendly error messages for rendering and sound issues
+- [ ] Implement fallbacks for unsupported browsers/devices
+- [ ] Integrate basic analytics for usage tracking
+- [ ] (Optional) Add error logging for public demo
+- [ ] Add tooltips and help modals for new users
+- [ ] Add onboarding flow if needed
+- [ ] Ensure progress indicator is visible for slow operations
+- [ ] Persist user preferences (theme, sound, parameters) on web
+- [ ] Set up i18n framework if planning for multiple languages
+- [ ] Add translations for all user-facing text
+- [ ] Review app for common web vulnerabilities
+- [ ] Add a privacy policy if analytics or user data is collected
 - [ ] Test thoroughly on web
 
 ### 5. Mobile App Setup (After Web is Stable)
@@ -40,15 +60,38 @@
 - [ ] Migrate UI and logic to React Native components
 - [ ] Test thoroughly on mobile devices
 - [ ] on web ios, create a popup that recommends the user to download from appstore
+- [ ] Profile attractor rendering on mobile
+- [ ] Optimize rendering or add progress indicator if slow
+- [ ] Persist user preferences (theme, sound, parameters) on mobile
+- [ ] Implement fallbacks for unsupported devices
+- [ ] Review app for common mobile vulnerabilities
+- [ ] Prepare app icons, splash screens, and store listing assets
+- [ ] Review and ensure compliance with app store guidelines
+- [ ] Set up i18n framework if planning for multiple languages (mobile)
+- [ ] Add translations for all user-facing text (mobile)
+- [ ] Add tooltips and help modals for new users (mobile)
+- [ ] Add onboarding flow if needed (mobile)
+- [ ] Add user-friendly error messages for rendering and sound issues (mobile)
+- [ ] Integrate basic analytics for usage tracking (mobile)
+- [ ] (Optional) Add error logging for public demo (mobile)
+- [ ] Add a privacy policy if analytics or user data is collected (mobile)
 
-### 6. Shared UI Components
-- [ ] Create shared Tamagui UI components in the shared directory
-- [ ] Refactor common UI and logic here
+### 6. Shared UI Components (Modular & Cross-Platform)
+- [ ] Refactor and centralize all common UI, hooks, and logic that can be reused between web and mobile
+- [ ] Create presentational components that work on both platforms (where possible)
+- [ ] Share business logic, validation, and utility functions
+- [ ] Ensure all shared UI is accessible (a11y best practices)
+- [ ] Ensure shared UI supports i18n
+- [ ] Ensure shared UI is performant and optimized for both web and mobile
+- [ ] Document what is shared and how to extend it for future platforms
 
 ### 7. Documentation & Cleanup
-- [x] Update documentation for new structure and usage
-- [x] Remove obsolete code
+- [ ] Update documentation for new structure and usage
+- [ ] Remove obsolete code
 - [ ] Update migration plan and dev log as progress continues
+- [ ] Document accessibility, i18n, and performance strategies
+- [ ] Document analytics and privacy policy (if applicable)
+- [ ] Document deployment and CI/CD setup for both web and mobile
 
 ---
 
@@ -57,3 +100,4 @@
 ---
 
 **Note:** shadcn/ui (chadcn) was installed and initialized in `apps/web` with Tailwind CSS. The Button component is available for use. See https://ui.shadcn.com/docs/installation/next for usage details.
+
