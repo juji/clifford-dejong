@@ -36,6 +36,7 @@ export function MenuSheet({ children }: { children?: ReactNode }) {
               <SheetDescription>
                 {/* Add a description or leave empty */}
                 Example: Quick navigation and settings
+                asddf
               </SheetDescription>
             </SheetHeader>
           </div>
