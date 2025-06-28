@@ -4,6 +4,25 @@ import { getColorData } from "@repo/core/color";
 import { runAttractorBenchmark } from "../lib/attractor-benchmark";
 import { useAttractorStore } from "../../../packages/state/attractor-store";
 
+function ModeToggleButton({
+  mode,
+  onToggle,
+}: {
+  mode: string;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="fixed bottom-6 right-6 z-[201] px-4 py-2 rounded bg-background border border-foreground shadow text-foreground text-xs font-semibold hover:bg-foreground hover:text-background transition-colors"
+      onClick={onToggle}
+      aria-label="Toggle quality mode"
+    >
+      {mode === "high" ? "Low Quality" : "High Quality"}
+    </button>
+  );
+}
+
 function useDebouncedValue<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -51,6 +70,8 @@ export function AttractorCanvas() {
   const setError = useAttractorStore((s) => s.setError);
   const DEFAULT_POINTS = useAttractorStore((s) => s.DEFAULT_POINTS);
   const DEFAULT_SCALE = useAttractorStore((s) => s.DEFAULT_SCALE);
+  const LOW_QUALITY_POINTS = useAttractorStore((s) => s.LOW_QUALITY_POINTS);
+  const LOW_QUALITY_INTERVAL = useAttractorStore((s) => s.LOW_QUALITY_INTERVAL);
   const [dynamicProgressInterval, setDynamicProgressInterval] = useState<
     number | null
   >(null);
@@ -60,6 +81,8 @@ export function AttractorCanvas() {
   } | null>(null);
   const debouncedCanvasSize = useDebouncedValue(canvasSize, 200); // 200ms debounce
   const workerRef = useRef<Worker | null>(null);
+  const qualityMode = useAttractorStore((s) => s.qualityMode);
+  const setQualityMode = useAttractorStore((s) => s.setQualityMode);
 
   // Listen for window resize and update canvas size state
   useEffect(() => {
@@ -94,15 +117,19 @@ export function AttractorCanvas() {
 
   useEffect(() => {
     // Always benchmark and set dynamicProgressInterval on mount
-    const result = runAttractorBenchmark();
-    let interval;
-    if (result.msPer100k < 10)
-      interval = 0.5; // 0.5% (200 batches)
-    else if (result.msPer100k < 30)
-      interval = 1; // 1% (100 batches)
-    else interval = 2.5; // 2.5% (40 batches)
-    setDynamicProgressInterval(interval);
-  }, []);
+    if (qualityMode === 'low') {
+      setDynamicProgressInterval(LOW_QUALITY_INTERVAL);
+    } else {
+      const result = runAttractorBenchmark();
+      let interval;
+      if (result.msPer100k < 10)
+        interval = 0.5;
+      else if (result.msPer100k < 30)
+        interval = 1;
+      else interval = 2.5;
+      setDynamicProgressInterval(interval);
+    }
+  }, [qualityMode, LOW_QUALITY_INTERVAL]);
 
   useEffect(() => {
     if (dynamicProgressInterval == null) return;
@@ -137,7 +164,7 @@ export function AttractorCanvas() {
         b,
         c,
         d,
-        points: DEFAULT_POINTS,
+        points: qualityMode === 'low' ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
         width,
         height,
         scale: DEFAULT_SCALE * (scale ?? 1),
@@ -227,7 +254,14 @@ export function AttractorCanvas() {
     setImageUrl,
     setIsRendering,
     setProgress,
+    LOW_QUALITY_POINTS,
+    qualityMode,
   ]);
 
-  return <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />;
+  return (
+    <>
+      <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
+      <ModeToggleButton mode={qualityMode} onToggle={() => setQualityMode(qualityMode === 'high' ? 'low' : 'high')} />
+    </>
+  );
 }
