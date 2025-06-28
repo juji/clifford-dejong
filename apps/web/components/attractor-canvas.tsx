@@ -53,7 +53,9 @@ export function AttractorCanvas() {
   const LOW_QUALITY_INTERVAL = useAttractorStore((s) => s.LOW_QUALITY_INTERVAL);
   const [dynamicProgressInterval, setDynamicProgressInterval] = useState<number | null>(null);
   const [canvasSize, setCanvasSize] = useState<{ width: number; height: number } | null>(null);
-  const debouncedCanvasSize = useDebouncedValue(canvasSize, 200); // 200ms debounce
+  const [canvasVisible, setCanvasVisible] = useState(true);
+  // Debounce for 300ms for resize
+  const debouncedCanvasSize = useDebouncedValue(canvasSize, 300);
   // Use custom worker hook
   const workerRef = useAttractorWorker({
     onMessage: (e: MessageEvent) => {
@@ -141,14 +143,10 @@ export function AttractorCanvas() {
           height: parent.clientHeight,
         };
         const heightDelta = Math.abs(newSize.height - lastSize.height);
-        if (newSize.width !== lastSize.width) {
-          if (workerRef.current)
-            workerRef.current.postMessage({ type: "stop" });
-          lastSize = newSize;
-          setCanvasSize(newSize);
-        } else if (heightDelta > HEIGHT_THRESHOLD) {
-          if (workerRef.current)
-            workerRef.current.postMessage({ type: "stop" });
+        if (newSize.width !== lastSize.width || heightDelta > HEIGHT_THRESHOLD) {
+          // Hide canvas immediately on resize
+          setCanvasVisible(false);
+          if (workerRef.current) workerRef.current.postMessage({ type: "stop" });
           lastSize = newSize;
           setCanvasSize(newSize);
         }
@@ -176,96 +174,92 @@ export function AttractorCanvas() {
 
   // Reuse the worker: send new params instead of recreating
   useEffect(() => {
-    if (dynamicProgressInterval == null) return;
+    if (!debouncedCanvasSize) return;
+    // After debounce, trigger rendering with new size
     setError(null);
     setIsRendering(true);
     setProgress(0);
-    const debounceId = setTimeout(() => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const parent = canvas.parentElement;
-      if (!parent) return;
-      const width = debouncedCanvasSize?.width ?? parent.clientWidth;
-      const height = debouncedCanvasSize?.height ?? parent.clientHeight;
-      // Only resize before OffscreenCanvas transfer
-      if (!offscreenTransferredRef.current) {
-        canvas.width = width;
-        canvas.height = height;
-      }
-      if (workerRef.current) {
-        workerRef.current.postMessage({ type: "stop" });
-        // OffscreenCanvas path
-        if (offscreenSupported) {
-          if (!offscreenTransferredRef.current) {
-            // Transfer only once per canvas instance
-            const offscreen = canvas.transferControlToOffscreen();
-            workerRef.current.postMessage({
-              type: "init-offscreen",
-              canvas: offscreen,
-            }, [offscreen]);
-            offscreenTransferredRef.current = true;
-          } else {
-            // Resize OffscreenCanvas in worker after transfer
-            workerRef.current.postMessage({
-              type: "resize",
-              width,
-              height,
-            });
-          }
-          // Send params for worker-side drawing
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
+    const width = debouncedCanvasSize.width;
+    const height = debouncedCanvasSize.height;
+    // Only resize before OffscreenCanvas transfer
+    if (!offscreenTransferredRef.current) {
+      canvas.width = width;
+      canvas.height = height;
+    }
+    if (workerRef.current) {
+      // OffscreenCanvas path
+      if (offscreenSupported) {
+        if (!offscreenTransferredRef.current) {
+          // Transfer only once per canvas instance
+          const offscreen = canvas.transferControlToOffscreen();
           workerRef.current.postMessage({
-            attractor,
-            a,
-            b,
-            c,
-            d,
-            points: qualityMode === 'low' ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
-            width,
-            height,
-            scale: DEFAULT_SCALE * (scale ?? 1),
-            left: left ?? 0,
-            top: top ?? 0,
-            hue,
-            saturation,
-            brightness,
-            background,
-            progressInterval: dynamicProgressInterval,
-            qualityMode,
-            useOffscreen: true,
-          });
+            type: "init-offscreen",
+            canvas: offscreen,
+          }, [offscreen]);
+          offscreenTransferredRef.current = true;
         } else {
-          // Fallback: main-thread drawing
-          canvas.width = width;
-          canvas.height = height;
+          // Resize OffscreenCanvas in worker after transfer
           workerRef.current.postMessage({
-            attractor,
-            a,
-            b,
-            c,
-            d,
-            points: qualityMode === 'low' ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
+            type: "resize",
             width,
             height,
-            scale: DEFAULT_SCALE * (scale ?? 1),
-            left: left ?? 0,
-            top: top ?? 0,
-            hue,
-            saturation,
-            brightness,
-            background,
-            progressInterval: dynamicProgressInterval,
-            qualityMode,
-            useOffscreen: false,
           });
         }
+        // Send params for worker-side drawing
+        workerRef.current.postMessage({
+          attractor,
+          a,
+          b,
+          c,
+          d,
+          points: qualityMode === 'low' ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
+          width,
+          height,
+          scale: DEFAULT_SCALE * (scale ?? 1),
+          left: left ?? 0,
+          top: top ?? 0,
+          hue,
+          saturation,
+          brightness,
+          background,
+          progressInterval: dynamicProgressInterval,
+          qualityMode,
+          useOffscreen: true,
+        });
+      } else {
+        // Fallback: main-thread drawing
+        canvas.width = width;
+        canvas.height = height;
+        workerRef.current.postMessage({
+          attractor,
+          a,
+          b,
+          c,
+          d,
+          points: qualityMode === 'low' ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
+          width,
+          height,
+          scale: DEFAULT_SCALE * (scale ?? 1),
+          left: left ?? 0,
+          top: top ?? 0,
+          hue,
+          saturation,
+          brightness,
+          background,
+          progressInterval: dynamicProgressInterval,
+          qualityMode,
+          useOffscreen: false,
+        });
       }
-    }, 100);
-    return () => {
-      clearTimeout(debounceId);
-      setIsRendering(false);
-    };
+    }
+    // Reveal the canvas 50ms after debounce/render starts
+    const revealTimeout = setTimeout(() => setCanvasVisible(true), 50);
+    return () => clearTimeout(revealTimeout);
   }, [
-    dynamicProgressInterval,
     debouncedCanvasSize,
     attractor,
     a,
@@ -288,13 +282,23 @@ export function AttractorCanvas() {
     LOW_QUALITY_POINTS,
     qualityMode,
     workerRef,
-    offscreenSupported
+    offscreenSupported,
+    dynamicProgressInterval
   ]);
 
   return (
-    <>
-      <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+      <canvas
+        ref={canvasRef}
+        style={{
+          display: 'block',
+          maxWidth: '100%',
+          maxHeight: '100%',
+          opacity: canvasVisible ? 1 : 0,
+          transition: 'opacity 0.1s',
+        }}
+      />
       <ModeToggleButton mode={qualityMode} onToggle={() => setQualityMode(qualityMode === 'high' ? 'low' : 'high')} />
-    </>
+    </div>
   );
 }

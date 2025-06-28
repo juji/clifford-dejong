@@ -1,6 +1,7 @@
 import { render, waitFor } from "@testing-library/react";
 import { AttractorCanvas } from "../components/attractor-canvas";
 import React from "react";
+import { act } from "react-dom/test-utils";
 
 // Create mock functions for Zustand actions
 const mockSetProgress = vi.fn();
@@ -35,6 +36,11 @@ vi.mock("../../../packages/state/attractor-store", () => {
     ),
   };
 });
+
+// Mock useDebouncedValue to always return the latest value
+vi.mock("../hooks/use-debounced-value", () => ({
+  useDebouncedValue: (v: any) => v,
+}));
 
 // Robust Worker mock
 let lastWorkerInstance: any = null;
@@ -76,20 +82,45 @@ describe("AttractorCanvas (detailed)", () => {
     mockSetIsRendering.mockClear();
     mockSetImageUrl.mockClear();
     mockSetError.mockClear();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("renders and interacts with mocked Zustand store and Worker", async () => {
-    const { container } = render(<AttractorCanvas />);
+    // Create a container div with explicit size for flex centering
+    const wrapper = document.createElement('div');
+    Object.defineProperty(wrapper, 'clientWidth', { value: 800, configurable: true });
+    Object.defineProperty(wrapper, 'clientHeight', { value: 600, configurable: true });
+    wrapper.style.width = '800px';
+    wrapper.style.height = '600px';
+    document.body.appendChild(wrapper);
+
+    const { container } = render(<AttractorCanvas />, { container: wrapper });
     const canvas = container.querySelector("canvas");
     expect(canvas).toBeInTheDocument();
 
-    // Wait for the effect that calls setProgress(0) and sets up the worker
-    await waitFor(() => {
-      expect(mockSetProgress).toHaveBeenCalled();
-      expect(lastWorkerInstance && typeof lastWorkerInstance.onmessage === "function").toBe(true);
-    });
+    // Mock parentElement.clientWidth/clientHeight with getters
+    const parent = canvas?.parentElement;
+    if (parent) {
+      Object.defineProperty(parent, 'clientWidth', { get: () => 800, configurable: true });
+      Object.defineProperty(parent, 'clientHeight', { get: () => 600, configurable: true });
+    }
 
-    // Directly call the worker's onmessage handler to simulate progress
+    // Trigger a manual resize event after render and flush timers/state
+    window.dispatchEvent(new Event('resize'));
+    await act(async () => {
+      vi.runOnlyPendingTimers();
+    });
+    await act(async () => {});
+
+    // Wait for the effect that calls setProgress(0) and sets up the worker
+    expect(mockSetProgress).toHaveBeenCalled();
+    expect(lastWorkerInstance && typeof lastWorkerInstance.onmessage === "function").toBe(true);
+
+    // Simulate worker progress message
     if (lastWorkerInstance && typeof lastWorkerInstance.onmessage === "function") {
       lastWorkerInstance.onmessage({
         data: {
@@ -100,7 +131,6 @@ describe("AttractorCanvas (detailed)", () => {
         },
       });
     }
-
     // Assert both progress reset and worker progress were called
     const calls = mockSetProgress.mock.calls.flat();
     expect(calls).toContain(0);
@@ -130,5 +160,5 @@ describe("AttractorCanvas (detailed)", () => {
       expect(mockSetIsRendering).toHaveBeenCalledWith(false);
       expect(mockSetError).toHaveBeenCalledWith("Some error");
     }
-  });
+  }, 15000); // Increased timeout for async/debounce
 });
