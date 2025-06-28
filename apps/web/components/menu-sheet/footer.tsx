@@ -1,16 +1,9 @@
 import { Button } from "../ui/button"
 import { Bolt } from "lucide-react"
 
-interface MenuSheetFooterProps {
-  footerHeight: string
-}
-
-export function MenuSheetFooter({ footerHeight }: MenuSheetFooterProps) {
+export function MenuSheetFooter() {
   return (
-    <div
-      className="p-4 border-t border-border text-muted-foreground flex justify-center items-center gap-2"
-      style={{ height: footerHeight }}
-    >
+    <div className="p-4 border-t border-border text-muted-foreground flex justify-center items-center gap-2">
       <Button variant="ghost" size="sm" aria-label="Bolt">
         <Bolt className="w-5 h-5" />
       </Button>

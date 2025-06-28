@@ -25,9 +25,6 @@ export function MenuSheet({ children }: { children?: ReactNode }) {
     return () => window.removeEventListener('resize', handleResize)
   }, [menuPosition])
 
-  // Footer height (matches spacer row)
-  const footerHeight = "43px";
-
   return (
     <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
       <SheetContent side={responsiveSide}>
@@ -53,9 +50,9 @@ export function MenuSheet({ children }: { children?: ReactNode }) {
             {children}
           </div>
           {/* Footer row */}
-          <MenuSheetFooter footerHeight={footerHeight} />
+          <MenuSheetFooter />
           {/* Spacer row (same height as footer, below footer) */}
-          <div style={{ height: footerHeight }} />
+          <div style={{ height: "43px" }} />
         </div>
       </SheetContent>
     </Sheet>
