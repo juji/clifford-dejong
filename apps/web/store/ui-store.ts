@@ -2,6 +2,7 @@ import { create } from 'zustand'
 
 export type UITab = 'attractor' | 'color' | 'position'
 export type QualityMode = 'high' | 'low'
+export type MenuPosition = 'top' | 'left' | 'bottom' | 'right'
 
 interface UIState {
   menuOpen: boolean
@@ -10,6 +11,8 @@ interface UIState {
   setOpenTab: (tab: UITab) => void
   qualityMode: QualityMode
   setQualityMode: (mode: QualityMode) => void
+  menuPosition: MenuPosition
+  setMenuPosition: (pos: MenuPosition) => void
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -19,4 +22,6 @@ export const useUIStore = create<UIState>((set) => ({
   setOpenTab: (tab) => set({ openTab: tab }),
   qualityMode: 'high',
   setQualityMode: (mode) => set({ qualityMode: mode }),
+  menuPosition: 'left',
+  setMenuPosition: (pos) => set({ menuPosition: pos }),
 }))

@@ -7,10 +7,11 @@ import { ReactNode } from "react"
 export function MenuSheet({ children }: { children?: ReactNode }) {
   const menuOpen = useUIStore((s) => s.menuOpen)
   const setMenuOpen = useUIStore((s) => s.setMenuOpen)
+  const menuPosition = useUIStore((s) => s.menuPosition)
 
   return (
     <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-      <SheetContent side="left">
+      <SheetContent side={menuPosition}>
         <SheetHeader>
           <SheetTitle>Menu</SheetTitle>
           <SheetDescription>
