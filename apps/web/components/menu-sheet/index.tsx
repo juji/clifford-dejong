@@ -1,10 +1,9 @@
 "use client"
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "./ui/sheet"
-import { useUIStore } from "../store/ui-store"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "../ui/sheet"
+import { useUIStore } from "../../store/ui-store"
 import { ReactNode, useEffect, useState } from "react"
-import { Bolt } from "lucide-react"
-import { Button } from "./ui/button"
+import { MenuSheetFooter } from "./footer"
 
 export function MenuSheet({ children }: { children?: ReactNode }) {
   const menuOpen = useUIStore((s) => s.menuOpen)
@@ -54,14 +53,7 @@ export function MenuSheet({ children }: { children?: ReactNode }) {
             {children}
           </div>
           {/* Footer row */}
-          <div className="p-4 py-3 border-t border-border text-muted-foreground flex justify-center items-center gap-2">
-            <Button variant="outline" aria-label="Settings">
-              <Bolt className="w-5 h-5" />
-            </Button>
-            <Button variant="outline" aria-label="Save" className="flex-1">save</Button>
-            <Button variant="outline" aria-label="Load" className="flex-1">load</Button>
-            <Button variant="outline" aria-label="Reset" className="flex-1">reset</Button>
-          </div>
+          <MenuSheetFooter footerHeight={footerHeight} />
           {/* Spacer row (same height as footer, below footer) */}
           <div style={{ height: footerHeight }} />
         </div>
