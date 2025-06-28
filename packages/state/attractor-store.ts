@@ -27,7 +27,6 @@ export type AttractorState = {
   DEFAULT_SCALE: number;
   LOW_QUALITY_POINTS: number;
   LOW_QUALITY_INTERVAL: number;
-  qualityMode: "high" | "low";
 };
 
 // Separate actions from state for type safety
@@ -49,7 +48,6 @@ export type AttractorActions = {
   toggleFullscreen: () => void;
   reset: () => void;
   setError: (error: string | null) => void;
-  setQualityMode: (mode: "high" | "low") => void;
 };
 
 const defaultState: Omit<AttractorState, keyof AttractorActions> = {
@@ -74,9 +72,8 @@ const defaultState: Omit<AttractorState, keyof AttractorActions> = {
   error: null,
   DEFAULT_POINTS: 20000000,
   DEFAULT_SCALE: 150,
-  LOW_QUALITY_POINTS: 5000,
-  LOW_QUALITY_INTERVAL: 25,
-  qualityMode: "high",
+  LOW_QUALITY_POINTS: 20000,
+  LOW_QUALITY_INTERVAL: 10,
 };
 
 export const useAttractorStore = create<AttractorState & AttractorActions>()(
@@ -102,7 +99,6 @@ export const useAttractorStore = create<AttractorState & AttractorActions>()(
         set((state) => ({ fullscreen: !state.fullscreen })),
       reset: () => set({ ...defaultState }),
       setError: (error) => set({ error }),
-      setQualityMode: (mode) => set({ qualityMode: mode }),
     }),
     {
       name: "attractor-store",

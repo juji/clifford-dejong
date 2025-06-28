@@ -72,17 +72,11 @@ export function AttractorCanvas() {
   const DEFAULT_SCALE = useAttractorStore((s) => s.DEFAULT_SCALE);
   const LOW_QUALITY_POINTS = useAttractorStore((s) => s.LOW_QUALITY_POINTS);
   const LOW_QUALITY_INTERVAL = useAttractorStore((s) => s.LOW_QUALITY_INTERVAL);
-  const [dynamicProgressInterval, setDynamicProgressInterval] = useState<
-    number | null
-  >(null);
-  const [canvasSize, setCanvasSize] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
+  const [dynamicProgressInterval, setDynamicProgressInterval] = useState<number | null>(null);
+  const [canvasSize, setCanvasSize] = useState<{ width: number; height: number } | null>(null);
   const debouncedCanvasSize = useDebouncedValue(canvasSize, 200); // 200ms debounce
   const workerRef = useRef<Worker | null>(null);
-  const qualityMode = useAttractorStore((s) => s.qualityMode);
-  const setQualityMode = useAttractorStore((s) => s.setQualityMode);
+  const [qualityMode, setQualityMode] = useState<'high' | 'low'>('high');
 
   // Listen for window resize and update canvas size state
   useEffect(() => {
@@ -197,7 +191,6 @@ export function AttractorCanvas() {
           const bgColor =
             (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
 
-          
           if (qualityMode === 'low') {
             // Fast fill: just set all nonzero pixels to white, others to bg
             for (let i = 0; i < pixels.length; i++) {
@@ -221,7 +214,6 @@ export function AttractorCanvas() {
             }
           }
 
-          
           ctx.putImageData(imageData, 0, 0);
           if (e.data.type === "done") {
             setIsRendering(false);
