@@ -1,9 +1,10 @@
 "use client"
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "../ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet"
 import { useUIStore } from "../../store/ui-store"
 import { ReactNode, useEffect, useState } from "react"
 import { MenuSheetFooter } from "./footer"
+import { AttractorMenu } from "./attractor-menu"
 
 export function MenuSheet({ children }: { children?: ReactNode }) {
   const menuOpen = useUIStore((s) => s.menuOpen)
@@ -33,17 +34,31 @@ export function MenuSheet({ children }: { children?: ReactNode }) {
           <div className="p-4 flex items-center justify-between border-b border-border">
             <SheetHeader>
               <SheetTitle>Menu</SheetTitle>
-              <SheetDescription>
-                {/* Add a description or leave empty */}
-                Example: Quick navigation and settings
-                asddf
-              </SheetDescription>
+              <AttractorMenu />
             </SheetHeader>
           </div>
           {/* Middle row (scrollable) */}
           <div className="overflow-auto p-4">
             {/* Example dynamic content */}
             <div className="space-y-4">
+              <div className="bg-muted rounded p-3">Dynamic content goes here. This area scrolls if content overflows.</div>
+              <div className="bg-muted rounded p-3">Try adding more content to see scrolling in action.</div>
+              <div className="bg-muted rounded p-3">You can put forms, lists, or anything else here.</div>
+              <div className="bg-muted rounded p-3">Dynamic content goes here. This area scrolls if content overflows.</div>
+              <div className="bg-muted rounded p-3">Try adding more content to see scrolling in action.</div>
+              <div className="bg-muted rounded p-3">You can put forms, lists, or anything else here.</div>
+              <div className="bg-muted rounded p-3">Dynamic content goes here. This area scrolls if content overflows.</div>
+              <div className="bg-muted rounded p-3">Try adding more content to see scrolling in action.</div>
+              <div className="bg-muted rounded p-3">You can put forms, lists, or anything else here.</div>
+              <div className="bg-muted rounded p-3">Dynamic content goes here. This area scrolls if content overflows.</div>
+              <div className="bg-muted rounded p-3">Try adding more content to see scrolling in action.</div>
+              <div className="bg-muted rounded p-3">You can put forms, lists, or anything else here.</div>
+              <div className="bg-muted rounded p-3">Dynamic content goes here. This area scrolls if content overflows.</div>
+              <div className="bg-muted rounded p-3">Try adding more content to see scrolling in action.</div>
+              <div className="bg-muted rounded p-3">You can put forms, lists, or anything else here.</div>
+              <div className="bg-muted rounded p-3">Dynamic content goes here. This area scrolls if content overflows.</div>
+              <div className="bg-muted rounded p-3">Try adding more content to see scrolling in action.</div>
+              <div className="bg-muted rounded p-3">You can put forms, lists, or anything else here.</div>
               <div className="bg-muted rounded p-3">Dynamic content goes here. This area scrolls if content overflows.</div>
               <div className="bg-muted rounded p-3">Try adding more content to see scrolling in action.</div>
               <div className="bg-muted rounded p-3">You can put forms, lists, or anything else here.</div>
