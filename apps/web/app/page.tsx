@@ -9,6 +9,7 @@ import { MenuSheet } from "../components/menu-sheet";
 export default function Home() {
   return (
     <>
+      <ProgressIndicator />
       <MenuSheet />
       <DarkModeToggle />
       <FullScreenButton />
@@ -23,7 +24,6 @@ export default function Home() {
         }}
       >
         <AttractorCanvas />
-        <ProgressIndicator />
       </div>
       <Footer />
     </>
