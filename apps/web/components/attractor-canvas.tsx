@@ -4,6 +4,8 @@ import { getColorData } from "@repo/core/color";
 import { runAttractorBenchmark } from "../lib/attractor-benchmark";
 import { useAttractorStore } from "../../../packages/state/attractor-store";
 import { useUIStore } from "../store/ui-store";
+import { useAttractorWorker } from "../hooks/use-attractor-worker";
+import { useDebouncedValue } from "../hooks/use-debounced-value";
 
 function ModeToggleButton({
   mode,
@@ -24,32 +26,6 @@ function ModeToggleButton({
   );
 }
 
-function useDebouncedValue<T>(value: T, delay: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const handler = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(handler);
-  }, [value, delay]);
-  return debounced;
-}
-
-/**
- * AttractorCanvas
- *
- * This React component renders the attractor using an off-main-thread Web Worker.
- *
- * - Runs a device benchmark on mount (unless progressInterval is provided).
- * - Sets progressInterval (percent) dynamically based on device speed:
- *     - Fast device: smaller interval (more frequent updates, smoother UI)
- *     - Slow device: larger interval (fewer updates, less UI overhead)
- * - Sends progressInterval to the worker, which controls how often the worker posts progress updates.
- * - Receives preview/done/error messages from the worker and updates the canvas.
- *
- * Why progressInterval?
- *   - Too many updates: UI is smooth but can lag on slow devices.
- *   - Too few updates: UI is responsive but animation is choppy.
- *   - Dynamic tuning gives best experience for all users.
- */
 export function AttractorCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Zustand selectors for all attractor state
@@ -76,25 +52,68 @@ export function AttractorCanvas() {
   const [dynamicProgressInterval, setDynamicProgressInterval] = useState<number | null>(null);
   const [canvasSize, setCanvasSize] = useState<{ width: number; height: number } | null>(null);
   const debouncedCanvasSize = useDebouncedValue(canvasSize, 200); // 200ms debounce
-  const workerRef = useRef<Worker | null>(null);
+  // Use custom worker hook
+  const workerRef = useAttractorWorker({
+    onMessage: (e: MessageEvent) => {
+      // console.log('AttractorCanvas worker onMessage:', e.data);
+      if (e.data.type === "stopped") {
+        setIsRendering(false);
+        return;
+      }
+      if (
+        (e.data.type === "preview" || e.data.type === "done") &&
+        e.data.pixels
+      ) {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const width = canvas.width;
+        const height = canvas.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        const { pixels, maxDensity, progress } = e.data;
+        const imageData = ctx.createImageData(width, height);
+        const data = new Uint32Array(imageData.data.buffer);
+        const bgArr = background;
+        const bgColor =
+          (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
+        if (qualityMode === 'low') {
+          for (let i = 0; i < pixels.length; i++) {
+            data[i] = pixels[i] > 0 ? 0xffffffff : bgColor;
+          }
+        } else {
+          for (let i = 0; i < pixels.length; i++) {
+            const density = pixels[i] ?? 0;
+            if (density > 0) {
+              data[i] = getColorData(
+                density,
+                maxDensity,
+                hue ?? 120,
+                saturation ?? 100,
+                brightness ?? 100,
+                progress > 0 ? progress / 100 : 1,
+              );
+            } else {
+              data[i] = bgColor;
+            }
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        if (e.data.type === "done") {
+          setIsRendering(false);
+          setImageUrl(canvas.toDataURL("image/png"));
+        }
+        if (typeof progress === "number") {
+          setProgress(progress);
+        }
+      } else if (e.data.type === "error") {
+        setIsRendering(false);
+        setError(e.data.error || "Unknown error in worker");
+      }
+    },
+  });
   // Move qualityMode to Zustand UI store
   const qualityMode = useUIStore((s) => s.qualityMode);
   const setQualityMode = useUIStore((s) => s.setQualityMode);
-
-  // Create the worker only once on mount
-  useEffect(() => {
-    const worker = new Worker(
-      new URL("../workers/attractor-worker.ts", import.meta.url),
-      { type: "module" },
-    );
-    workerRef.current = worker;
-    return () => {
-      if (workerRef.current) {
-        workerRef.current.terminate();
-        workerRef.current = null;
-      }
-    };
-  }, []);
 
   // Listen for window resize and update canvas size state
   useEffect(() => {
@@ -125,8 +144,7 @@ export function AttractorCanvas() {
     updateSize();
     window.addEventListener("resize", updateSize);
     return () => window.removeEventListener("resize", updateSize);
-  }, []);
-
+  }, [workerRef]);
   useEffect(() => {
     // Always benchmark and set dynamicProgressInterval on mount
     if (qualityMode === 'low') {
@@ -158,65 +176,9 @@ export function AttractorCanvas() {
       const height = debouncedCanvasSize?.height ?? parent.clientHeight;
       canvas.width = width;
       canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      const interval = dynamicProgressInterval;
       if (workerRef.current) {
         // Stop any previous computation
         workerRef.current.postMessage({ type: "stop" });
-        // Set up message handler
-        workerRef.current.onmessage = (e: MessageEvent) => {
-          if (e.data.type === "stopped") {
-            setIsRendering(false);
-            return;
-          }
-          if (
-            (e.data.type === "preview" || e.data.type === "done") &&
-            e.data.pixels
-          ) {
-            const { pixels, maxDensity, progress } = e.data;
-            const imageData = ctx.createImageData(width, height);
-            const data = new Uint32Array(imageData.data.buffer);
-            const bgArr = background;
-            const bgColor =
-              (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
-
-            if (qualityMode === 'low') {
-              // Fast fill: just set all nonzero pixels to white, others to bg
-              for (let i = 0; i < pixels.length; i++) {
-                data[i] = pixels[i] > 0 ? 0xffffffff : bgColor;
-              }
-            } else {
-              for (let i = 0; i < pixels.length; i++) {
-                const density = pixels[i] ?? 0;
-                if (density > 0) {
-                  data[i] = getColorData(
-                    density,
-                    maxDensity,
-                    hue ?? 120,
-                    saturation ?? 100,
-                    brightness ?? 100,
-                    progress > 0 ? progress / 100 : 1,
-                  );
-                } else {
-                  data[i] = bgColor;
-                }
-              }
-            }
-
-            ctx.putImageData(imageData, 0, 0);
-            if (e.data.type === "done") {
-              setIsRendering(false);
-              setImageUrl(canvas.toDataURL("image/png"));
-            }
-            if (typeof progress === "number") {
-              setProgress(progress);
-            }
-          } else if (e.data.type === "error") {
-            setIsRendering(false);
-            setError(e.data.error || "Unknown error in worker");
-          }
-        };
         // Start new computation
         workerRef.current.postMessage({
           attractor,
@@ -234,7 +196,7 @@ export function AttractorCanvas() {
           saturation,
           brightness,
           background,
-          progressInterval: interval,
+          progressInterval: dynamicProgressInterval,
           qualityMode, // pass to worker
         });
       }
@@ -267,6 +229,7 @@ export function AttractorCanvas() {
     setProgress,
     LOW_QUALITY_POINTS,
     qualityMode,
+    workerRef,
   ]);
 
   return (
