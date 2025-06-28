@@ -204,6 +204,13 @@ export function AttractorCanvas() {
               canvas: offscreen,
             }, [offscreen]);
             offscreenTransferredRef.current = true;
+          } else {
+            // Resize OffscreenCanvas in worker after transfer
+            workerRef.current.postMessage({
+              type: "resize",
+              width,
+              height,
+            });
           }
           // Send params for worker-side drawing
           workerRef.current.postMessage({

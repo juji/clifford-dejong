@@ -33,6 +33,15 @@ self.onmessage = function (e) {
     }
     return;
   }
+  // Handle resize for OffscreenCanvas
+  if (e.data && e.data.type === "resize" && offscreenCanvas) {
+    offscreenCanvas.width = e.data.width;
+    offscreenCanvas.height = e.data.height;
+    if (offscreenCtx) {
+      offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+    }
+    return;
+  }
   try {
     const params = parseParams(e.data);
     if (e.data.useOffscreen && offscreenCanvas && offscreenCtx) {
