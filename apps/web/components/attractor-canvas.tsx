@@ -175,6 +175,7 @@ export function AttractorCanvas() {
         brightness,
         background,
         progressInterval: interval,
+        qualityMode, // pass to worker
       });
       worker.onmessage = (e: MessageEvent) => {
         if (e.data.type === "stopped") {
@@ -195,21 +196,32 @@ export function AttractorCanvas() {
           const bgArr = background;
           const bgColor =
             (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
-          for (let i = 0; i < pixels.length; i++) {
-            const density = pixels[i] ?? 0;
-            if (density > 0) {
-              data[i] = getColorData(
-                density,
-                maxDensity,
-                hue ?? 120,
-                saturation ?? 100,
-                brightness ?? 100,
-                progress > 0 ? progress / 100 : 1, // Use progress to adjust opacity
-              );
-            } else {
-              data[i] = bgColor;
+
+          
+          if (qualityMode === 'low') {
+            // Fast fill: just set all nonzero pixels to white, others to bg
+            for (let i = 0; i < pixels.length; i++) {
+              data[i] = pixels[i] > 0 ? 0xffffffff : bgColor;
+            }
+          } else {
+            for (let i = 0; i < pixels.length; i++) {
+              const density = pixels[i] ?? 0;
+              if (density > 0) {
+                data[i] = getColorData(
+                  density,
+                  maxDensity,
+                  hue ?? 120,
+                  saturation ?? 100,
+                  brightness ?? 100,
+                  progress > 0 ? progress / 100 : 1,
+                );
+              } else {
+                data[i] = bgColor;
+              }
             }
           }
+
+          
           ctx.putImageData(imageData, 0, 0);
           if (e.data.type === "done") {
             setIsRendering(false);

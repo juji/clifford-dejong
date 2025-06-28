@@ -55,11 +55,12 @@ function parseParams(data: any) {
     left,
     top,
     progressInterval = 1,
+    qualityMode = 'high', // add qualityMode if sent from main thread
   } = data;
 
   return {
     attractorFn: attractor === "clifford" ? clifford : dejong,
-    a, b, c, d, points, width, height, scale, left, top, progressInterval
+    a, b, c, d, points, width, height, scale, left, top, progressInterval, qualityMode
   };
 }
 
@@ -67,13 +68,17 @@ function runAttractor({
   attractorFn,
   a, b, c, d,
   points, width, height, scale, left, top,
-  progressInterval
+  progressInterval,
+  qualityMode = 'high',
 }: any) {
   let x = 0, y = 0;
   const pixels = new Uint32Array(width * height);
   let maxDensity = 0;
   const interval = Math.max(1, Math.floor(points * (progressInterval / 100)));
-  const batchSize = Math.max(1000, Math.floor(points / 1000));
+  // Use a much larger batch size for low quality mode
+  const batchSize = qualityMode === 'low'
+    ? Math.max(10000, Math.floor(points / 10)) // 10 batches, min 10k per batch
+    : Math.max(1000, Math.floor(points / 1000)); // default
   let i = 0;
   shouldStop = false;
 
