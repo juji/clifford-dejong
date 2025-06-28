@@ -27,6 +27,7 @@ export function MenuToggleButton({ className }: { className?: string }) {
     e.currentTarget.classList.add('scale-75');
   }
 
+  // Hide button with CSS instead of early return to avoid hook order issues
   return (
     <button
       type="button"
@@ -35,6 +36,7 @@ export function MenuToggleButton({ className }: { className?: string }) {
       className={cn(
         "fixed bottom-15 left-6 z-[200] rounded-full w-16 h-16 bg-background text-foreground shadow-lg border-2 border-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer hover:scale-75 transition-transform duration-200",
         scaleClass,
+        menuOpen && "hidden",
         className
       )}
       onTouchStart={handleTouchStart}

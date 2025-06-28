@@ -4,10 +4,12 @@ import { ProgressIndicator } from "../components/progress-indicator";
 import { DarkModeToggle } from "../components/dark-mode-toggle";
 import { FullScreenButton } from "../components/full-screen-button";
 import { MenuToggleButton } from "../components/menu-toggle-button";
+import { MenuSheet } from "../components/menu-sheet";
 
 export default function Home() {
   return (
     <>
+      <MenuSheet />
       <DarkModeToggle />
       <FullScreenButton />
       <MenuToggleButton />
