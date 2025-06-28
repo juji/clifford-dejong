@@ -1,7 +1,7 @@
 import { render, waitFor } from "@testing-library/react";
 import { AttractorCanvas } from "../components/attractor-canvas";
 import React from "react";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 
 // Create mock functions for Zustand actions
 const mockSetProgress = vi.fn();
@@ -110,27 +110,28 @@ describe("AttractorCanvas (detailed)", () => {
     }
 
     // Trigger a manual resize event after render and flush timers/state
-    window.dispatchEvent(new Event('resize'));
     await act(async () => {
+      window.dispatchEvent(new Event('resize'));
       vi.runOnlyPendingTimers();
     });
     await act(async () => {});
 
-    // Wait for the effect that calls setProgress(0) and sets up the worker
     expect(mockSetProgress).toHaveBeenCalled();
     expect(lastWorkerInstance && typeof lastWorkerInstance.onmessage === "function").toBe(true);
 
     // Simulate worker progress message
-    if (lastWorkerInstance && typeof lastWorkerInstance.onmessage === "function") {
-      lastWorkerInstance.onmessage({
-        data: {
-          type: "preview",
-          pixels: new Array(1000).fill(0),
-          maxDensity: 1,
-          progress: 0.42,
-        },
-      });
-    }
+    await act(async () => {
+      if (lastWorkerInstance && typeof lastWorkerInstance.onmessage === "function") {
+        lastWorkerInstance.onmessage({
+          data: {
+            type: "preview",
+            pixels: new Array(1000).fill(0),
+            maxDensity: 1,
+            progress: 0.42,
+          },
+        });
+      }
+    });
     // Assert both progress reset and worker progress were called
     const calls = mockSetProgress.mock.calls.flat();
     expect(calls).toContain(0);
@@ -138,27 +139,31 @@ describe("AttractorCanvas (detailed)", () => {
     expect(mockSetProgress.mock.calls.length).toBeGreaterThanOrEqual(1);
 
     // Simulate a 'done' message from the worker
-    if (
-      lastWorkerInstance &&
-      typeof lastWorkerInstance.onmessage === "function"
-    ) {
-      lastWorkerInstance.onmessage({
-        data: { type: "done", pixels: new Array(1000).fill(0), maxDensity: 1 },
-      });
-      expect(mockSetIsRendering).toHaveBeenCalledWith(false);
-      expect(mockSetImageUrl).toHaveBeenCalled();
-    }
+    await act(async () => {
+      if (
+        lastWorkerInstance &&
+        typeof lastWorkerInstance.onmessage === "function"
+      ) {
+        lastWorkerInstance.onmessage({
+          data: { type: "done", pixels: new Array(1000).fill(0), maxDensity: 1 },
+        });
+      }
+    });
+    expect(mockSetIsRendering).toHaveBeenCalledWith(false);
+    expect(mockSetImageUrl).toHaveBeenCalled();
 
     // Simulate an 'error' message from the worker
-    if (
-      lastWorkerInstance &&
-      typeof lastWorkerInstance.onmessage === "function"
-    ) {
-      lastWorkerInstance.onmessage({
-        data: { type: "error", error: "Some error" },
-      });
-      expect(mockSetIsRendering).toHaveBeenCalledWith(false);
-      expect(mockSetError).toHaveBeenCalledWith("Some error");
-    }
+    await act(async () => {
+      if (
+        lastWorkerInstance &&
+        typeof lastWorkerInstance.onmessage === "function"
+      ) {
+        lastWorkerInstance.onmessage({
+          data: { type: "error", error: "Some error" },
+        });
+      }
+    });
+    expect(mockSetIsRendering).toHaveBeenCalledWith(false);
+    expect(mockSetError).toHaveBeenCalledWith("Some error");
   }, 15000); // Increased timeout for async/debounce
 });
