@@ -29,7 +29,7 @@ export function MenuSheet({ children }: { children?: ReactNode }) {
   return (
     <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
       <SheetContent side={responsiveSide}>
-        <div className="h-full grid" style={{ gridTemplateRows: `auto 1fr auto auto` }}>
+        <div className="h-full grid" style={{ gridTemplateRows: 'auto 1fr auto auto' }}>
           {/* Top row */}
           <div className="p-4 flex items-center justify-between border-b border-border">
             <SheetHeader>
@@ -38,7 +38,14 @@ export function MenuSheet({ children }: { children?: ReactNode }) {
             </SheetHeader>
           </div>
           {/* Middle row (scrollable) */}
-          <div className="overflow-auto p-4">
+          <div
+            className="overflow-auto p-4 min-h-0"
+            style={
+              (responsiveSide === 'top' || responsiveSide === 'bottom')
+                ? { maxHeight: '60vh', minHeight: 0 }
+                : { minHeight: 0 }
+            }
+          >
             {/* Example dynamic content */}
             <div className="space-y-4">
               <div className="bg-muted rounded p-3">Dynamic content goes here. This area scrolls if content overflows.</div>
