@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { getColorData } from "@repo/core/color";
 import { runAttractorBenchmark } from "../lib/attractor-benchmark";
 import { useAttractorStore } from "../../../packages/state/attractor-store";
+import { useUIStore } from "../store/ui-store";
 
 function ModeToggleButton({
   mode,
@@ -76,7 +77,9 @@ export function AttractorCanvas() {
   const [canvasSize, setCanvasSize] = useState<{ width: number; height: number } | null>(null);
   const debouncedCanvasSize = useDebouncedValue(canvasSize, 200); // 200ms debounce
   const workerRef = useRef<Worker | null>(null);
-  const [qualityMode, setQualityMode] = useState<'high' | 'low'>('high');
+  // Move qualityMode to Zustand UI store
+  const qualityMode = useUIStore((s) => s.qualityMode);
+  const setQualityMode = useUIStore((s) => s.setQualityMode);
 
   // Listen for window resize and update canvas size state
   useEffect(() => {
