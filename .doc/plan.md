@@ -27,8 +27,8 @@
 - [x] use chadcn (shadcn/ui installed and initialized in apps/web)
 - [x] use howler.js to preload and play sound https://howlerjs.com/
 - [x] Check dark and light theme
-- [ ] Create a Full screen button
-- [ ] on ios, full screen button should not exist
+- [x] Create a Full screen button
+- [x] on ios, full screen button should not exist
 - [ ] Create UI for attractor parameters
 - [ ] create mute control for sounds
 - [ ] Test thoroughly on web
