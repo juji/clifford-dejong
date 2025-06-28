@@ -1,11 +1,13 @@
 'use client'
 import React, { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
+import { useUIStore } from "../store/ui-store";
 
 const TRANSFORM_DURATION = '0.3s';
 
 export function FullScreenButton() {
   const [showButton, setShowButton] = useState(false);
+  const menuOpen = useUIStore((s) => s.menuOpen);
 
   // Detect iOS and hide button if on iOS
   useEffect(() => {
@@ -18,7 +20,7 @@ export function FullScreenButton() {
     }
   }, []);
 
-  if (!showButton) return null;
+  if (!showButton || menuOpen) return null;
   return <FullScreenButtonChild />;
 }
 
