@@ -47,8 +47,7 @@ export function AttractorCanvas() {
   //
   // initialization factors
   const [ initialized, setInitialized ] = useState(false);
-  // const offscreenSupported = useRef(typeof window !== 'undefined' && typeof window.OffscreenCanvas !== 'undefined');
-  const offscreenSupported = false;
+  const offscreenSupported = useRef(typeof window !== 'undefined' && typeof window.OffscreenCanvas !== 'undefined');
   const offscreenTransferredRef = useRef(false);
   const dynamicProgressIntervalRef = useRef<number | null>(null);
   const [workerReady, setWorkerReady] = useState(false);
