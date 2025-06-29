@@ -32,7 +32,6 @@ self.postMessage({ type: "ready" });
 
 self.onmessage = function (e) {
   
-
   if (e.data && e.data.type === "stop") {
     handleStop();
     return;
@@ -150,7 +149,7 @@ function handleStop() {
 }
 
 function parseParams(data: any) {
-  // console.log("Parsing attractor parameters:", data);
+
   const {
     params : {
       attractor,

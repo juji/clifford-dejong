@@ -203,6 +203,7 @@ export function AttractorCanvas() {
   }
 
   // Listen for window resize and update canvas size state
+  const canvasVisibleRef = useRef(canvasVisible);
   useEffect(() => {
 
     let lastSize = { width: 0, height: 0 };
@@ -211,12 +212,15 @@ export function AttractorCanvas() {
     let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
     function updateSize() {
       
-      if(canvasVisible) {
+      if(canvasVisibleRef.current) {
+        
         setCanvasVisible(false);
+        canvasVisibleRef.current = false
+
+        // stop calculation immediately
+        if (workerRef.current) workerRef.current.postMessage({ type: "stop" });
       }
 
-      // stop calculation immediately
-      if (workerRef.current) workerRef.current.postMessage({ type: "stop" });
       if(resizeTimeout) clearTimeout(resizeTimeout);
       
       resizeTimeout = setTimeout(() => {
@@ -233,7 +237,11 @@ export function AttractorCanvas() {
         if (newSize.width !== lastSize.width || heightDelta > HEIGHT_THRESHOLD) {
           lastSize = newSize;
           setCanvasSize(newSize);
-          setTimeout(() => { setCanvasVisible(true); },100)
+          canvasVisibleRef.current = true
+          setTimeout(() => { 
+            setCanvasVisible(true); 
+            canvasVisibleRef.current = true
+          },100)
         }
       }, 500);
     }
@@ -319,10 +327,6 @@ export function AttractorCanvas() {
     if (canvasVisible) {
       workerRef.current?.postMessage({
         type: 'start',
-      })
-    } else {
-      workerRef.current?.postMessage({
-        type: 'stop',
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
