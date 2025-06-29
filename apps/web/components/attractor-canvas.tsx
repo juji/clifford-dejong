@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getColorData } from "@repo/core/color";
 import { runAttractorBenchmark } from "../lib/attractor-benchmark";
 import { useAttractorStore } from "../../../packages/state/attractor-store";
@@ -113,60 +113,53 @@ export function AttractorCanvas() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qualityMode]);
 
-  // 
-  const mainThreadDrawing = useMemo(() => {
-    return function (
-      pixels: number[], 
-      maxDensity: number, 
-      progress: number,
-      qualityMode: string,
-      attractorParameters: AttractorParameters
-    ) {
+  // Refactored mainThreadDrawing to a regular function
+  function mainThreadDrawing(
+    pixels: number[],
+    maxDensity: number,
+    progress: number,
+    qualityMode: string,
+    attractorParameters: AttractorParameters
+  ) {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      
-      const width = canvas.width;
-      const height = canvas.height;
+    const width = canvas.width;
+    const height = canvas.height;
 
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      
-      const imageData = ctx.createImageData(width, height);
-      const data = new Uint32Array(imageData.data.buffer);
-      const bgArr = attractorParameters.background;
-      
-      const bgColor =
-        (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
-      
-      if (qualityMode === 'low') {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-        for (let i = 0; i < pixels.length; i++) {
-          data[i] = (pixels[i] ?? 0) > 0 ? 0xffffffff : bgColor;
-        }
+    const imageData = ctx.createImageData(width, height);
+    const data = new Uint32Array(imageData.data.buffer);
+    const bgArr = attractorParameters.background;
 
-      } else {
+    const bgColor =
+      (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
 
-        for (let i = 0; i < pixels.length; i++) {
-          const density = pixels[i] ?? 0;
-          if (density > 0) {
-            data[i] = getColorData(
-              density,
-              maxDensity,
-              attractorParameters.hue ?? 120,
-              attractorParameters.saturation ?? 100,
-              attractorParameters.brightness ?? 100,
-              progress > 0 ? progress / 100 : 1,
-            );
-          } else {
-            data[i] = bgColor;
-          }
-        }
-
+    if (qualityMode === 'low') {
+      for (let i = 0; i < pixels.length; i++) {
+        data[i] = (pixels[i] ?? 0) > 0 ? 0xffffffff : bgColor;
       }
-      ctx.putImageData(imageData, 0, 0);
+    } else {
+      for (let i = 0; i < pixels.length; i++) {
+        const density = pixels[i] ?? 0;
+        if (density > 0) {
+          data[i] = getColorData(
+            density,
+            maxDensity,
+            attractorParameters.hue ?? 120,
+            attractorParameters.saturation ?? 100,
+            attractorParameters.brightness ?? 100,
+            progress > 0 ? progress / 100 : 1,
+          );
+        } else {
+          data[i] = bgColor;
+        }
+      }
     }
-  }, []);
+    ctx.putImageData(imageData, 0, 0);
+  }
 
   // Use custom worker hook
   const workerRef = useAttractorWorker({

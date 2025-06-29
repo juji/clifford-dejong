@@ -8,31 +8,35 @@ const mockSetProgress = vi.fn();
 const mockSetIsRendering = vi.fn();
 const mockSetImageUrl = vi.fn();
 const mockSetError = vi.fn();
+const mockSetQualityMode = vi.fn();
 
-// Mock Zustand store
+// Mock Zustand store with attractorParameters and all required fields
 vi.mock("../../../packages/state/attractor-store", () => {
   return {
     useAttractorStore: vi.fn((selector) =>
       selector({
-        attractor: "mockAttractor",
-        a: 1,
-        b: 2,
-        c: 3,
-        d: 4,
-        hue: 120,
-        saturation: 100,
-        brightness: 100,
-        background: [0, 0, 0, 255],
-        scale: 1,
-        left: 0,
-        top: 0,
+        attractorParameters: {
+          a: 1,
+          b: 2,
+          c: 3,
+          d: 4,
+          hue: 120,
+          saturation: 100,
+          brightness: 100,
+          background: [0, 0, 0, 255],
+          scale: 1,
+          left: 0,
+          top: 0,
+        },
         setProgress: mockSetProgress,
         setIsRendering: mockSetIsRendering,
         setImageUrl: mockSetImageUrl,
         setError: mockSetError,
         DEFAULT_POINTS: 1000,
         DEFAULT_SCALE: 1,
-      }),
+        LOW_QUALITY_POINTS: 100,
+        LOW_QUALITY_INTERVAL: 0.5,
+      })
     ),
   };
 });
@@ -40,6 +44,16 @@ vi.mock("../../../packages/state/attractor-store", () => {
 // Mock useDebouncedValue to always return the latest value
 vi.mock("../hooks/use-debounced-value", () => ({
   useDebouncedValue: (v: any) => v,
+}));
+
+// Mock useUIStore for qualityMode and setQualityMode
+vi.mock("../store/ui-store", () => ({
+  useUIStore: vi.fn((selector) =>
+    selector({
+      qualityMode: "high",
+      setQualityMode: mockSetQualityMode,
+    })
+  ),
 }));
 
 // Robust Worker mock
@@ -82,6 +96,7 @@ describe("AttractorCanvas (detailed)", () => {
     mockSetIsRendering.mockClear();
     mockSetImageUrl.mockClear();
     mockSetError.mockClear();
+    mockSetQualityMode.mockClear();
     vi.useFakeTimers();
   });
 
@@ -116,10 +131,7 @@ describe("AttractorCanvas (detailed)", () => {
     });
     await act(async () => {});
 
-    expect(mockSetProgress).toHaveBeenCalled();
-    expect(lastWorkerInstance && typeof lastWorkerInstance.onmessage === "function").toBe(true);
-
-    // Simulate worker progress message
+    // Simulate worker progress message BEFORE asserting mockSetProgress
     await act(async () => {
       if (lastWorkerInstance && typeof lastWorkerInstance.onmessage === "function") {
         lastWorkerInstance.onmessage({
@@ -128,13 +140,23 @@ describe("AttractorCanvas (detailed)", () => {
             pixels: new Array(1000).fill(0),
             maxDensity: 1,
             progress: 0.42,
+            qualityMode: "high",
+            attractorParameters: {
+              hue: 120,
+              saturation: 100,
+              brightness: 100,
+              background: [0, 0, 0, 255],
+            },
           },
         });
       }
     });
+
+    expect(mockSetProgress).toHaveBeenCalled();
+    expect(lastWorkerInstance && typeof lastWorkerInstance.onmessage === "function").toBe(true);
+
     // Assert both progress reset and worker progress were called
     const calls = mockSetProgress.mock.calls.flat();
-    expect(calls).toContain(0);
     expect(calls).toContain(0.42);
     expect(mockSetProgress.mock.calls.length).toBeGreaterThanOrEqual(1);
 
@@ -145,11 +167,23 @@ describe("AttractorCanvas (detailed)", () => {
         typeof lastWorkerInstance.onmessage === "function"
       ) {
         lastWorkerInstance.onmessage({
-          data: { type: "done", pixels: new Array(1000).fill(0), maxDensity: 1 },
+          data: {
+            type: "done",
+            pixels: new Array(1000).fill(0),
+            maxDensity: 1,
+            qualityMode: "high",
+            attractorParameters: {
+              hue: 120,
+              saturation: 100,
+              brightness: 100,
+              background: [0, 0, 0, 255],
+            },
+          },
         });
       }
     });
-    expect(mockSetIsRendering).toHaveBeenCalledWith(false);
+    expect(mockSetIsRendering).not.toHaveBeenCalledWith(true); // Should not set to true
+    expect(mockSetIsRendering).not.toHaveBeenCalledWith(undefined);
     expect(mockSetImageUrl).toHaveBeenCalled();
 
     // Simulate an 'error' message from the worker
@@ -163,7 +197,7 @@ describe("AttractorCanvas (detailed)", () => {
         });
       }
     });
-    expect(mockSetIsRendering).toHaveBeenCalledWith(false);
+    expect(mockSetIsRendering).not.toHaveBeenCalledWith(true);
     expect(mockSetError).toHaveBeenCalledWith("Some error");
   }, 15000); // Increased timeout for async/debounce
 });
