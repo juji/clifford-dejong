@@ -22,24 +22,17 @@ const FRAG_SHADER = `
 precision highp float;
 varying vec2 v_uv;
 uniform sampler2D u_density;
-uniform float u_alphaBoost;
-// Bezier function for mix control (cubic Bezier)
-float cubicBezier(float t, float p0, float p1, float p2, float p3) {
-  float u = 1.0 - t;
-  return u*u*u*p0 + 3.0*u*u*t*p1 + 3.0*u*t*t*p2 + t*t*t*p3;
-}
+uniform float u_alphaBoost; // NEW: alpha boost uniform
 void main() {
   float d = texture2D(u_density, v_uv).r;
   // Circular mask for perfect circle
   vec2 center = v_uv - vec2(0.5);
   float dist = length(center) / 0.5;
   if (dist > 1.0) discard;
+  // Map grayscale to hot pink (match getColorData)
   float norm = d;
-  float alpha = u_alphaBoost * pow(norm, 0.7);
-  vec3 baseColor = vec3(1.0, 0.1, 0.5); // hot pink
-  // Use a Bezier curve to control the mix value
-  float bezMix = cubicBezier(norm, 0.0, 0.2, 0.8, 1.0); // You can tweak p1 and p2 for different curves
-  vec3 color = mix(baseColor, vec3(1.0), bezMix);
+  float alpha = u_alphaBoost * pow(norm, 0.7); // Multiply alpha by boost
+  vec3 color = mix(vec3(0.0), vec3(1.0, 0.1, 0.5), pow(norm, 0.8));
   gl_FragColor = vec4(color, alpha);
 }`;
 
