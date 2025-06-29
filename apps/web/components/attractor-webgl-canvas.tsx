@@ -253,6 +253,94 @@ export default function AttractorWebGLCanvas({
   );
 }
 
+// Factory function for creating WebGL attractor renderers
+export function createAttractorWebGLRenderer({
+  attractor = "clifford",
+  a = 2,
+  b = -2,
+  c = 1,
+  d = -1,
+  hue = 330,
+  saturation = 100,
+  brightness = 100,
+  background = [0, 0, 0, 255],
+  scale = 110,
+  left = 0,
+  top = 0,
+  width = 512,
+  height = 512,
+  points = 50_000_000,
+  style = "default", // for future extension
+} = {}) {
+  // Returns a function that takes a canvas and renders the attractor
+  return function render(canvas: HTMLCanvasElement) {
+    const gl = canvas.getContext("webgl");
+    if (!gl) return;
+    // Choose shader based on style (for now, only default)
+    const prog = createProgram(gl, VERT_SHADER, FRAG_SHADER);
+    gl.useProgram(prog);
+    // Fullscreen quad
+    const posLoc = gl.getAttribLocation(prog, "a_position");
+    const posBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        -1, -1,
+        1, -1,
+        -1, 1,
+        -1, 1,
+        1, -1,
+        1, 1,
+      ]),
+      gl.STATIC_DRAW
+    );
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+    // Generate density map
+    const { density, maxDensity } = generateDensity({
+      width,
+      height,
+      points,
+      a,
+      b,
+      c,
+      d,
+      scale,
+    });
+    // Prepare density texture
+    let densityBytes = new Uint8Array(width * height);
+    for (let i = 0; i < density.length; i++) {
+      const norm = density[i]! / maxDensity;
+      densityBytes[i] = Math.round(norm * 255);
+    }
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.LUMINANCE,
+      width,
+      height,
+      0,
+      gl.LUMINANCE,
+      gl.UNSIGNED_BYTE,
+      densityBytes
+    );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    // Set uniforms
+    gl.uniform1i(gl.getUniformLocation(prog, "u_density"), 0);
+    gl.uniform1f(gl.getUniformLocation(prog, "u_maxDensity"), maxDensity);
+    // Draw
+    gl.viewport(0, 0, width, height);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  };
+}
+
 // Bezier curves for color mapping (match core/color.ts)
 const saturationBezier = BezierEasing(0.79, -0.34, 0.54, 1.18);
 const lightnessBezier = BezierEasing(0.75, 0.38, 0.24, 1.33);
