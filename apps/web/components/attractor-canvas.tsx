@@ -370,16 +370,10 @@ export function AttractorCanvas() {
 
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+    <div className="flex items-center justify-center w-full h-full">
       <canvas
         ref={canvasRef}
-        style={{
-          display: 'block',
-          maxWidth: '100%',
-          maxHeight: '100%',
-          opacity: canvasVisible ? 1 : 0,
-          transition: 'opacity 300ms',
-        }}
+        className={`block max-w-full max-h-full transition-opacity duration-300 ${canvasVisible ? 'opacity-100' : 'opacity-0'}`}
       />
       <ModeToggleButton mode={qualityMode} onToggle={() => setQualityMode(qualityMode === 'high' ? 'low' : 'high')} />
     </div>
