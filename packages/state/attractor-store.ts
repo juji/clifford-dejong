@@ -54,7 +54,7 @@ const defaultState: Omit<AttractorState, keyof AttractorActions> = {
   error: null,
   DEFAULT_POINTS: 20000000,
   DEFAULT_SCALE: 150,
-  LOW_QUALITY_POINTS: 20000,
+  LOW_QUALITY_POINTS: 200000,
   LOW_QUALITY_INTERVAL: 10,
 };
 

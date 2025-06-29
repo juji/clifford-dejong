@@ -11,13 +11,7 @@ import { clifford, dejong } from "@repo/core";
 import { getColorData } from "@repo/core/color";
 import type { AttractorParameters } from "@repo/core/types";
 
-let shouldStop = false;
-let rafHandle: number | null = null;
-let offscreenCanvas: OffscreenCanvas | null = null;
-let offscreenCtx: OffscreenCanvasRenderingContext2D | null = null;
-let offscreenWidth = 0;
-let offscreenHeight = 0;
-let parameters: {
+type Params = {
   params: AttractorParameters,
   width: number,
   height: number,
@@ -25,13 +19,21 @@ let parameters: {
   progressInterval : number,
   qualityMode: string,
   defaultScale: number,
-} | null = null;
+}
+
+let shouldStop = false;
+let rafHandle: number | null = null;
+let offscreenCanvas: OffscreenCanvas | null = null;
+let offscreenCtx: OffscreenCanvasRenderingContext2D | null = null;
+
+// an initiated object will have parameters.params
+let parameters: Params | null = null;
 
 // on initialization
 self.postMessage({ type: "ready" });
 
 self.onmessage = function (e) {
-  
+
   if (e.data && e.data.type === "stop") {
     handleStop();
     return;
@@ -39,6 +41,18 @@ self.onmessage = function (e) {
 
   if (e.data && e.data.type === "init") {
     initialize(e.data)
+    return;
+  }
+
+  if (e.data && e.data.type === "update") {
+    if(!parameters?.params) return;
+
+    handleStop();
+
+    const { type, ...data } = e.data;
+    parameters = { ...parameters, ...data };
+
+    handleStart()
     return;
   }
 
@@ -60,27 +74,10 @@ self.onmessage = function (e) {
     handleStart()
   }
 
-  // try {
-  //   const params = parseParams(e.data);
-  //   if (e.data.useOffscreen && offscreenCanvas && offscreenCtx) {
-  //     offscreenWidth = params.width;
-  //     offscreenHeight = params.height;
-  //     offscreenParams = params;
-  //     runAttractorOffscreen(params);
-  //   } else {
-  //     runAttractor(params);
-  //   }
-  // } catch (err) {
-  //   reportError(err);
-  // }
 };
 
 function initialize( data: any ){
-  const {
-    canvas,
-    width,
-    height,
-  } = data;
+  const { canvas } = data;
 
   if (rafHandle !== null) {
     self.cancelAnimationFrame(rafHandle);
@@ -90,45 +87,30 @@ function initialize( data: any ){
   shouldStop = false;
   offscreenCanvas = null;
   offscreenCtx = null;
-  offscreenWidth = 0;
-  offscreenHeight = 0;
   parameters = data
 
   if(canvas){
     offscreenCanvas = canvas;
     if (offscreenCanvas) {
       offscreenCtx = offscreenCanvas.getContext("2d");
-      offscreenCanvas.width = width;
-      offscreenCanvas.height = height;
-      offscreenWidth = width
-      offscreenHeight = height
-      if (offscreenCtx) {
-        offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-      }
-
-      runAttractorOffscreen(parseParams(parameters))
-
-    } else {
-      throw new Error("OffscreenCanvas is not supported in this environment");
     }
   } else {
     offscreenCanvas = null
     offscreenCtx = null;
-
-    runAttractor(parseParams(parameters))
   }
+
+  handleStart()
 
 
 }
 
 function handleStart(){
-  if(!parameters) throw new Error("Attractor parameters not initialized");
+
+  if(!parameters?.params) return;
   if(offscreenCanvas && offscreenCtx) {
     const { width, height } = parameters;
     offscreenCanvas.width = width;
     offscreenCanvas.height = height;
-    offscreenWidth = width
-    offscreenHeight = height
     if (offscreenCtx) {
       offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
     }
@@ -209,11 +191,14 @@ function runAttractorOffscreen({
     const data = new Uint32Array(imageData.data.buffer);
     const bgArr = background;
     const bgColor = (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
+
     if (qualityMode === 'low') {
+      
       for (let i = 0; i < pixels.length; i++) {
         const val = Number(pixels[i]) || 0;
         data[i] = val > 0 ? 0xffffffff : bgColor;
       }
+
     } else {
       for (let i = 0; i < pixels.length; i++) {
         const density = Number(pixels[i]) || 0;
@@ -313,6 +298,8 @@ function runAttractor({
           maxDensity,
           progress: Math.round((i / points) * 100),
           batch: i,
+          qualityMode,
+          attractorParameters: parameters?.params
         });
       }
     }
