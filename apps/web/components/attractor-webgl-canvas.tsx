@@ -22,16 +22,24 @@ const FRAG_SHADER = `
 precision highp float;
 varying vec2 v_uv;
 uniform sampler2D u_density;
+uniform float u_alphaBoost;
+// Bezier function for mix control (cubic Bezier)
+float cubicBezier(float t, float p0, float p1, float p2, float p3) {
+  float u = 1.0 - t;
+  return u*u*u*p0 + 3.0*u*u*t*p1 + 3.0*u*t*t*p2 + t*t*t*p3;
+}
 void main() {
   float d = texture2D(u_density, v_uv).r;
   // Circular mask for perfect circle
   vec2 center = v_uv - vec2(0.5);
   float dist = length(center) / 0.5;
   if (dist > 1.0) discard;
-  // Map grayscale to hot pink (match getColorData)
   float norm = d;
-  float alpha = pow(norm, 0.7);
-  vec3 color = mix(vec3(0.0), vec3(1.0, 0.1, 0.5), pow(norm, 0.8));
+  float alpha = u_alphaBoost * pow(norm, 0.7);
+  vec3 baseColor = vec3(1.0, 0.1, 0.5); // hot pink
+  // Use a Bezier curve to control the mix value
+  float bezMix = cubicBezier(norm, 0.0, 0.2, 0.8, 1.0); // You can tweak p1 and p2 for different curves
+  vec3 color = mix(baseColor, vec3(1.0), bezMix);
   gl_FragColor = vec4(color, alpha);
 }`;
 
@@ -183,7 +191,7 @@ export default function AttractorWebGLCanvas({
       b,
       c,
       d,
-      scale: 110, // Fill canvas more
+      scale: 80, // Make attractor smaller for more glow effect
     });
 
     // Debug: Log maxDensity and a sample of the density array
@@ -236,6 +244,11 @@ export default function AttractorWebGLCanvas({
     gl.uniform1i(gl.getUniformLocation(prog, "u_density"), 0);
     gl.uniform1f(gl.getUniformLocation(prog, "u_maxDensity"), maxDensity);
     gl.uniform3fv(gl.getUniformLocation(prog, "u_color"), color);
+    gl.uniform1f(gl.getUniformLocation(prog, "u_alphaBoost"), 5.0); // Try 1.5 for stronger glow
+
+    // Enable additive blending for more glow
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE);
 
     // Draw
     gl.viewport(0, 0, width, height);
@@ -251,94 +264,6 @@ export default function AttractorWebGLCanvas({
       style={{ display: "block", background: "black", ...style }}
     />
   );
-}
-
-// Factory function for creating WebGL attractor renderers
-export function createAttractorWebGLRenderer({
-  attractor = "clifford",
-  a = 2,
-  b = -2,
-  c = 1,
-  d = -1,
-  hue = 330,
-  saturation = 100,
-  brightness = 100,
-  background = [0, 0, 0, 255],
-  scale = 110,
-  left = 0,
-  top = 0,
-  width = 512,
-  height = 512,
-  points = 50_000_000,
-  style = "default", // for future extension
-} = {}) {
-  // Returns a function that takes a canvas and renders the attractor
-  return function render(canvas: HTMLCanvasElement) {
-    const gl = canvas.getContext("webgl");
-    if (!gl) return;
-    // Choose shader based on style (for now, only default)
-    const prog = createProgram(gl, VERT_SHADER, FRAG_SHADER);
-    gl.useProgram(prog);
-    // Fullscreen quad
-    const posLoc = gl.getAttribLocation(prog, "a_position");
-    const posBuf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([
-        -1, -1,
-        1, -1,
-        -1, 1,
-        -1, 1,
-        1, -1,
-        1, 1,
-      ]),
-      gl.STATIC_DRAW
-    );
-    gl.enableVertexAttribArray(posLoc);
-    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
-    // Generate density map
-    const { density, maxDensity } = generateDensity({
-      width,
-      height,
-      points,
-      a,
-      b,
-      c,
-      d,
-      scale,
-    });
-    // Prepare density texture
-    let densityBytes = new Uint8Array(width * height);
-    for (let i = 0; i < density.length; i++) {
-      const norm = density[i]! / maxDensity;
-      densityBytes[i] = Math.round(norm * 255);
-    }
-    const tex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.LUMINANCE,
-      width,
-      height,
-      0,
-      gl.LUMINANCE,
-      gl.UNSIGNED_BYTE,
-      densityBytes
-    );
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    // Set uniforms
-    gl.uniform1i(gl.getUniformLocation(prog, "u_density"), 0);
-    gl.uniform1f(gl.getUniformLocation(prog, "u_maxDensity"), maxDensity);
-    // Draw
-    gl.viewport(0, 0, width, height);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-  };
 }
 
 // Bezier curves for color mapping (match core/color.ts)
