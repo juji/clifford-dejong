@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Clifford Attractor (Visually Refined)</title>
+    <style>
+        /* Basic reset for full-page canvas */
+        body {
+            margin: 0;
+            overflow: hidden; /* Hide scrollbars */
+            background-color: black; /* Ensure a dark background for the page */
+        }
+        #root {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            display: block; /* Remove extra space below canvas */
+        }
+    </style>
+    <!-- React and Babel for JSX transformation -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- BezierEasing library -->
+    <script src="https://cdn.jsdelivr.net/npm/bezier-easing@2.1.0/dist/bezier-easing.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        /* eslint-disable */
+
+        // Ensure BezierEasing is globally available for direct use
+        const BezierEasing = window.BezierEasing;
+
+        // Minimal WebGL Attractor Renderer (Clifford/De Jong)
+        // This version computes points on the CPU, uploads to GPU as a texture, and uses a fragment shader for color mapping.
+
+        const VERT_SHADER = `
+        attribute vec2 a_position;
+        varying vec2 v_uv;
+        void main() {
+          v_uv = (a_position + 1.0) * 0.5;
+          gl_Position = vec4(a_position, 0, 1);
+        }`;
+
+        const FRAG_SHADER = `
+        precision highp float;
+        varying vec2 v_uv;
+        uniform sampler2D u_density;
+        uniform float u_alphaBoost;
+        void main() {
+          float d = texture2D(u_density, v_uv).r;
+          // Circular mask for perfect circle
+          vec2 center = v_uv - vec2(0.5);
+          float dist = length(center) / 0.5;
+          if (dist > 1.0) discard;
+          // Map grayscale to hot pink (#FF1A80)
+          float norm = d;
+          // Enhanced glow: Stronger base alpha, slightly broader and softer falloff
+          float alpha = u_alphaBoost * pow(norm, 0.45); // Adjusted exponent for broader glow
+          // Color mix: The core is vibrant hot pink, fading to darker/less saturated at edges
+          vec3 color = mix(vec3(0.0), vec3(1.0, 0.10196, 0.50196), pow(norm, 0.8)); // #FF1A80 is (255, 26, 128) -> (1.0, 0.10196, 0.50196)
+          gl_FragColor = vec4(color, alpha);
+        }`;
+
+        function createShader(gl, type, source) {
+          const shader = gl.createShader(type);
+          gl.shaderSource(shader, source);
+          gl.compileShader(shader);
+          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            console.error("Shader compile error:", gl.getShaderInfoLog(shader));
+            throw new Error(gl.getShaderInfoLog(shader) || "Shader compile error");
+          }
+          return shader;
+        }
+
+        function createProgram(gl, vertSrc, fragSrc) {
+          const vert = createShader(gl, gl.VERTEX_SHADER, vertSrc);
+          const frag = createShader(gl, gl.FRAGMENT_SHADER, fragSrc);
+          const prog = gl.createProgram();
+          gl.attachShader(prog, vert);
+          gl.attachShader(prog, frag);
+          gl.linkProgram(prog);
+          if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+            console.error("Program link error:", gl.getProgramInfoLog(prog));
+            throw new Error(gl.getProgramInfoLog(prog) || "Program link error");
+          }
+          return prog;
+        }
+
+        // Clifford attractor function
+        function clifford(x, y, a, b, c, d) {
+          return [
+            Math.sin(a * y) + c * Math.cos(a * x),
+            Math.sin(b * x) + d * Math.cos(b * y),
+          ];
+        }
+
+        // Generate density map (CPU)
+        function generateDensity({
+          width,
+          height,
+          points,
+          a,
+          b,
+          c,
+          d,
+          scale = 150, // Slightly increased scale for a bit more spread
+        }) {
+          let x = 0.01; // Start at a non-zero point to ensure variety
+          let y = 0.01;
+          const density = new Float32Array(width * height);
+          let maxDensity = 0;
+          
+          for (let i = 0; i < points; i++) {
+            const [nx, ny] = clifford(x, y, a, b, c, d);
+            x = nx;
+            y = ny;
+            // Scale and center points
+            const screenX = Math.round(x * scale + width / 2);
+            const screenY = Math.round(y * scale + height / 2);
+            
+            if (screenX >= 0 && screenX < width && screenY >= 0 && screenY < height) {
+              const idx = screenX + screenY * width;
+              density[idx]++;
+              if (density[idx] > maxDensity) maxDensity = density[idx];
+            }
+          }
+          return { density, maxDensity };
+        }
+
+        // Bezier curves for color mapping (tuned for more appealing glow)
+        const saturationBezier = BezierEasing(0.2, 0.8, 0.8, 0.2); // Fades saturation faster from edges to core
+        const lightnessBezier = BezierEasing(0.2, 0.0, 0.8, 1.0); // Boosts lightness more smoothly towards core
+
+        // HSV to RGB
+        function hsv2rgb(h, s, v) {
+          let r, g, b;
+          let i;
+          let f, p, q, t;
+          h = Math.max(0, Math.min(359, h));
+          s = Math.max(0, Math.min(100, s));
+          v = Math.max(0, Math.min(100, v));
+          s /= 100;
+          v /= 100;
+          if (s === 0) {
+            r = g = b = v;
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+          }
+          h /= 60;
+          i = Math.floor(h);
+          f = h - i;
+          p = v * (1 - s);
+          q = v * (1 - s * f);
+          t = v * (1 - s * (1 - f));
+          switch (i) {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            default: r = v; g = p; b = q;
+          }
+          return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        }
+
+        function AttractorWebGLCanvas({
+          initialWidth = 512,
+          initialHeight = 512,
+          points = 15_000_000, // Increased points for denser attractor
+          // use the same parameters as the canvas attractor
+          a = 2,
+          b = -2,
+          c = 1,
+          d = -1,
+          color = [1.0, 0.10196, 0.50196], // hot pink (#FF1A80)
+          style = {},
+        }) {
+          const ref = React.useRef(null);
+          const [canvasSize, setCanvasSize] = React.useState({
+            width: initialWidth,
+            height: initialHeight,
+          });
+
+          const drawAttractor = React.useCallback(() => {
+            const canvas = ref.current;
+            if (!canvas) {
+                return;
+            }
+
+            let gl = canvas.getContext("webgl2", { antialias: true });
+            if (!gl) {
+              gl = canvas.getContext("webgl", { antialias: true });
+            }
+            
+            if (!gl) {
+              console.error("Unable to initialize WebGL. Your browser or machine may not support it.");
+              return;
+            }
+
+            try {
+                const prog = createProgram(gl, VERT_SHADER, FRAG_SHADER);
+                gl.useProgram(prog);
+
+                const posLoc = gl.getAttribLocation(prog, "a_position");
+                const posBuf = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+                gl.bufferData(
+                  gl.ARRAY_BUFFER,
+                  new Float32Array([
+                    -1, -1,
+                    1, -1,
+                    -1, 1,
+                    -1, 1,
+                    1, -1,
+                    1, 1,
+                  ]),
+                  gl.STATIC_DRAW
+                );
+                gl.enableVertexAttribArray(posLoc);
+                gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+                const { density, maxDensity } = generateDensity({
+                  width: canvasSize.width,
+                  height: canvasSize.height,
+                  points,
+                  a,
+                  b,
+                  c,
+                  d,
+                });
+
+                let densityBytes;
+                if (maxDensity === 0) {
+                  console.warn("Max Density is 0. Falling back to test pattern.");
+                  densityBytes = new Uint8Array(canvasSize.width * canvasSize.height);
+                  for (let y = 0; y < canvasSize.height; y++) {
+                    for (let x = 0; x < canvasSize.width; x++) {
+                      if ((x + y) % 32 < 16) densityBytes[x + y * canvasSize.width] = 200;
+                    }
+                  }
+                } else {
+                  densityBytes = new Uint8Array(canvasSize.width * canvasSize.height);
+                  for (let i = 0; i < density.length; i++) {
+                    const value = density[i];
+                    if (value > 0) {
+                      const normalizedValue = Math.log(value + 1) / Math.log(maxDensity + 1);
+                      
+                      const s = 100 - (saturationBezier(normalizedValue) * 100);
+                      const v = lightnessBezier(normalizedValue) * 100;
+                      
+                      const [r, g, b] = hsv2rgb(330, s, v); 
+                      densityBytes[i] = Math.max(r, g, b);
+                    } else {
+                      densityBytes[i] = 0;
+                    }
+                  }
+                }
+
+                const tex = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, tex);
+                gl.texImage2D(
+                  gl.TEXTURE_2D,
+                  0,
+                  gl.LUMINANCE,
+                  canvasSize.width,
+                  canvasSize.height,
+                  0,
+                  gl.LUMINANCE,
+                  gl.UNSIGNED_BYTE,
+                  densityBytes
+                );
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+                gl.uniform1i(gl.getUniformLocation(prog, "u_density"), 0);
+                gl.uniform1f(gl.getUniformLocation(prog, "u_alphaBoost"), 12.0);
+                gl.uniform3fv(gl.getUniformLocation(prog, "u_color"), color);
+
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.ONE, gl.ONE);
+
+                gl.viewport(0, 0, canvasSize.width, canvasSize.height);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+            } catch (error) {
+                console.error("Error during WebGL rendering process:", error);
+            }
+          }, [canvasSize, points, a, b, c, d, color]);
+
+          React.useEffect(() => {
+            setCanvasSize({ width: window.innerWidth, height: window.innerHeight });
+
+            const handleResize = () => {
+              const newWidth = window.innerWidth;
+              const newHeight = window.innerHeight;
+              if (Math.abs(newWidth - canvasSize.width) > 5 || Math.abs(newHeight - canvasSize.height) > 5) {
+                setCanvasSize({ width: newWidth, height: newHeight });
+              }
+            };
+
+            window.addEventListener("resize", handleResize);
+            return () => {
+                window.removeEventListener("resize", handleResize);
+            };
+          }, [canvasSize]);
+
+          React.useEffect(() => {
+            drawAttractor();
+          }, [drawAttractor]);
+
+          return (
+            <canvas
+              ref={ref}
+              width={canvasSize.width}
+              height={canvasSize.height}
+              style={{ display: "block", background: "black", ...style }}
+            />
+          );
+        }
+
+        ReactDOM.render(<AttractorWebGLCanvas />, document.getElementById('root'));
+    </script>
+</body>
+</html>

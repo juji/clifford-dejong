@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clifford Attractor - Aspect Correct</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #000;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<canvas id="attractor"></canvas>
+<script>
+  const canvas = document.getElementById('attractor');
+  const gl = canvas.getContext('webgl', { antialias: true });
+
+  if (!gl) {
+    alert('WebGL not supported');
+  }
+
+  // Adjustable parameters
+  let POINT_SIZE_MIN = 1.0;
+  let POINT_SIZE_VARIATION = 2;
+  let ALPHA_MULTIPLIER = 0.04;
+  let SMOOTHSTEP_EDGE = 1;
+
+  let aspectUniformLocation;
+  let alphaMultiplierLocation;
+  let smoothstepEdgeLocation;
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    render();
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+
+  const vertexShaderSource = `
+    attribute vec2 a_position;
+    attribute float a_size;
+    attribute float a_density;
+    uniform float u_aspect;
+    varying float v_alpha;
+    void main() {
+      vec2 scaledPosition = vec2(a_position.x / u_aspect, a_position.y);
+      gl_PointSize = a_size;
+      gl_Position = vec4(scaledPosition, 0.0, 1.0);
+      float dist = length(a_position);
+      v_alpha = 1.0 - smoothstep(0.8, 1.0, dist);
+      v_alpha *= pow(a_density, 0.7);
+    }
+  `;
+
+  const fragmentShaderSource = `
+    precision mediump float;
+    varying float v_alpha;
+    uniform float u_alphaMultiplier;
+    uniform float u_smoothstepEdge;
+    void main() {
+      float dist = length(gl_PointCoord - vec2(0.5));
+      float alpha = smoothstep(u_smoothstepEdge, 0.0, dist) * v_alpha * u_alphaMultiplier;
+      gl_FragColor = vec4(1.0, 0.101, 0.502, alpha);
+    }
+  `;
+
+  function createShader(gl, type, source) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    return shader;
+  }
+
+  const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+  const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+  const program = gl.createProgram();
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
+
+  const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+  const sizeAttributeLocation = gl.getAttribLocation(program, 'a_size');
+  const densityAttributeLocation = gl.getAttribLocation(program, 'a_density');
+
+  aspectUniformLocation = gl.getUniformLocation(program, 'u_aspect');
+  alphaMultiplierLocation = gl.getUniformLocation(program, 'u_alphaMultiplier');
+  smoothstepEdgeLocation = gl.getUniformLocation(program, 'u_smoothstepEdge');
+
+  const positionBuffer = gl.createBuffer();
+  const sizeBuffer = gl.createBuffer();
+  const densityBuffer = gl.createBuffer();
+
+  let positions;
+  let pointSizes;
+  let densities;
+  let iterations = 5000000;
+  let bounds;
+
+  function generateAttractor() {
+    const points = [];
+    const sizes = [];
+    const densityValues = [];
+    let x = 0, y = 0;
+    const a = 2, b = -2, c = 1, d = -1;
+
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+
+    for (let i = 0; i < iterations; i++) {
+      const x1 = Math.sin(a * y) + c * Math.cos(a * x);
+      const y1 = Math.sin(b * x) + d * Math.cos(b * y);
+      x = x1;
+      y = y1;
+
+      let jitterX = (Math.random() - 0.5) * 0.002;
+      let jitterY = (Math.random() - 0.5) * 0.002;
+
+      points.push(x + jitterX, y + jitterY);
+
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+
+      const baseSize = POINT_SIZE_MIN + Math.random() * POINT_SIZE_VARIATION;
+      sizes.push(baseSize);
+
+      let density = i / iterations; // Approximate density (more towards end)
+      densityValues.push(density);
+    }
+
+    positions = new Float32Array(points);
+    pointSizes = new Float32Array(sizes);
+    densities = new Float32Array(densityValues);
+    bounds = { minX, maxX, minY, maxY };
+  }
+
+  function render() {
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    const attractorWidth = bounds.maxX - bounds.minX;
+    const attractorHeight = bounds.maxY - bounds.minY;
+
+    const canvasAspect = canvas.width / canvas.height;
+    const attractorAspect = attractorWidth / attractorHeight;
+
+    let scale;
+    if (canvasAspect > attractorAspect) {
+      scale = 1.6 / attractorHeight;
+    } else {
+      scale = 1.6 / attractorWidth;
+    }
+
+    const centerX = (bounds.maxX + bounds.minX) / 2;
+    const centerY = (bounds.maxY + bounds.minY) / 2;
+
+    const scaledPositions = positions.slice();
+    for (let i = 0; i < scaledPositions.length; i += 2) {
+      scaledPositions[i] = (scaledPositions[i] - centerX) * scale;
+      scaledPositions[i + 1] = (scaledPositions[i + 1] - centerY) * scale;
+    }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, scaledPositions, gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, sizeBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, pointSizes, gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, densityBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, densities, gl.STATIC_DRAW);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+    gl.useProgram(program);
+
+    gl.uniform1f(aspectUniformLocation, canvas.width / canvas.height);
+    gl.uniform1f(alphaMultiplierLocation, ALPHA_MULTIPLIER);
+    gl.uniform1f(smoothstepEdgeLocation, SMOOTHSTEP_EDGE);
+
+    gl.enableVertexAttribArray(positionAttributeLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+    gl.enableVertexAttribArray(sizeAttributeLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, sizeBuffer);
+    gl.vertexAttribPointer(sizeAttributeLocation, 1, gl.FLOAT, false, 0, 0);
+
+    gl.enableVertexAttribArray(densityAttributeLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, densityBuffer);
+    gl.vertexAttribPointer(densityAttributeLocation, 1, gl.FLOAT, false, 0, 0);
+
+    gl.drawArrays(gl.POINTS, 0, iterations);
+  }
+
+  generateAttractor();
+  resizeCanvas();
+</script>
+</body>
+</html>
