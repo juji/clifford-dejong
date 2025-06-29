@@ -32,7 +32,6 @@ self.postMessage({ type: "ready" });
 
 self.onmessage = function (e) {
   
-  console.log("Attractor worker received message:", e.data);
 
   if (e.data && e.data.type === "stop") {
     handleStop();
@@ -139,11 +138,9 @@ function handleStart(){
   else {
     runAttractor(parseParams(parameters));
   }
-  console.log("Starting attractor worker with parameters:", parameters);
 }
 
 function handleStop() {
-  console.log("Stopping attractor worker");
   shouldStop = true;
   if (rafHandle !== null) {
     self.cancelAnimationFrame(rafHandle);
@@ -153,7 +150,7 @@ function handleStop() {
 }
 
 function parseParams(data: any) {
-  console.log("Parsing attractor parameters:", data);
+  // console.log("Parsing attractor parameters:", data);
   const {
     params : {
       attractor,
@@ -280,10 +277,6 @@ function runAttractor({
   progressInterval,
   qualityMode = 'high',
 }: any) {
-  console.log("Running attractor with params:", {
-    attractorFn, a, b, c, d, points, width, height,
-    scale, left, top, progressInterval, qualityMode
-  });
   let x = 0, y = 0;
   const pixels = new Uint32Array(width * height);
   let maxDensity = 0;
@@ -298,7 +291,6 @@ function runAttractor({
   }
   function processBatch() {
     if (shouldStop) return;
-    console.log("Processing batch", i, "to", Math.min(i + batchSize, points));
     const end = Math.min(i + batchSize, points);
     for (; i < end; i++) {
       const [nxRaw, nyRaw] = attractorFn(x, y, a, b, c, d) as [number, number];
