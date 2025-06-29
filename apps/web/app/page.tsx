@@ -1,4 +1,5 @@
 import { AttractorCanvas } from "../components/attractor-canvas";
+import AttractorWebGLCanvas from "../components/attractor-webgl-canvas";
 import { Footer } from "../components/footer";
 import { ProgressIndicator } from "../components/progress-indicator";
 import { DarkModeToggle } from "../components/dark-mode-toggle";
@@ -24,6 +25,10 @@ export default function Home() {
         }}
       >
         <AttractorCanvas />
+        {/* WebGL version for comparison */}
+        <div style={{ marginTop: 32 }}>
+          <AttractorWebGLCanvas width={512} height={512} />
+        </div>
       </div>
       <Footer />
     </>

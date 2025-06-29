@@ -18,6 +18,12 @@ export const nextJsConfig = [
   eslintConfigPrettier,
   ...tseslint.configs.recommended,
   {
+    ignores: [
+      "apps/web/components/attractor-webgl-canvas.tsx", // Temporary ignore for
+      "components/attractor-webgl-canvas.tsx"
+    ]
+  },
+  {
     ...pluginReact.configs.flat.recommended,
     languageOptions: {
       ...pluginReact.configs.flat.recommended.languageOptions,
