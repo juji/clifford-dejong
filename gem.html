@@ -3,331 +3,604 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Clifford Attractor (Visually Refined)</title>
+    <title>Clifford Attractor WebGL</title>
     <style>
-        /* Basic reset for full-page canvas */
         body {
             margin: 0;
-            overflow: hidden; /* Hide scrollbars */
-            background-color: black; /* Ensure a dark background for the page */
-        }
-        #root {
-            width: 100vw;
-            height: 100vh;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            height: 100vh;
+            background-color: #000; /* Black background as per the reference image */
         }
         canvas {
-            display: block; /* Remove extra space below canvas */
+            display: block;
+            /* The canvas will be sized by JavaScript to fill the available space while maintaining aspect ratio */
         }
     </style>
-    <!-- React and Babel for JSX transformation -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- BezierEasing library -->
-    <script src="https://cdn.jsdelivr.net/npm/bezier-easing@2.1.0/dist/bezier-easing.min.js"></script>
 </head>
 <body>
-    <div id="root"></div>
+    <canvas id="attractorCanvas"></canvas>
 
-    <script type="text/babel">
-        /* eslint-disable */
-
-        // Ensure BezierEasing is globally available for direct use
-        const BezierEasing = window.BezierEasing;
-
-        // Minimal WebGL Attractor Renderer (Clifford/De Jong)
-        // This version computes points on the CPU, uploads to GPU as a texture, and uses a fragment shader for color mapping.
-
-        const VERT_SHADER = `
-        attribute vec2 a_position;
-        varying vec2 v_uv;
-        void main() {
-          v_uv = (a_position + 1.0) * 0.5;
-          gl_Position = vec4(a_position, 0, 1);
-        }`;
-
-        const FRAG_SHADER = `
-        precision highp float;
-        varying vec2 v_uv;
-        uniform sampler2D u_density;
-        uniform float u_alphaBoost;
-        void main() {
-          float d = texture2D(u_density, v_uv).r;
-          // Circular mask for perfect circle
-          vec2 center = v_uv - vec2(0.5);
-          float dist = length(center) / 0.5;
-          if (dist > 1.0) discard;
-          // Map grayscale to hot pink (#FF1A80)
-          float norm = d;
-          // Enhanced glow: Stronger base alpha, slightly broader and softer falloff
-          float alpha = u_alphaBoost * pow(norm, 0.45); // Adjusted exponent for broader glow
-          // Color mix: The core is vibrant hot pink, fading to darker/less saturated at edges
-          vec3 color = mix(vec3(0.0), vec3(1.0, 0.10196, 0.50196), pow(norm, 0.8)); // #FF1A80 is (255, 26, 128) -> (1.0, 0.10196, 0.50196)
-          gl_FragColor = vec4(color, alpha);
-        }`;
-
-        function createShader(gl, type, source) {
-          const shader = gl.createShader(type);
-          gl.shaderSource(shader, source);
-          gl.compileShader(shader);
-          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            console.error("Shader compile error:", gl.getShaderInfoLog(shader));
-            throw new Error(gl.getShaderInfoLog(shader) || "Shader compile error");
-          }
-          return shader;
-        }
-
-        function createProgram(gl, vertSrc, fragSrc) {
-          const vert = createShader(gl, gl.VERTEX_SHADER, vertSrc);
-          const frag = createShader(gl, gl.FRAGMENT_SHADER, fragSrc);
-          const prog = gl.createProgram();
-          gl.attachShader(prog, vert);
-          gl.attachShader(prog, frag);
-          gl.linkProgram(prog);
-          if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-            console.error("Program link error:", gl.getProgramInfoLog(prog));
-            throw new Error(gl.getProgramInfoLog(prog) || "Program link error");
-          }
-          return prog;
-        }
-
-        // Clifford attractor function
-        function clifford(x, y, a, b, c, d) {
-          return [
-            Math.sin(a * y) + c * Math.cos(a * x),
-            Math.sin(b * x) + d * Math.cos(b * y),
-          ];
-        }
-
-        // Generate density map (CPU)
-        function generateDensity({
-          width,
-          height,
-          points,
-          a,
-          b,
-          c,
-          d,
-          scale = 150, // Slightly increased scale for a bit more spread
-        }) {
-          let x = 0.01; // Start at a non-zero point to ensure variety
-          let y = 0.01;
-          const density = new Float32Array(width * height);
-          let maxDensity = 0;
-          
-          for (let i = 0; i < points; i++) {
-            const [nx, ny] = clifford(x, y, a, b, c, d);
-            x = nx;
-            y = ny;
-            // Scale and center points
-            const screenX = Math.round(x * scale + width / 2);
-            const screenY = Math.round(y * scale + height / 2);
-            
-            if (screenX >= 0 && screenX < width && screenY >= 0 && screenY < height) {
-              const idx = screenX + screenY * width;
-              density[idx]++;
-              if (density[idx] > maxDensity) maxDensity = density[idx];
-            }
-          }
-          return { density, maxDensity };
-        }
-
-        // Bezier curves for color mapping (tuned for more appealing glow)
-        const saturationBezier = BezierEasing(0.2, 0.8, 0.8, 0.2); // Fades saturation faster from edges to core
-        const lightnessBezier = BezierEasing(0.2, 0.0, 0.8, 1.0); // Boosts lightness more smoothly towards core
-
-        // HSV to RGB
-        function hsv2rgb(h, s, v) {
-          let r, g, b;
-          let i;
-          let f, p, q, t;
-          h = Math.max(0, Math.min(359, h));
-          s = Math.max(0, Math.min(100, s));
-          v = Math.max(0, Math.min(100, v));
-          s /= 100;
-          v /= 100;
-          if (s === 0) {
-            r = g = b = v;
-            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
-          }
-          h /= 60;
-          i = Math.floor(h);
-          f = h - i;
-          p = v * (1 - s);
-          q = v * (1 - s * f);
-          t = v * (1 - s * (1 - f));
-          switch (i) {
-            case 0: r = v; g = t; b = p; break;
-            case 1: r = q; g = v; b = p; break;
-            case 2: r = p; g = v; b = t; break;
-            case 3: r = p; g = q; b = v; break;
-            case 4: r = t; g = p; b = v; break;
-            default: r = v; g = p; b = q;
-          }
-          return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
-        }
-
-        function AttractorWebGLCanvas({
-          initialWidth = 512,
-          initialHeight = 512,
-          points = 15_000_000, // Increased points for denser attractor
-          // use the same parameters as the canvas attractor
-          a = 2,
-          b = -2,
-          c = 1,
-          d = -1,
-          color = [1.0, 0.10196, 0.50196], // hot pink (#FF1A80)
-          style = {},
-        }) {
-          const ref = React.useRef(null);
-          const [canvasSize, setCanvasSize] = React.useState({
-            width: initialWidth,
-            height: initialHeight,
-          });
-
-          const drawAttractor = React.useCallback(() => {
-            const canvas = ref.current;
-            if (!canvas) {
+    <script type="module">
+        // Load BezierEasing library as a global script.
+        // It's typically available on the window object after loading from CDN this way.
+        // The previous 'import BezierEasing from ...' failed because the .min.js
+        // file does not provide a default export.
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/bezier-easing@2.1.0/dist/bezier-easing.min.js';
+        script.onload = () => {
+            // Once the script is loaded, BezierEasing should be globally available.
+            if (typeof BezierEasing === 'undefined') {
+                console.error("BezierEasing is not defined globally after loading script.");
+                // Fallback or show error message if the library isn't found
+                const messageBox = document.createElement('div');
+                messageBox.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    padding: 20px;
+                    background: #d32f2f; /* Red for error */
+                    color: #fff;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                    z-index: 1000;
+                    font-family: sans-serif;
+                `;
+                messageBox.textContent = 'Error: BezierEasing library could not be loaded.';
+                document.body.appendChild(messageBox);
                 return;
             }
 
-            let gl = canvas.getContext("webgl2", { antialias: true });
-            if (!gl) {
-              gl = canvas.getContext("webgl", { antialias: true });
-            }
-            
-            if (!gl) {
-              console.error("Unable to initialize WebGL. Your browser or machine may not support it.");
-              return;
-            }
+            // Initialize BezierEasing functions
+            // Use linear curves for full vibrancy
+            saturationBezier = BezierEasing(0, 0, 1, 1); // Linear
+            lightnessBezier = BezierEasing(0, 0, 1, 1);  // Linear
+            opacityBezier = BezierEasing(.69, -0.01, .48, .94); // Keep as is for now
 
-            try {
-                const prog = createProgram(gl, VERT_SHADER, FRAG_SHADER);
-                gl.useProgram(prog);
+            // Initialize canvas size and attach resize listener AFTER BezierEasing is loaded
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
 
-                const posLoc = gl.getAttribLocation(prog, "a_position");
-                const posBuf = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
-                gl.bufferData(
-                  gl.ARRAY_BUFFER,
-                  new Float32Array([
-                    -1, -1,
-                    1, -1,
-                    -1, 1,
-                    -1, 1,
-                    1, -1,
-                    1, 1,
-                  ]),
-                  gl.STATIC_DRAW
-                );
-                gl.enableVertexAttribArray(posLoc);
-                gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+            // Start the attractor calculation and rendering loop only after BezierEasing is loaded and canvas is sized
+            requestAnimationFrame(calculateAttractorPoints);
+        };
+        script.onerror = () => {
+            console.error("Failed to load BezierEasing script from CDN.");
+            const messageBox = document.createElement('div');
+            messageBox.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                padding: 20px;
+                background: #d32f2f; /* Red for error */
+                color: #fff;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                z-index: 1000;
+                font-family: sans-serif;
+            `;
+            messageBox.textContent = 'Error: Failed to load BezierEasing library script.';
+            document.body.appendChild(messageBox);
+        };
+        document.head.appendChild(script);
 
-                const { density, maxDensity } = generateDensity({
-                  width: canvasSize.width,
-                  height: canvasSize.height,
-                  points,
-                  a,
-                  b,
-                  c,
-                  d,
-                });
 
-                let densityBytes;
-                if (maxDensity === 0) {
-                  console.warn("Max Density is 0. Falling back to test pattern.");
-                  densityBytes = new Uint8Array(canvasSize.width * canvasSize.height);
-                  for (let y = 0; y < canvasSize.height; y++) {
-                    for (let x = 0; x < canvasSize.width; x++) {
-                      if ((x + y) % 32 < 16) densityBytes[x + y * canvasSize.width] = 200;
-                    }
-                  }
-                } else {
-                  densityBytes = new Uint8Array(canvasSize.width * canvasSize.height);
-                  for (let i = 0; i < density.length; i++) {
-                    const value = density[i];
-                    if (value > 0) {
-                      const normalizedValue = Math.log(value + 1) / Math.log(maxDensity + 1);
-                      
-                      const s = 100 - (saturationBezier(normalizedValue) * 100);
-                      const v = lightnessBezier(normalizedValue) * 100;
-                      
-                      const [r, g, b] = hsv2rgb(330, s, v); 
-                      densityBytes[i] = Math.max(r, g, b);
-                    } else {
-                      densityBytes[i] = 0;
-                    }
-                  }
-                }
-
-                const tex = gl.createTexture();
-                gl.bindTexture(gl.TEXTURE_2D, tex);
-                gl.texImage2D(
-                  gl.TEXTURE_2D,
-                  0,
-                  gl.LUMINANCE,
-                  canvasSize.width,
-                  canvasSize.height,
-                  0,
-                  gl.LUMINANCE,
-                  gl.UNSIGNED_BYTE,
-                  densityBytes
-                );
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-                gl.uniform1i(gl.getUniformLocation(prog, "u_density"), 0);
-                gl.uniform1f(gl.getUniformLocation(prog, "u_alphaBoost"), 12.0);
-                gl.uniform3fv(gl.getUniformLocation(prog, "u_color"), color);
-
-                gl.enable(gl.BLEND);
-                gl.blendFunc(gl.ONE, gl.ONE);
-
-                gl.viewport(0, 0, canvasSize.width, canvasSize.height);
-                gl.clear(gl.COLOR_BUFFER_BIT);
-                gl.drawArrays(gl.TRIANGLES, 0, 6);
-            } catch (error) {
-                console.error("Error during WebGL rendering process:", error);
-            }
-          }, [canvasSize, points, a, b, c, d, color]);
-
-          React.useEffect(() => {
-            setCanvasSize({ width: window.innerWidth, height: window.innerHeight });
-
-            const handleResize = () => {
-              const newWidth = window.innerWidth;
-              const newHeight = window.innerHeight;
-              if (Math.abs(newWidth - canvasSize.width) > 5 || Math.abs(newHeight - canvasSize.height) > 5) {
-                setCanvasSize({ width: newWidth, height: newHeight });
-              }
-            };
-
-            window.addEventListener("resize", handleResize);
-            return () => {
-                window.removeEventListener("resize", handleResize);
-            };
-          }, [canvasSize]);
-
-          React.useEffect(() => {
-            drawAttractor();
-          }, [drawAttractor]);
-
-          return (
-            <canvas
-              ref={ref}
-              width={canvasSize.width}
-              height={canvasSize.height}
-              style={{ display: "block", background: "black", ...style }}
-            />
-          );
+        // --- Attractor Functions (from index.ts) ---
+        // These functions define the mathematical rules for the Clifford and de Jong attractors.
+        // They take current (x, y) coordinates and four parameters (a, b, c, d)
+        // and return the next (x, y) coordinates.
+        function clifford(x, y, a, b, c, d) {
+            return [
+                Math.sin(a * y) + c * Math.cos(a * x),
+                Math.sin(b * x) + d * Math.cos(b * y),
+            ];
         }
 
-        ReactDOM.render(<AttractorWebGLCanvas />, document.getElementById('root'));
+        function dejong(x, y, a, b, c, d) {
+            return [
+                Math.sin(a * y) - c * Math.cos(b * x),
+                Math.sin(c * x) - d * Math.cos(d * y),
+            ];
+        }
+
+        // --- Color Utilities (from color.ts) ---
+        // These functions convert HSV (Hue, Saturation, Value) color model to RGB (Red, Green, Blue)
+        // and apply Bezier curves for advanced color mapping based on pixel density.
+
+        // Converts HSV to RGB.
+        // h: hue (0-359), s: saturation (0-100), v: value/brightness (0-100)
+        // Returns an array [r, g, b] with values from 0-255.
+        function hsv2rgb(h, s, v) {
+            let r, g, b;
+            let i;
+            let f, p, q, t;
+
+            // Clamp arguments to their valid ranges
+            h = Math.max(0, Math.min(359, h));
+            s = Math.max(0, Math.min(100, s));
+            v = Math.max(0, Math.min(100, v));
+
+            s /= 100; // Convert saturation to 0-1 range
+            v /= 100; // Convert value/brightness to 0-1 range
+
+            // If saturation is 0, the color is grayscale.
+            if (s === 0) {
+                r = g = b = v;
+                return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+            }
+
+            h /= 60; // Sector 0 to 5
+            i = Math.floor(h); // Integer part of h
+            f = h - i; // Fractional part of h
+            p = v * (1 - s);
+            q = v * (1 - s * f);
+            t = v * (1 - s * (1 - f));
+
+            // Determine RGB values based on the hue sector
+            switch (i) {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                default: r = v; g = p; b = q; break; // Case 5 (or any other, though clamped)
+            }
+
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        }
+
+        // Bezier curves for advanced color mapping.
+        // These provide non-linear transitions for saturation, lightness, and opacity
+        // based on the normalized density (log(density) / log(maxDensity)).
+        // These will be defined after BezierEasing is loaded.
+        let saturationBezier;
+        let lightnessBezier;
+        let opacityBezier;
+
+        // Maps pixel density to an ARGB color value (Uint32).
+        // density: current pixel hit count.
+        // maxDensity: maximum hit count found across all pixels.
+        // h, s, v: base HSV color parameters.
+        // progress: used to animate opacity (default to 1 for full opacity).
+        function getColorData(density, maxDensity, h, s, v, progress = 1) {
+            // Check if BezierEasing functions are initialized
+            if (typeof BezierEasing === 'undefined' || !saturationBezier || !lightnessBezier || !opacityBezier) {
+                // This scenario should ideally not happen if requestAnimationFrame is triggered
+                // only after the script onload. But as a safeguard.
+                console.warn("BezierEasing functions not initialized for getColorData.");
+                return 0; // Return transparent black
+            }
+
+            // Apply logarithmic scaling to density for smoother transitions,
+            // as raw density values can vary widely.
+            const mdens = Math.log(maxDensity + 1); // Add 1 to avoid log(0)
+            const pdens = Math.log(density + 1);   // Add 1 to avoid log(0)
+
+            // Normalize density to 0-1 range for Bezier curve input.
+            const normalizedDensity = mdens > 0 ? pdens / mdens : 0;
+
+            // Apply Bezier curves to adjust saturation and lightness based on density.
+            // Saturation decreases as density increases (less saturated for denser areas).
+            // Lightness increases as density increases (brighter for denser areas).
+            const [r, g, b] = hsv2rgb(
+                h,
+                s - saturationBezier(normalizedDensity) * s,
+                lightnessBezier(normalizedDensity) * v,
+            );
+
+            // Apply Bezier curve to opacity based on the `progress` parameter (e.g., for fade-in effect).
+            const alpha = Math.floor(opacityBezier(progress) * 255);
+
+            // Combine RGBA into a single Uint32 value (AARRGGBB format).
+            return (alpha << 24) | (b << 16) | (g << 8) | r;
+        }
+
+        // --- WebGL Setup and Rendering ---
+
+        const canvas = document.getElementById('attractorCanvas');
+        const gl = canvas.getContext('webgl');
+
+        if (!gl) {
+            // Replaced alert with a message box equivalent for Canvas environments.
+            const messageBox = document.createElement('div');
+            messageBox.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                padding: 20px;
+                background: #333;
+                color: #fff;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                z-index: 1000;
+                font-family: sans-serif;
+            `;
+            messageBox.textContent = 'Your browser does not support WebGL. Please use a modern browser.';
+            document.body.appendChild(messageBox);
+        }
+
+        // IMPORTANT: Set pixel storage alignment to 1 for tightly packed luminance data
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+
+        // Define the attractor parameters
+        const ATTRACTOR_TYPE = 'clifford';
+        const A = 2.0;
+        const B = -2.0;
+        const C = 1.0;
+        const D = -1.0;
+        const POINTS = 10000000; // Number of iterations to compute points
+        const INITIAL_SCALE = 200; // Reverted to 200
+        // Set HUE to magenta/pink for vibrant baseline match
+        const HUE = 333; // Shifted closer to red for a more red-magenta color
+        const SATURATION = 100;
+        const BRIGHTNESS = 100;
+        const BACKGROUND_COLOR_RGB = [0, 0, 0, 255]; // Black background
+        const BURN_IN_POINTS = 10000; // Increased burn-in points
+
+        let attractorFn = ATTRACTOR_TYPE === 'clifford' ? clifford : dejong;
+
+        let width, height;
+        let densityMap; // This will be a 2D array or texture to store hit counts
+        let maxDensity = 0;
+        let pointsRecorded = 0; // New variable to track points actually recorded
+
+        // Vertex Shader: A minimal shader that just passes through position coordinates.
+        // It's used for drawing a full-screen quad to display our computed texture.
+        const vsSource = `
+            attribute vec2 a_position;
+            varying vec2 v_texCoord;
+
+            void main() {
+                gl_Position = vec4(a_position, 0, 1);
+                // Map clip space (-1 to 1) to texture coordinates (0 to 1)
+                v_texCoord = (a_position + 1.0) * 0.5;
+            }
+        `;
+
+        // Fragment Shader: This is where the magic happens for coloring the attractor.
+        // It samples from the density texture and applies the color mapping logic.
+        const fsSource = `
+            precision mediump float;
+
+            uniform sampler2D u_densitySampler; // Our 2D texture containing density values
+            uniform float u_maxDensity;         // Max density for normalization
+            uniform float u_hue;                // Base hue for coloring
+            uniform float u_saturation;         // Base saturation
+            uniform float u_brightness;         // Base brightness
+            uniform float u_progress;           // Animation progress for opacity
+
+            varying vec2 v_texCoord;            // Texture coordinates received from vertex shader
+
+            // Helper function to convert HSV to RGB within the shader.
+            vec3 hsv2rgbShader(float h, float s, float v) {
+                h = mod(h, 360.0); // Ensure hue is within 0-359
+                s /= 100.0;
+                v /= 100.0;
+
+                if (s == 0.0) {
+                    return vec3(v, v, v);
+                }
+
+                h /= 60.0;
+                float i = floor(h);
+                float f = h - i;
+                float p = v * (1.0 - s);
+                float q = v * (1.0 - s * f);
+                float t = v * (1.0 - s * (1.0 - f));
+
+                if (i == 0.0) { return vec3(v, t, p); }
+                if (i == 1.0) { return vec3(q, v, p); }
+                if (i == 2.0) { return vec3(p, v, t); }
+                if (i == 3.0) { return vec3(p, q, v); }
+                if (i == 4.0) { return vec3(t, p, v); }
+                return vec3(v, p, q); // Case 5
+            }
+
+            // Bezier easing function for normalized values (0-1).
+            float cubicBezier(float t, float p0, float p1, float p2, float p3) {
+                return (1.0 - t) * (1.0 - t) * (1.0 - t) * p0 +
+                       3.0 * (1.0 - t) * (1.0 - t) * t * p1 +
+                       3.0 * (1.0 - t) * t * t * p2 +
+                       t * t * t * p3;
+            }
+
+            // Approximate BezierEasing (0.79, -0.34, 0.54, 1.18) for saturation
+            float saturationBezierShader(float t) {
+                return cubicBezier(t, 0.0, 0.79, 0.54, 1.0); // Adjusting P1, P2 for 0-1 range
+            }
+
+            // Approximate BezierEasing (0.75, 0.38, 0.24, 1.33) for lightness
+            float lightnessBezierShader(float t) {
+                return cubicBezier(t, 0.0, 0.75, 0.24, 1.0); // Adjusting P1, P2 for 0-1 range
+            }
+
+            // Approximate BezierEasing (.69,-0.01,.48,.94) for opacity
+            float opacityBezierShader(float t) {
+                return cubicBezier(t, 0.0, 0.69, 0.48, 1.0); // Adjusting P1, P2 for 0-1 range
+            }
+
+
+            void main() {
+                // Read the density value from the texture.
+                // Since our texture stores single-channel density, we can read any color component.
+                float density = texture2D(u_densitySampler, v_texCoord).r * 255.0; // Assuming density is stored as 0-255
+
+                if (density <= 0.0) {
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black background
+                    return;
+                }
+
+                // Logarithmic scaling for density, same as in JS getColorData.
+                float mdens = log(u_maxDensity + 1.0);
+                float pdens = log(density + 1.0);
+
+                float normalizedDensity = mdens > 0.0 ? pdens / mdens : 0.0;
+
+                // Calculate adjusted saturation and lightness using the shader Bezier functions.
+                float finalSaturation = u_saturation - saturationBezierShader(normalizedDensity) * u_saturation;
+                float finalLightness = lightnessBezierShader(normalizedDensity) * u_brightness;
+
+                // Convert HSV to RGB
+                vec3 rgb = hsv2rgbShader(u_hue, finalSaturation, finalLightness);
+
+                // Calculate final opacity
+                float alpha = opacityBezierShader(u_progress);
+
+                gl_FragColor = vec4(rgb.r, rgb.g, rgb.b, alpha);
+            }
+        `;
+
+        // Compiles a shader from source.
+        function compileShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        // Creates a WebGL program from vertex and fragment shaders.
+        function createProgram(gl, vsSource, fsSource) {
+            const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fsSource);
+            const shaderProgram = gl.createProgram();
+            gl.attachShader(shaderProgram, vertexShader);
+            gl.attachShader(shaderProgram, fragmentShader);
+            gl.linkProgram(shaderProgram);
+            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+                return null;
+            }
+            return shaderProgram;
+        }
+
+        // Setup the WebGL program.
+        const shaderProgram = createProgram(gl, vsSource, fsSource);
+        gl.useProgram(shaderProgram);
+
+        // Get attribute and uniform locations.
+        const positionAttributeLocation = gl.getAttribLocation(shaderProgram, 'a_position');
+        const densitySamplerLocation = gl.getUniformLocation(shaderProgram, 'u_densitySampler');
+        const maxDensityUniformLocation = gl.getUniformLocation(shaderProgram, 'u_maxDensity');
+        const hueUniformLocation = gl.getUniformLocation(shaderProgram, 'u_hue');
+        const saturationUniformLocation = gl.getUniformLocation(shaderProgram, 'u_saturation');
+        const brightnessUniformLocation = gl.getUniformLocation(shaderProgram, 'u_brightness');
+        const progressUniformLocation = gl.getUniformLocation(shaderProgram, 'u_progress');
+
+
+        // Create a buffer for a full-screen quad (two triangles).
+        // This quad will cover the entire canvas, and the fragment shader will draw on it.
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        const positions = [
+            -1.0, -1.0, // bottom-left
+             1.0, -1.0, // bottom-right
+            -1.0,  1.0, // top-left
+            -1.0,  1.0, // top-left
+             1.0, -1.0, // bottom-right
+             1.0,  1.0, // top-right
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+        gl.enableVertexAttribArray(positionAttributeLocation);
+        gl.vertexAttribPointer(
+            positionAttributeLocation,
+            2,          // size (2 components per iteration)
+            gl.FLOAT,   // type of data
+            false,      // normalize
+            0,          // stride
+            0           // offset
+        );
+
+        // Create a texture to store the density map.
+        // This texture will be updated on the CPU side and sent to the GPU.
+        const densityTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, densityTexture);
+
+        // Set texture parameters.
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+
+        // Function to resize canvas and WebGL viewport
+        function resizeCanvas() {
+            // Get window dimensions
+            const windowW = window.innerWidth;
+            const windowH = window.innerHeight;
+
+            // Calculate the square size based on the smaller dimension
+            const size = Math.min(windowW, windowH);
+
+            // Set canvas dimensions
+            canvas.width = size;
+            canvas.height = size;
+
+            // Update global width and height variables
+            width = canvas.width;
+            height = canvas.height;
+
+            gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+
+            // Reinitialize density map with the new dimensions
+            densityMap = new Uint8Array(width * height).fill(0); // Using Uint8 to fit texture data
+            maxDensity = 0;
+            pointsRecorded = 0; // Reset points recorded
+
+            console.log(`[resizeCanvas] Window: ${windowW}x${windowH}, Canvas: ${canvas.width}x${canvas.height}, DensityMap size: ${densityMap.length}`);
+        }
+
+
+        // --- Attractor Calculation Logic ---
+        let x = 0.1, y = 0.1; // Initial point for attractor (changed from 0,0)
+        const totalPoints = POINTS;
+        let pointsProcessed = 0;
+        const batchSize = Math.floor(totalPoints / 100); // Process in batches to allow for rendering updates
+        const SCALE = INITIAL_SCALE; // Use the initial scale for calculations
+
+        // The smoothing function from the original worker.
+        function smoothing(num, scale) {
+            return num + (Math.random() < 0.5 ? -0.2 : 0.2) * (1 / scale);
+        }
+
+        function calculateAttractorPoints() {
+            const start = pointsProcessed;
+            const end = Math.min(start + batchSize, totalPoints);
+            let anyPointsHitCanvas = false;
+
+            // Declare px, py, screenX, screenY at the top of the function
+            let px, py, screenX, screenY;
+
+            for (let i = start; i < end; i++) {
+                // Calculate next point using the attractor function
+                const [nxRaw, nyRaw] = attractorFn(x, y, A, B, C, D);
+
+                // Apply smoothing
+                let nx = smoothing(nxRaw, SCALE);
+                let ny = smoothing(nyRaw, SCALE);
+
+                x = nx;
+                y = ny;
+
+                // Only start recording points after the burn-in phase
+                if (i < BURN_IN_POINTS) {
+                    continue;
+                }
+
+                // Map attractor coordinates to screen coordinates
+                // (0,0) of attractor is center of canvas.
+                screenX = Math.round(x * SCALE);
+                screenY = Math.round(y * SCALE);
+
+                // Calculate pixel coordinates, ensuring they are within canvas bounds
+                px = Math.floor(screenX + width / 2);
+                py = Math.floor(screenY + height / 2);
+
+                if (px >= 0 && px < width && py >= 0 && py < height) {
+                    const idx = px + py * width;
+                    if (densityMap[idx] < 255) {
+                        densityMap[idx]++;
+                    }
+                    if (densityMap[idx] > maxDensity) {
+                        maxDensity = densityMap[idx];
+                    }
+                    pointsRecorded++;
+                    anyPointsHitCanvas = true;
+                }
+            }
+            pointsProcessed = end;
+
+            // Debugging logs:
+            if (pointsProcessed % (batchSize * 10) === 0 || pointsProcessed === totalPoints) {
+                console.groupCollapsed(`Iteration: ${pointsProcessed}/${totalPoints}`);
+                console.log(`Current maxDensity: ${maxDensity}`);
+                console.log(`Total points recorded: ${pointsRecorded}`);
+                console.log(`Last (x, y): (${x.toFixed(4)}, ${y.toFixed(4)})`);
+                // Log screenX, screenY, px, py only if they were set in this batch
+                if (screenX !== undefined) { // Check if they were assigned in this batch
+                    console.log(`Last (screenX, screenY): (${screenX}, ${screenY})`);
+                    console.log(`Last (px, py): (${px}, ${py})`);
+                } else {
+                    console.log(`Last (screenX, screenY, px, py): (Not updated in this batch, or out of bounds)`);
+                }
+
+
+                if (pointsRecorded === 0 && pointsProcessed > BURN_IN_POINTS) {
+                    console.warn("No points have been recorded in densityMap after burn-in. Attractor points might be outside canvas bounds.");
+                } else if (anyPointsHitCanvas) {
+                    console.log("At least one point hit the canvas in this batch!");
+                }
+                console.groupEnd();
+            }
+
+            // Update texture every batch
+            updateDensityTexture();
+
+            if (pointsProcessed < totalPoints) {
+                requestAnimationFrame(calculateAttractorPoints);
+            } else {
+                console.log('Attractor calculation complete.');
+                // Final render
+                updateDensityTexture(1.0); // Set progress to 1 for final rendering
+            }
+        }
+
+        // Updates the WebGL density texture with the current density map.
+        // Also renders the quad using the updated texture.
+        function updateDensityTexture(progress = pointsProcessed / totalPoints) {
+            console.log(`[updateDensityTexture] Uploading texture. Width: ${width}, Height: ${height}, DensityMap length: ${densityMap.length}, Expected: ${width * height}`);
+
+
+            // Bind the texture to TEXTURE0 (unit 0).
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, densityTexture);
+
+            // Upload the density map data to the texture.
+            gl.texImage2D(
+                gl.TEXTURE_2D,
+                0, // level
+                gl.LUMINANCE, // internal format
+                width,
+                height,
+                0, // border
+                gl.LUMINANCE, // format
+                gl.UNSIGNED_BYTE, // type
+                densityMap // pixel data
+            );
+
+            // Pass uniforms to the shader program.
+            gl.uniform1i(densitySamplerLocation, 0); // Tell the shader to use texture unit 0
+            gl.uniform1f(maxDensityUniformLocation, maxDensity);
+            gl.uniform1f(hueUniformLocation, HUE);
+            gl.uniform1f(saturationUniformLocation, SATURATION);
+            gl.uniform1f(brightnessUniformLocation, BRIGHTNESS);
+            gl.uniform1f(progressUniformLocation, progress); // Pass animation progress
+
+            // Clear the canvas (color buffer and depth buffer, though depth isn't used here).
+            gl.clearColor(
+                BACKGROUND_COLOR_RGB[0] / 255,
+                BACKGROUND_COLOR_RGB[1] / 255,
+                BACKGROUND_COLOR_RGB[2] / 255,
+                BACKGROUND_COLOR_RGB[3] / 255
+            );
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Draw the full-screen quad.
+            gl.drawArrays(gl.TRIANGLES, 0, 6); // 6 vertices for 2 triangles
+        }
+
+        // Start the process by appending the script to the head.
+        // The rest of the logic will be initiated in the script's onload handler.
     </script>
 </body>
 </html>
