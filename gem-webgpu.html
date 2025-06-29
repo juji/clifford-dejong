@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clifford Attractor WebGL</title>
+    <title>Clifford Attractor WebGPU</title>
     <style>
         body {
             margin: 0;
@@ -199,33 +199,100 @@
             return (alpha << 24) | (b << 16) | (g << 8) | r;
         }
 
-        // --- WebGL Setup and Rendering ---
-
+        // --- WebGPU Setup and Rendering ---
         const canvas = document.getElementById('attractorCanvas');
-        const gl = canvas.getContext('webgl');
+        let gpu, adapter, device, context, format;
+        let densityBuffer, gpuDensityTexture, sampler;
+        let pipeline, bindGroup;
+        let width, height;
+        
+        async function initWebGPU() {
+            if (!navigator.gpu) {
+                const messageBox = document.createElement('div');
+                messageBox.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    padding: 20px;
+                    background: #333;
+                    color: #fff;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                    z-index: 1000;
+                    font-family: sans-serif;
+                `;
+                messageBox.textContent = 'Your browser does not support WebGPU. Please use a modern browser.';
+                document.body.appendChild(messageBox);
+                return false;
+            }
+            adapter = await navigator.gpu.requestAdapter();
+            device = await adapter.requestDevice();
+            context = canvas.getContext('webgpu');
+            format = navigator.gpu.getPreferredCanvasFormat();
+            context.configure({
+                device,
+                format,
+                alphaMode: 'opaque',
+            });
+            return true;
+        }
 
-        if (!gl) {
-            // Replaced alert with a message box equivalent for Canvas environments.
-            const messageBox = document.createElement('div');
-            messageBox.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                padding: 20px;
-                background: #333;
-                color: #fff;
-                border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                z-index: 1000;
-                font-family: sans-serif;
-            `;
-            messageBox.textContent = 'Your browser does not support WebGL. Please use a modern browser.';
-            document.body.appendChild(messageBox);
+        // --- WebGPU Pipeline and Bind Group Setup ---
+        async function setupWebGPUPipeline() {
+            // Create shader modules
+            const vertexModule = device.createShaderModule({ code: wgslVertexShader });
+            const fragmentModule = device.createShaderModule({ code: wgslFragmentShader });
+
+            // Create sampler
+            sampler = device.createSampler({
+                magFilter: 'linear',
+                minFilter: 'linear',
+            });
+
+            // Create uniform buffer for parameters
+            const paramBufferSize = 5 * 4; // 5 floats
+            paramBuffer = device.createBuffer({
+                size: paramBufferSize,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            });
+
+            // Create pipeline
+            pipeline = device.createRenderPipeline({
+                layout: 'auto',
+                vertex: {
+                    module: vertexModule,
+                    entryPoint: 'main',
+                },
+                fragment: {
+                    module: fragmentModule,
+                    entryPoint: 'main',
+                    targets: [{ format }],
+                },
+                primitive: { topology: 'triangle-list' },
+            });
+
+            // Create a dummy 1x1 texture for initial bind group
+            gpuDensityTexture = device.createTexture({
+                size: [1, 1],
+                format: 'r8unorm',
+                usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+            });
+
+            bindGroup = device.createBindGroup({
+                layout: pipeline.getBindGroupLayout(0),
+                entries: [
+                    { binding: 0, resource: gpuDensityTexture.createView() },
+                    { binding: 1, resource: sampler },
+                    { binding: 2, resource: { buffer: paramBuffer } },
+                ],
+            });
+
+            return { paramBuffer };
         }
 
         // IMPORTANT: Set pixel storage alignment to 1 for tightly packed luminance data
-        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+        // gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
         // Define the attractor parameters
         const ATTRACTOR_TYPE = 'clifford';
@@ -236,7 +303,7 @@
         const POINTS = 10000000; // Number of iterations to compute points
         const INITIAL_SCALE = 200; // Reverted to 200
         // Set HUE to magenta/pink for vibrant baseline match
-        const HUE = 350; // Shifted closer to red for a more red-magenta color
+        const HUE = 333; // Shifted closer to red for a more red-magenta color
         const SATURATION = 100;
         const BRIGHTNESS = 100;
         const BACKGROUND_COLOR_RGB = [0, 0, 0, 255]; // Black background
@@ -244,227 +311,167 @@
 
         let attractorFn = ATTRACTOR_TYPE === 'clifford' ? clifford : dejong;
 
-        let width, height;
-        let densityMap; // This will be a 2D array or texture to store hit counts
-        let maxDensity = 0;
-        let pointsRecorded = 0; // New variable to track points actually recorded
-
         // Vertex Shader: A minimal shader that just passes through position coordinates.
         // It's used for drawing a full-screen quad to display our computed texture.
         const vsSource = `
-            attribute vec2 a_position;
-            varying vec2 v_texCoord;
-
-            void main() {
-                gl_Position = vec4(a_position, 0, 1);
-                // Map clip space (-1 to 1) to texture coordinates (0 to 1)
-                v_texCoord = (a_position + 1.0) * 0.5;
+            @vertex
+            fn main(
+                @location(0) position: vec2<f32>,
+            ) -> void {
+                // Output position to clip space
+                let clipSpacePosition = vec4<f32>(position, 0.0, 1.0);
+                // Set gl_Position directly
+                gl_Position = clipSpacePosition;
             }
         `;
 
         // Fragment Shader: This is where the magic happens for coloring the attractor.
         // It samples from the density texture and applies the color mapping logic.
         const fsSource = `
-            precision mediump float;
+            @group(0) @binding(0) var densitySampler: sampler;
+            @group(0) @binding(1) var densityTexture: texture_2d<f32>;
 
-            uniform sampler2D u_densitySampler; // Our 2D texture containing density values
-            uniform float u_maxDensity;         // Max density for normalization
-            uniform float u_hue;                // Base hue for coloring
-            uniform float u_saturation;         // Base saturation
-            uniform float u_brightness;         // Base brightness
-            uniform float u_progress;           // Animation progress for opacity
+            @fragment
+            fn main(
+                @location(0) fragCoord: vec2<f32>,
+            ) -> @location(0) vec4<f32> {
+                // Convert fragment coordinates to texture coordinates
+                let texCoord = fragCoord / vec2<f32>(canvasSize.x, canvasSize.y);
 
-            varying vec2 v_texCoord;            // Texture coordinates received from vertex shader
-
-            // Helper function to convert HSV to RGB within the shader.
-            vec3 hsv2rgbShader(float h, float s, float v) {
-                h = mod(h, 360.0); // Ensure hue is within 0-359
-                s /= 100.0;
-                v /= 100.0;
-
-                if (s == 0.0) {
-                    return vec3(v, v, v);
-                }
-
-                h /= 60.0;
-                float i = floor(h);
-                float f = h - i;
-                float p = v * (1.0 - s);
-                float q = v * (1.0 - s * f);
-                float t = v * (1.0 - s * (1.0 - f));
-
-                if (i == 0.0) { return vec3(v, t, p); }
-                if (i == 1.0) { return vec3(q, v, p); }
-                if (i == 2.0) { return vec3(p, v, t); }
-                if (i == 3.0) { return vec3(p, q, v); }
-                if (i == 4.0) { return vec3(t, p, v); }
-                return vec3(v, p, q); // Case 5
-            }
-
-            // Bezier easing function for normalized values (0-1).
-            float cubicBezier(float t, float p0, float p1, float p2, float p3) {
-                return (1.0 - t) * (1.0 - t) * (1.0 - t) * p0 +
-                       3.0 * (1.0 - t) * (1.0 - t) * t * p1 +
-                       3.0 * (1.0 - t) * t * t * p2 +
-                       t * t * t * p3;
-            }
-
-            // Approximate BezierEasing (0.79, -0.34, 0.54, 1.18) for saturation
-            float saturationBezierShader(float t) {
-                return cubicBezier(t, 0.0, 0.79, 0.54, 1.0); // Adjusting P1, P2 for 0-1 range
-            }
-
-            // Approximate BezierEasing (0.75, 0.38, 0.24, 1.33) for lightness
-            float lightnessBezierShader(float t) {
-                return cubicBezier(t, 0.0, 0.75, 0.24, 1.0); // Adjusting P1, P2 for 0-1 range
-            }
-
-            // Approximate BezierEasing (.69,-0.01,.48,.94) for opacity
-            float opacityBezierShader(float t) {
-                return cubicBezier(t, 0.0, 0.69, 0.48, 1.0); // Adjusting P1, P2 for 0-1 range
-            }
-
-
-            void main() {
                 // Read the density value from the texture.
                 // Since our texture stores single-channel density, we can read any color component.
-                float density = texture2D(u_densitySampler, v_texCoord).r * 255.0; // Assuming density is stored as 0-255
+                var density: f32 = textureSample(densityTexture, densitySampler, texCoord).r;
 
                 if (density <= 0.0) {
-                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black background
-                    return;
+                    return vec4<f32>(0.0, 0.0, 0.0, 1.0); // Black background
                 }
 
                 // Logarithmic scaling for density, same as in JS getColorData.
-                float mdens = log(u_maxDensity + 1.0);
-                float pdens = log(density + 1.0);
+                let mdens = log(u_maxDensity + 1.0);
+                let pdens = log(density + 1.0);
 
-                float normalizedDensity = mdens > 0.0 ? pdens / mdens : 0.0;
+                let normalizedDensity = mdens > 0.0 ? pdens / mdens : 0.0;
 
                 // Calculate adjusted saturation and lightness using the shader Bezier functions.
-                float finalSaturation = u_saturation - saturationBezierShader(normalizedDensity) * u_saturation;
-                float finalLightness = lightnessBezierShader(normalizedDensity) * u_brightness;
+                let finalSaturation = u_saturation - saturationBezierShader(normalizedDensity) * u_saturation;
+                let finalLightness = lightnessBezierShader(normalizedDensity) * u_brightness;
 
                 // Convert HSV to RGB
-                vec3 rgb = hsv2rgbShader(u_hue, finalSaturation, finalLightness);
+                let rgb = hsv2rgbShader(u_hue, finalSaturation, finalLightness);
 
                 // Calculate final opacity
-                float alpha = opacityBezierShader(u_progress);
+                let alpha = opacityBezierShader(u_progress);
 
-                gl_FragColor = vec4(rgb.r, rgb.g, rgb.b, alpha);
+                return vec4<f32>(rgb.r, rgb.g, rgb.b, alpha);
             }
         `;
 
-        // Compiles a shader from source.
-        function compileShader(gl, type, source) {
-            const shader = gl.createShader(type);
-            gl.shaderSource(shader, source);
-            gl.compileShader(shader);
-            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
-                gl.deleteShader(shader);
-                return null;
+        // --- WGSL Shaders (WGSL) ---
+        const wgslVertexShader = `
+            @vertex
+            fn main(@builtin(vertex_index) VertexIndex : u32) -> @builtin(position) vec4<f32> {
+                var pos = array<vec2<f32>, 6>(
+                    vec2<f32>(-1.0, -1.0),
+                    vec2<f32>( 1.0, -1.0),
+                    vec2<f32>(-1.0,  1.0),
+                    vec2<f32>(-1.0,  1.0),
+                    vec2<f32>( 1.0, -1.0),
+                    vec2<f32>( 1.0,  1.0)
+                );
+                return vec4<f32>(pos[VertexIndex], 0.0, 1.0);
             }
-            return shader;
-        }
+        `;
 
-        // Creates a WebGL program from vertex and fragment shaders.
-        function createProgram(gl, vsSource, fsSource) {
-            const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vsSource);
-            const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fsSource);
-            const shaderProgram = gl.createProgram();
-            gl.attachShader(shaderProgram, vertexShader);
-            gl.attachShader(shaderProgram, fragmentShader);
-            gl.linkProgram(shaderProgram);
-            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-                console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
-                return null;
+        // --- WGSL Shader Fix ---
+        const wgslFragmentShader = `
+            struct Params {
+                maxDensity: f32,
+                hue: f32,
+                saturation: f32,
+                brightness: f32,
+                progress: f32,
+            };
+            @group(0) @binding(0) var densityTex : texture_2d<f32>;
+            @group(0) @binding(1) var densitySampler : sampler;
+            @group(0) @binding(2) var<uniform> params : Params;
+
+            fn hsv2rgb(h: f32, s: f32, v: f32) -> vec3<f32> {
+                var c = v * s;
+                var x = c * (1.0 - abs(f32(((h / 60.0) % 2.0) - 1.0)));
+                var m = v - c;
+                var rgb: vec3<f32>;
+                if (h < 60.0)      { rgb = vec3<f32>(c, x, 0.0); }
+                else if (h < 120.0){ rgb = vec3<f32>(x, c, 0.0); }
+                else if (h < 180.0){ rgb = vec3<f32>(0.0, c, x); }
+                else if (h < 240.0){ rgb = vec3<f32>(0.0, x, c); }
+                else if (h < 300.0){ rgb = vec3<f32>(x, 0.0, c); }
+                else               { rgb = vec3<f32>(c, 0.0, x); }
+                return rgb + vec3<f32>(m, m, m);
             }
-            return shaderProgram;
-        }
 
-        // Setup the WebGL program.
-        const shaderProgram = createProgram(gl, vsSource, fsSource);
-        gl.useProgram(shaderProgram);
+            fn cubicBezier(t: f32, p0: f32, p1: f32, p2: f32, p3: f32) -> f32 {
+                return pow(1.0-t,3.0)*p0 + 3.0*pow(1.0-t,2.0)*t*p1 + 3.0*(1.0-t)*t*t*p2 + pow(t,3.0)*p3;
+            }
+            fn saturationBezier(t: f32) -> f32 { return cubicBezier(t, 0.0, 0.0, 1.0, 1.0); }
+            fn lightnessBezier(t: f32) -> f32 { return cubicBezier(t, 0.0, 0.0, 1.0, 1.0); }
+            fn opacityBezier(t: f32) -> f32 { return cubicBezier(t, 0.69, -0.01, 0.48, 0.94); }
 
-        // Get attribute and uniform locations.
-        const positionAttributeLocation = gl.getAttribLocation(shaderProgram, 'a_position');
-        const densitySamplerLocation = gl.getUniformLocation(shaderProgram, 'u_densitySampler');
-        const maxDensityUniformLocation = gl.getUniformLocation(shaderProgram, 'u_maxDensity');
-        const hueUniformLocation = gl.getUniformLocation(shaderProgram, 'u_hue');
-        const saturationUniformLocation = gl.getUniformLocation(shaderProgram, 'u_saturation');
-        const brightnessUniformLocation = gl.getUniformLocation(shaderProgram, 'u_brightness');
-        const progressUniformLocation = gl.getUniformLocation(shaderProgram, 'u_progress');
+            @fragment
+            fn main(@builtin(position) pos: vec4<f32>) -> @location(0) vec4<f32> {
+                let texSize = textureDimensions(densityTex);
+                let uv = pos.xy / vec2<f32>(texSize);
+                let density = textureSample(densityTex, densitySampler, uv).r * 255.0;
+                if (density <= 0.0) {
+                    return vec4<f32>(0.0, 0.0, 0.0, 1.0);
+                }
+                let mdens = log(params.maxDensity + 1.0);
+                let pdens = log(density + 1.0);
+                let normalizedDensity = select(0.0, pdens / mdens, mdens > 0.0);
+                let finalSaturation = params.saturation - saturationBezier(normalizedDensity) * params.saturation;
+                let finalLightness = lightnessBezier(normalizedDensity) * params.brightness;
+                let rgb = hsv2rgb(params.hue, finalSaturation / 100.0, finalLightness / 100.0);
+                let alpha = opacityBezier(params.progress);
+                return vec4<f32>(rgb, alpha);
+            }
+        `;
 
+        // Declare all state variables only once at the top-level scope
+        let densityMap;
+        let maxDensity;
+        let pointsRecorded;
+        let pointsProcessed;
+        let x;
+        let y;
 
-        // Create a buffer for a full-screen quad (two triangles).
-        // This quad will cover the entire canvas, and the fragment shader will draw on it.
-        const positionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        const positions = [
-            -1.0, -1.0, // bottom-left
-             1.0, -1.0, // bottom-right
-            -1.0,  1.0, // top-left
-            -1.0,  1.0, // top-left
-             1.0, -1.0, // bottom-right
-             1.0,  1.0, // top-right
-        ];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+        // Declare paramBuffer at the top-level scope
+        let paramBuffer;
 
-        gl.enableVertexAttribArray(positionAttributeLocation);
-        gl.vertexAttribPointer(
-            positionAttributeLocation,
-            2,          // size (2 components per iteration)
-            gl.FLOAT,   // type of data
-            false,      // normalize
-            0,          // stride
-            0           // offset
-        );
-
-        // Create a texture to store the density map.
-        // This texture will be updated on the CPU side and sent to the GPU.
-        const densityTexture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, densityTexture);
-
-        // Set texture parameters.
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-
-        // Function to resize canvas and WebGL viewport
+        // Function to resize canvas and WebGPU viewport
         function resizeCanvas() {
             // Get window dimensions
             const windowW = window.innerWidth;
             const windowH = window.innerHeight;
-
-            // Calculate the square size based on the smaller dimension
             const size = Math.min(windowW, windowH);
-
-            // Set canvas dimensions
             canvas.width = size;
             canvas.height = size;
-
-            // Update global width and height variables
             width = canvas.width;
             height = canvas.height;
-
-            gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-
+            // WebGPU: No gl.viewport needed, context is auto-managed
             // Reinitialize density map with the new dimensions
             densityMap = new Uint8Array(width * height).fill(0); // Using Uint8 to fit texture data
             maxDensity = 0;
-            pointsRecorded = 0; // Reset points recorded
-
-            console.log(`[resizeCanvas] Window: ${windowW}x${windowH}, Canvas: ${canvas.width}x${canvas.height}, DensityMap size: ${densityMap.length}`);
+            pointsRecorded = 0;
+            pointsProcessed = 0;
+            x = 0.1;
+            y = 0.1;
+            // Optionally, trigger a redraw/reset if needed
         }
 
 
         // --- Attractor Calculation Logic ---
-        let x = 0.1, y = 0.1; // Initial point for attractor (changed from 0,0)
+        x = 0.1; y = 0.1; // Initial point for attractor (changed from 0,0)
         const totalPoints = POINTS;
-        let pointsProcessed = 0;
+        pointsProcessed = 0;
         const batchSize = Math.floor(totalPoints / 100); // Process in batches to allow for rendering updates
         const SCALE = INITIAL_SCALE; // Use the initial scale for calculations
 
@@ -477,50 +484,27 @@
             const start = pointsProcessed;
             const end = Math.min(start + batchSize, totalPoints);
             let anyPointsHitCanvas = false;
-
-            // Declare px, py, screenX, screenY at the top of the function
             let px, py, screenX, screenY;
-
             for (let i = start; i < end; i++) {
-                // Calculate next point using the attractor function
                 const [nxRaw, nyRaw] = attractorFn(x, y, A, B, C, D);
-
-                // Apply smoothing
                 let nx = smoothing(nxRaw, SCALE);
                 let ny = smoothing(nyRaw, SCALE);
-
                 x = nx;
                 y = ny;
-
-                // Only start recording points after the burn-in phase
-                if (i < BURN_IN_POINTS) {
-                    continue;
-                }
-
-                // Map attractor coordinates to screen coordinates
-                // (0,0) of attractor is center of canvas.
+                if (i < BURN_IN_POINTS) continue;
                 screenX = Math.round(x * SCALE);
                 screenY = Math.round(y * SCALE);
-
-                // Calculate pixel coordinates, ensuring they are within canvas bounds
                 px = Math.floor(screenX + width / 2);
                 py = Math.floor(screenY + height / 2);
-
                 if (px >= 0 && px < width && py >= 0 && py < height) {
                     const idx = px + py * width;
-                    if (densityMap[idx] < 255) {
-                        densityMap[idx]++;
-                    }
-                    if (densityMap[idx] > maxDensity) {
-                        maxDensity = densityMap[idx];
-                    }
+                    if (densityMap[idx] < 255) densityMap[idx]++;
+                    if (densityMap[idx] > maxDensity) maxDensity = densityMap[idx];
                     pointsRecorded++;
                     anyPointsHitCanvas = true;
                 }
             }
             pointsProcessed = end;
-
-            // Debugging logs:
             if (pointsProcessed % (batchSize * 10) === 0 || pointsProcessed === totalPoints) {
                 console.groupCollapsed(`Iteration: ${pointsProcessed}/${totalPoints}`);
                 console.log(`Current maxDensity: ${maxDensity}`);
@@ -542,65 +526,78 @@
                 }
                 console.groupEnd();
             }
-
-            // Update texture every batch
-            updateDensityTexture();
-
+            // Update texture every batch (WebGPU)
+            updateDensityTextureWebGPU();
             if (pointsProcessed < totalPoints) {
                 requestAnimationFrame(calculateAttractorPoints);
             } else {
                 console.log('Attractor calculation complete.');
-                // Final render
-                updateDensityTexture(1.0); // Set progress to 1 for final rendering
+                updateDensityTextureWebGPU(1.0);
             }
         }
 
-        // Updates the WebGL density texture with the current density map.
-        // Also renders the quad using the updated texture.
-        function updateDensityTexture(progress = pointsProcessed / totalPoints) {
-            console.log(`[updateDensityTexture] Uploading texture. Width: ${width}, Height: ${height}, DensityMap length: ${densityMap.length}, Expected: ${width * height}`);
-
-
-            // Bind the texture to TEXTURE0 (unit 0).
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, densityTexture);
-
-            // Upload the density map data to the texture.
-            gl.texImage2D(
-                gl.TEXTURE_2D,
-                0, // level
-                gl.LUMINANCE, // internal format
-                width,
-                height,
-                0, // border
-                gl.LUMINANCE, // format
-                gl.UNSIGNED_BYTE, // type
-                densityMap // pixel data
+        // --- WebGPU Density Texture Upload and Rendering ---
+        function updateDensityTextureWebGPU(progress = pointsProcessed / totalPoints) {
+            // Recreate the density texture and bind group if needed
+            if (!gpuDensityTexture || gpuDensityTexture.width !== width || gpuDensityTexture.height !== height) {
+                gpuDensityTexture = device.createTexture({
+                    size: [width, height],
+                    format: 'r8unorm',
+                    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+                });
+                bindGroup = device.createBindGroup({
+                    layout: pipeline.getBindGroupLayout(0),
+                    entries: [
+                        { binding: 0, resource: gpuDensityTexture.createView() },
+                        { binding: 1, resource: sampler },
+                        { binding: 2, resource: { buffer: paramBuffer } },
+                    ],
+                });
+            }
+            // Upload density data to the texture
+            device.queue.writeTexture(
+                { texture: gpuDensityTexture },
+                densityMap,
+                { bytesPerRow: width, rowsPerImage: height },
+                { width, height, depthOrArrayLayers: 1 }
             );
-
-            // Pass uniforms to the shader program.
-            gl.uniform1i(densitySamplerLocation, 0); // Tell the shader to use texture unit 0
-            gl.uniform1f(maxDensityUniformLocation, maxDensity);
-            gl.uniform1f(hueUniformLocation, HUE);
-            gl.uniform1f(saturationUniformLocation, SATURATION);
-            gl.uniform1f(brightnessUniformLocation, BRIGHTNESS);
-            gl.uniform1f(progressUniformLocation, progress); // Pass animation progress
-
-            // Clear the canvas (color buffer and depth buffer, though depth isn't used here).
-            gl.clearColor(
-                BACKGROUND_COLOR_RGB[0] / 255,
-                BACKGROUND_COLOR_RGB[1] / 255,
-                BACKGROUND_COLOR_RGB[2] / 255,
-                BACKGROUND_COLOR_RGB[3] / 255
-            );
-            gl.clear(gl.COLOR_BUFFER_BIT);
-
-            // Draw the full-screen quad.
-            gl.drawArrays(gl.TRIANGLES, 0, 6); // 6 vertices for 2 triangles
+            // Update uniforms
+            const paramArray = new Float32Array([
+                maxDensity,
+                HUE,
+                SATURATION,
+                BRIGHTNESS,
+                progress
+            ]);
+            device.queue.writeBuffer(paramBuffer, 0, paramArray.buffer);
+            // Render
+            const commandEncoder = device.createCommandEncoder();
+            const textureView = context.getCurrentTexture().createView();
+            const renderPass = commandEncoder.beginRenderPass({
+                colorAttachments: [{
+                    view: textureView,
+                    clearValue: { r: 0, g: 0, b: 0, a: 1 },
+                    loadOp: 'clear',
+                    storeOp: 'store',
+                }],
+            });
+            renderPass.setPipeline(pipeline);
+            renderPass.setBindGroup(0, bindGroup);
+            renderPass.draw(6, 1, 0, 0);
+            renderPass.end();
+            device.queue.submit([commandEncoder.finish()]);
         }
 
         // Start the process by appending the script to the head.
         // The rest of the logic will be initiated in the script's onload handler.
+        script.onload = async () => {
+            const ok = await initWebGPU();
+            if (!ok) return;
+            await setupWebGPUPipeline(); // paramBuffer is now global
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            requestAnimationFrame(calculateAttractorPoints);
+        };
     </script>
 </body>
 </html>
