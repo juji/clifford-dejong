@@ -21,9 +21,7 @@ export const useUIStore = create<UIState>((set) => ({
   openTab: 'attractor',
   setOpenTab: (tab) => set({ openTab: tab }),
   qualityMode: 'high',
-  setQualityMode: (mode) => {
-    set({ qualityMode: mode });
-  },
+  setQualityMode: (mode) => set({ qualityMode: mode }),
   menuPosition: 'left',
   setMenuPosition: (pos) => set({ menuPosition: pos }),
 }))

@@ -9,6 +9,7 @@
 
 import { clifford, dejong } from "@repo/core";
 import { getColorData } from "@repo/core/color";
+import type { AttractorParameters } from "@repo/core/types";
 
 let shouldStop = false;
 let rafHandle: number | null = null;
@@ -16,25 +17,39 @@ let offscreenCanvas: OffscreenCanvas | null = null;
 let offscreenCtx: OffscreenCanvasRenderingContext2D | null = null;
 let offscreenWidth = 0;
 let offscreenHeight = 0;
-let offscreenBackground: number[] = [0,0,0,255];
-let offscreenParams: any = null;
+let parameters: {
+  params: AttractorParameters,
+  width: number,
+  height: number,
+  points: number,
+  progressInterval : number,
+  qualityMode: string,
+  defaultScale: number,
+} | null = null;
+
+// on initialization
+self.postMessage({ type: "ready" });
 
 self.onmessage = function (e) {
+  
+  console.log("Attractor worker received message:", e.data);
+
   if (e.data && e.data.type === "stop") {
     handleStop();
     return;
   }
-  if (e.data && e.data.type === "init-offscreen" && e.data.canvas) {
-    offscreenCanvas = e.data.canvas;
-    if (offscreenCanvas) {
-      offscreenCtx = offscreenCanvas.getContext("2d");
-    } else {
-      offscreenCtx = null;
-    }
+
+  if (e.data && e.data.type === "init") {
+    initialize(e.data)
     return;
   }
+
   // Handle resize for OffscreenCanvas
   if (e.data && e.data.type === "resize" && offscreenCanvas) {
+    if(parameters){
+      parameters.width = e.data.width;
+      parameters.height = e.data.height;
+    }
     offscreenCanvas.width = e.data.width;
     offscreenCanvas.height = e.data.height;
     if (offscreenCtx) {
@@ -42,23 +57,93 @@ self.onmessage = function (e) {
     }
     return;
   }
-  try {
-    const params = parseParams(e.data);
-    if (e.data.useOffscreen && offscreenCanvas && offscreenCtx) {
-      offscreenWidth = params.width;
-      offscreenHeight = params.height;
-      offscreenBackground = params.background;
-      offscreenParams = params;
-      runAttractorOffscreen(params);
-    } else {
-      runAttractor(params);
-    }
-  } catch (err) {
-    reportError(err);
+
+  if (e.data && e.data.type === "start") {
+    handleStart()
   }
+
+  // try {
+  //   const params = parseParams(e.data);
+  //   if (e.data.useOffscreen && offscreenCanvas && offscreenCtx) {
+  //     offscreenWidth = params.width;
+  //     offscreenHeight = params.height;
+  //     offscreenParams = params;
+  //     runAttractorOffscreen(params);
+  //   } else {
+  //     runAttractor(params);
+  //   }
+  // } catch (err) {
+  //   reportError(err);
+  // }
 };
 
+function initialize( data: any ){
+  const {
+    canvas,
+    width,
+    height,
+  } = data;
+
+  if (rafHandle !== null) {
+    self.cancelAnimationFrame(rafHandle);
+    rafHandle = null;
+  }
+
+  shouldStop = false;
+  offscreenCanvas = null;
+  offscreenCtx = null;
+  offscreenWidth = 0;
+  offscreenHeight = 0;
+  parameters = data
+
+  if(canvas){
+    offscreenCanvas = canvas;
+    if (offscreenCanvas) {
+      offscreenCtx = offscreenCanvas.getContext("2d");
+      offscreenCanvas.width = width;
+      offscreenCanvas.height = height;
+      offscreenWidth = width
+      offscreenHeight = height
+      if (offscreenCtx) {
+        offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      }
+
+      runAttractorOffscreen(parseParams(parameters))
+
+    } else {
+      throw new Error("OffscreenCanvas is not supported in this environment");
+    }
+  } else {
+    offscreenCanvas = null
+    offscreenCtx = null;
+
+    runAttractor(parseParams(parameters))
+  }
+
+
+}
+
+function handleStart(){
+  if(!parameters) throw new Error("Attractor parameters not initialized");
+  if(offscreenCanvas && offscreenCtx) {
+    const { width, height } = parameters;
+    offscreenCanvas.width = width;
+    offscreenCanvas.height = height;
+    offscreenWidth = width
+    offscreenHeight = height
+    if (offscreenCtx) {
+      offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+    }
+    runAttractorOffscreen(parseParams(parameters));
+  }
+  else {
+    runAttractor(parseParams(parameters));
+  }
+  console.log("Starting attractor worker with parameters:", parameters);
+}
+
 function handleStop() {
+  console.log("Stopping attractor worker");
   shouldStop = true;
   if (rafHandle !== null) {
     self.cancelAnimationFrame(rafHandle);
@@ -68,28 +153,34 @@ function handleStop() {
 }
 
 function parseParams(data: any) {
+  console.log("Parsing attractor parameters:", data);
   const {
-    attractor,
-    a,
-    b,
-    c,
-    d,
-    points,
+    params : {
+      attractor,
+      a,
+      b,
+      c,
+      d,
+      scale,
+      left,
+      top,
+      hue = 120,
+      saturation = 100,
+      brightness = 100,
+      background = [0,0,0,255],
+    },
     width,
     height,
-    scale,
-    left,
-    top,
+    points,
     progressInterval = 1,
     qualityMode = 'high',
-    hue = 120,
-    saturation = 100,
-    brightness = 100,
-    background = [0,0,0,255],
+    defaultScale,
   } = data;
   return {
     attractorFn: attractor === "clifford" ? clifford : dejong,
-    a, b, c, d, points, width, height, scale, left, top, progressInterval, qualityMode, hue, saturation, brightness, background
+    a, b, c, d, points, width, height, 
+    scale: defaultScale * scale, 
+    left, top, progressInterval, qualityMode, hue, saturation, brightness, background
   };
 }
 
@@ -101,6 +192,7 @@ function runAttractorOffscreen({
   qualityMode = 'high',
   hue, saturation, brightness, background
 }: any) {
+
   let x = 0, y = 0;
   const pixels = new Uint32Array(width * height);
   let maxDensity = 0;
@@ -188,6 +280,10 @@ function runAttractor({
   progressInterval,
   qualityMode = 'high',
 }: any) {
+  console.log("Running attractor with params:", {
+    attractorFn, a, b, c, d, points, width, height,
+    scale, left, top, progressInterval, qualityMode
+  });
   let x = 0, y = 0;
   const pixels = new Uint32Array(width * height);
   let maxDensity = 0;
@@ -202,6 +298,7 @@ function runAttractor({
   }
   function processBatch() {
     if (shouldStop) return;
+    console.log("Processing batch", i, "to", Math.min(i + batchSize, points));
     const end = Math.min(i + batchSize, points);
     for (; i < end; i++) {
       const [nxRaw, nyRaw] = attractorFn(x, y, a, b, c, d) as [number, number];
