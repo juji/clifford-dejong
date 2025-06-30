@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAttractorRecordsStore } from "../store/attractor-records-store";
 import {
   Dialog,
@@ -41,14 +41,13 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
             <AttractorRecordList />
           )}
         </div>
-        {records.length < total && (
-          <button
-            className="mt-2 w-full py-2 rounded bg-primary text-primary-foreground disabled:opacity-50"
-            onClick={loadMore}
-          >
-            Load More
-          </button>
-        )}
+        <button
+          className="mt-2 w-full py-2 rounded bg-primary text-primary-foreground disabled:opacity-50 sticky bottom-0 z-10"
+          onClick={loadMore}
+          disabled={records.length >= total}
+        >
+          Load More
+        </button>
       </DialogContent>
     </Dialog>
   );
@@ -57,19 +56,43 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
 function AttractorRecordList() {
   const records = useAttractorRecordsStore((s) => s.records) as AttractorRecord[];
   const loading = useAttractorRecordsStore((s) => s.loading);
+  const loadMore = useAttractorRecordsStore((s) => s.loadMore);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const detectionElmRef = useRef<HTMLLIElement | null>(null);
+
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+    if (!detectionElmRef.current) return;
+    observerRef.current = new window.IntersectionObserver(
+      (entries) => {
+        if (entries[0] && entries[0].isIntersecting && !loading) {
+          loadMore();
+        }
+      },
+      { root: detectionElmRef.current.parentElement, threshold: 0.1 }
+    );
+    observerRef.current.observe(detectionElmRef.current);
+    return () => observerRef.current?.disconnect();
+  }, [records.length, loadMore, loading]);
 
   return (
     <ul className="space-y-2 h-full overflow-y-auto">
-      {records.map((rec) => (
-        <li
-          key={rec.uuid}
-          data-record-uuid={rec.uuid}
-          className="flex justify-between items-center p-2 bg-background rounded shadow-sm"
-        >
-          <span className="font-medium">{rec.name}</span>
-          <span className="text-xs text-muted-foreground">{new Date(rec.createdAt).toLocaleString()}</span>
-        </li>
-      ))}
+      {records.map((rec, idx) => {
+        const isDetectionElm = idx === records.length - 3;
+        return (
+          <li
+            key={rec.uuid}
+            data-record-uuid={rec.uuid}
+            className="flex justify-between items-center p-2 bg-background rounded shadow-sm"
+            ref={isDetectionElm ? detectionElmRef : undefined}
+          >
+            <span className="font-medium">{rec.name}</span>
+            <span className="text-xs text-muted-foreground">{new Date(rec.createdAt).toLocaleString()}</span>
+          </li>
+        );
+      })}
       { loading ? (
         <li className="flex items-center justify-center p-2 text-muted-foreground">
           <span>Loading...</span>
