@@ -6,7 +6,7 @@ This file documents conventions, preferences, and workflow notes for collaborati
 - Use `(m)` in commit messages to indicate a manual edit. Example:
   - `fix(component): update logic for edge case (m)`
 - Do not include extra explanations about manual edits in the commit message unless specifically requested.
-- Treat all manual edits and creations as canonical. Any code writen or modify manually is the definitive source of truth. Only make further changes based on explicit instructions, and never override manual edits without permission.
+- Treat all manual edits and creations as canonical. Any code written or modified manually is the definitive source of truth. Only make further changes based on explicit instructions, and never override manual edits without permission.
 
 ## File naming conventions
 - Always use kebab-case for filenames, even when the file is a TypeScript file. This is a common convention in web development and helps maintain consistency across your project. For example, instead of naming a file `AttractorStore.ts`, you would name it `attractor-store.ts`. This applies to all files, including those that contain TypeScript code.
@@ -18,6 +18,11 @@ This file documents conventions, preferences, and workflow notes for collaborati
 ## Workflow Tips
 - If you want the AI to follow a specific convention, add it here and reference this file at the start of a session.
 - For persistent preferences, update this file as needed.
+
+## AI Limitations & Session Memory
+- GitHub Copilot (and similar AI assistants) do not retain memory between sessions. If you close or refresh the UI, or if the session times out, all context and preferences are lost.
+- To maintain continuity, reference this file at the start of each session or after a reset.
+- The AI can only "see" a limited amount of recent context (recent files, messages, and changes). For large projects or long sessions, remind the AI of important details as needed.
 
 ---
 _Last updated: 2025-07-01_
