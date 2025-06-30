@@ -25,7 +25,7 @@ export function ConfigDialog({ open, onOpenChange }: { open: boolean; onOpenChan
             <div className="flex h-full items-center justify-center text-center text-muted-foreground">
               <div>
                 <p>No saved configs found.</p>
-                <p>Create one by clicking on the save button</p>
+                <p>Create one by clicking on the save button.</p>
               </div>
             </div>
           ) : (
