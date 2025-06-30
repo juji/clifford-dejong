@@ -1,6 +1,6 @@
 "use client"
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet"
+import { Sheet, SheetContent, SheetHeader } from "../ui/sheet"
 import { useUIStore } from "../../store/ui-store"
 import { useEffect, useState } from "react"
 import { MenuSheetFooter } from "./footer"
@@ -35,7 +35,7 @@ export function MenuSheet() {
           {/* Top row */}
           <div className="p-4 flex items-center justify-between border-b border-border">
             <SheetHeader>
-              <SheetTitle>Menu</SheetTitle>
+              {/* <SheetTitle>Menu</SheetTitle> */}
               <AttractorMenu />
             </SheetHeader>
           </div>
@@ -44,7 +44,7 @@ export function MenuSheet() {
             className="overflow-auto p-4 min-h-0"
             style={
               (responsiveSide === 'top' || responsiveSide === 'bottom')
-                ? { maxHeight: '60vh', minHeight: 0 }
+                ? { maxHeight: '30vh', minHeight: 0 }
                 : { minHeight: 0 }
             }
           >
