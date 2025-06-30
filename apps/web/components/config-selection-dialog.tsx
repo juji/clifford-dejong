@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 
-export function ConfigDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { records, loading, error } = useAttractorRecords();
 
   return (

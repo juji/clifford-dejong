@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Button } from "../ui/button"
 import { Bolt } from "lucide-react"
 import { useAttractorStore } from "@repo/state/attractor-store"
-import { ConfigDialog } from "../config-dialog"
+import { ConfigSelectionDialog } from "../config-selection-dialog"
 
 export function MenuSheetFooter() {
   const reset = useAttractorStore((s) => s.reset)
@@ -27,7 +27,7 @@ export function MenuSheetFooter() {
       <Button variant="outline" size="sm" aria-label="Reset" className="flex-1" onClick={reset}>
         reset
       </Button>
-      <ConfigDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <ConfigSelectionDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
   )
 }
