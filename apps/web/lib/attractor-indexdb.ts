@@ -42,7 +42,7 @@ export async function saveAttractor(
 
 export async function getPaginatedAttractors(
   page: number,
-  pageSize: number
+  pageSize: number = 33
 ): Promise<{ records: AttractorRecord[]; total: number }> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
