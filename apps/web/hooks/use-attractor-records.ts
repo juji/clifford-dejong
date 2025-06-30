@@ -21,7 +21,7 @@ export function useAttractorRecords() {
     setError(null);
     try {
       const { records: newRecords, total } = await getPaginatedAttractors(page);
-      setRecords((prev) => [...newRecords, ...prev]);
+      setRecords((prev) => [...prev, ...newRecords]);
       setTotal(total);
     } catch (err) {
       setError(err);

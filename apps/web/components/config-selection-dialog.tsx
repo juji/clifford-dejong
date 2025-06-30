@@ -9,7 +9,7 @@ import {
 } from "./ui/dialog";
 
 export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const { records, loading, error, refresh } = useAttractorRecords();
+  const { records, loading, error, total, loadMore, refresh } = useAttractorRecords();
 
   useEffect(() => {
     if (open) refresh();
@@ -45,6 +45,15 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
             </ul>
           )}
         </div>
+        {records.length < total && !loading && (
+          <button
+            className="mt-2 w-full py-2 rounded bg-primary text-primary-foreground disabled:opacity-50"
+            onClick={loadMore}
+            disabled={loading}
+          >
+            Load More
+          </button>
+        )}
       </DialogContent>
     </Dialog>
   );
