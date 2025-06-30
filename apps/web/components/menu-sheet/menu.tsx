@@ -77,6 +77,35 @@ export function Menu() {
     );
   }
 
+  function renderPositionControl(param: keyof Pick<AttractorParameters, 'top' | 'left' | 'scale'>, label: string, min: number, max: number, step: number) {
+    return (
+      <div className="mb-4 w-full menu-item">
+        <div className="flex items-center gap-2 w-full mb-5">
+          <label className="font-semibold text-lg w-16 flex-shrink-0">{label}</label>
+          <div className="flex-1 flex justify-end">
+            <Input
+              type="number"
+              step={step}
+              min={min}
+              max={max}
+              value={attractorParameters[param]}
+              onChange={e => setAttractorParams({ ...attractorParameters, [param]: parseFloat(e.target.value) })}
+              className="w-24 text-right flex-shrink-0"
+            />
+          </div>
+        </div>
+        <Slider
+          min={min}
+          max={max}
+          step={step}
+          value={[attractorParameters[param]]}
+          onValueChange={([v]) => setAttractorParams({ ...attractorParameters, [param]: parseFloat((v ?? 0).toFixed(3)) })}
+          className="flex-1"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {openTab === "attractor" && (
@@ -136,7 +165,12 @@ export function Menu() {
         </div>
       )}
       {openTab === "position" && (
-        <div className="rounded p-3">Position tab content goes here.</div>
+        <div className="rounded p-3">
+          <div className="mb-4 font-semibold">Position Options</div>
+          {renderPositionControl('top', 'Top', -1, 1, 0.001)}
+          {renderPositionControl('left', 'Left', -1, 1, 0.001)}
+          {renderPositionControl('scale', 'Scale', 0.001, 5, 0.001)}
+        </div>
       )}
     </div>
   );
