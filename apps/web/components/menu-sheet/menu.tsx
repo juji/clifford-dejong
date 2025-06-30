@@ -5,11 +5,55 @@ import { Slider } from "../ui/slider";
 import { Input } from "../ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
 import { ColorWithOpacityPicker } from "../ui/color-with-opacity-picker";
+import { useEffect, useRef } from "react";
 
 export function Menu() {
   const openTab = useUIStore((s: { openTab: string }) => s.openTab);
   const attractorParameters = useAttractorStore((s: { attractorParameters: AttractorParameters }) => s.attractorParameters);
   const setAttractorParams = useAttractorStore((s: { setAttractorParams: (params: AttractorParameters) => void }) => s.setAttractorParams);
+
+  const menuOpen = useUIStore((s) => s.menuOpen)
+  
+  // Set quality mode to low initially, then high after 4 seconds
+  // This is to ensure the render is fast when we change the value, 
+  // then we can switch to high quality
+  const setQualityMode = useUIStore((s => s.setQualityMode));
+  const qualityMode = useUIStore((s => s.qualityMode));
+  const initRef = useRef(false);
+
+  useEffect(() => {
+    if (menuOpen) {
+      initRef.current = false; // reset initRef when menu opens
+    }
+  }, [menuOpen]);
+  useEffect(() => {
+    // prevent this from executing on initial render
+    if (!initRef.current) {
+      initRef.current = true;
+      return;
+    }
+    setQualityMode("low");
+  }, 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [attractorParameters, initRef])
+
+  const qualityModeTimeoutRef = useRef<ReturnType<typeof setTimeout>|null>(null);
+  useEffect(() => {
+    if(qualityMode === "high") return; 
+    if(qualityModeTimeoutRef.current){
+      clearTimeout(qualityModeTimeoutRef.current);
+    }
+    // only set to high after 3 seconds
+    qualityModeTimeoutRef.current = setTimeout(() => {
+      setQualityMode("high");
+    }, 3000);
+    
+    return () => {
+      if (qualityModeTimeoutRef.current) clearTimeout(qualityModeTimeoutRef.current);
+    };
+  }, 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [ qualityMode ])
 
   function handleParamChange(param: keyof Pick<AttractorParameters, 'a' | 'b' | 'c' | 'd'>, value: number) {
     setAttractorParams({ ...attractorParameters, [param]: value });
@@ -22,7 +66,7 @@ export function Menu() {
   function renderAttractorParamControl(param: keyof Pick<AttractorParameters, 'a' | 'b' | 'c' | 'd'>, label: string) {
     return (
       <div className="mb-4 w-full menu-item">
-        <div className="flex items-center gap-2 w-full mb-1">
+        <div className="flex items-center gap-2 w-full mb-5">
           <label className="font-semibold text-lg w-4 flex-shrink-0">{label}</label>
           <div className="flex-1 flex justify-end">
             <Input
