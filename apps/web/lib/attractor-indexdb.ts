@@ -5,11 +5,12 @@ export type AttractorRecord = {
   uuid: string;
   name: string;
   attractorParameters: AttractorParameters;
+  createdAt: number;
 };
 
 const DB_NAME = "attractor-db";
 const STORE_NAME = "attractors";
-const DB_VERSION = 1;
+const DB_VERSION = 2; // bump version for new index
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -17,7 +18,13 @@ function openDB(): Promise<IDBDatabase> {
     request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: "uuid" });
+        const store = db.createObjectStore(STORE_NAME, { keyPath: "uuid" });
+        store.createIndex("createdAt", "createdAt");
+      } else {
+        const store = request.transaction?.objectStore(STORE_NAME);
+        if (store && !store.indexNames.contains("createdAt")) {
+          store.createIndex("createdAt", "createdAt");
+        }
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -26,11 +33,12 @@ function openDB(): Promise<IDBDatabase> {
 }
 
 export async function saveAttractor(
-  record: Omit<AttractorRecord, "uuid">
+  record: Omit<AttractorRecord, "uuid" | "createdAt">
 ): Promise<AttractorRecord> {
   const uuid = uuidv4();
+  const createdAt = Date.now();
   const db = await openDB();
-  const attractorRecord = { uuid, ...record };
+  const attractorRecord = { uuid, ...record, createdAt };
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
@@ -41,18 +49,19 @@ export async function saveAttractor(
 }
 
 export async function getPaginatedAttractors(
-  page: number,
-  pageSize: number = 33
+  page: number
 ): Promise<{ records: AttractorRecord[]; total: number }> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, "readonly");
     const store = tx.objectStore(STORE_NAME);
-    const req = store.openCursor();
+    const index = store.index("createdAt");
+    const req = index.openCursor(null, "prev"); // newest first
     const records: AttractorRecord[] = [];
     let skipped = 0;
     let added = 0;
     let total = 0;
+    const pageSize = 33;
     req.onsuccess = (event) => {
       const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
       if (cursor) {
@@ -65,8 +74,7 @@ export async function getPaginatedAttractors(
           added++;
           cursor.continue();
         } else {
-          // Got enough for this page, but keep counting total
-          cursor.continue();
+          cursor.continue(); // keep counting total
         }
       } else {
         resolve({ records, total });
