@@ -29,21 +29,20 @@
 - [x] Check dark and light theme
 - [x] Create a Full screen button
 - [x] on ios, full screen button should not exist
-- [ ] Create UI for attractor parameters
-- [ ] create mute control for sounds
+- [x] Create UI for attractor parameters
+- [x] Optimize rendering or add progress indicator if slow
+- [x] Check and improve color contrast
+- [ ] Add a download button
 - [ ] Add keyboard navigation support to all interactive elements
-- [ ] Ensure all UI is screen reader accessible
-- [ ] Check and improve color contrast
 - [ ] Test accessibility with axe or Lighthouse
+- [ ] Ensure all UI is screen reader accessible
+- [ ] Add tutorial.
+- [ ] Add a welcome message. user can optionally follow tutorials.
 - [ ] Profile attractor rendering on web
-- [ ] Optimize rendering or add progress indicator if slow
-- [ ] Consider lazy loading/code splitting for large modules
-- [ ] Optimize images if needed
 - [ ] Add user-friendly error messages for rendering and sound issues
 - [ ] Implement fallbacks for unsupported browsers/devices
 - [ ] Integrate basic analytics for usage tracking
 - [ ] (Optional) Add error logging for public demo
-- [ ] Add tooltips and help modals for new users
 - [ ] Add onboarding flow if needed
 - [ ] Ensure progress indicator is visible for slow operations
 - [ ] Persist user preferences (theme, sound, parameters) on web
@@ -51,6 +50,7 @@
 - [ ] Add translations for all user-facing text
 - [ ] Review app for common web vulnerabilities
 - [ ] Add a privacy policy if analytics or user data is collected
+- [ ] create mute control for sounds?
 - [ ] Test thoroughly on web
 
 ### 5. Mobile App Setup (After Web is Stable)
