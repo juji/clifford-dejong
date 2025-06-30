@@ -135,9 +135,9 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
     el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("touchstart", onTouchStart);
-    el.addEventListener("touchmove", onTouchMove);
-    el.addEventListener("touchend", onTouchEnd);
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: false });
 
     return () => {
       el.removeEventListener("mousedown", onMouseDown);
