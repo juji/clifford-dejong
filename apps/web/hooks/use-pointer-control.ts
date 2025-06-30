@@ -1,15 +1,11 @@
-import React, { useEffect, useRef, RefObject } from "react";
+import { useEffect, useRef, RefObject } from "react";
 import { useAttractorStore } from "@repo/state/attractor-store";
 
 function clamp(val: number, min: number, max: number) {
   return Math.max(min, Math.min(max, val));
 }
 
-export interface PointerControlProps {
-  targetRef: RefObject<HTMLElement>;
-}
-
-export const PointerControl: React.FC<PointerControlProps> = ({ targetRef }) => {
+export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
   const last = useRef<{ x: number; y: number; top: number; left: number } | null>(null);
   const lastDistance = useRef<number | null>(null);
 
@@ -106,6 +102,4 @@ export const PointerControl: React.FC<PointerControlProps> = ({ targetRef }) => 
       el.removeEventListener("touchend", onTouchEnd);
     };
   }, [targetRef, attractorParameters, setAttractorParams, top, left, scale]);
-
-  return null;
-};
+}

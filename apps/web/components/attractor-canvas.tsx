@@ -5,9 +5,11 @@ import { useAttractorStore } from "@repo/state/attractor-store";
 import { useAttractorWorker } from "../hooks/use-attractor-worker";
 import { mainThreadDrawing } from "../lib/main-thread-drawing";
 import { useUIStore } from "../store/ui-store";
+import { usePointerControl } from "../hooks/use-pointer-control";
 
 export function AttractorCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  usePointerControl(canvasRef);
 
   // Zustand selectors for attractor state
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
