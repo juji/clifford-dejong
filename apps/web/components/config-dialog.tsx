@@ -18,11 +18,16 @@ export function ConfigDialog({ open, onOpenChange }: { open: boolean; onOpenChan
         </DialogHeader>
         <div className="mt-4 h-64 overflow-y-auto border rounded bg-muted/30 p-2">
           {loading ? (
-            <div className="text-center text-muted-foreground">Loading...</div>
+            <div className="flex h-full items-center justify-center text-center text-muted-foreground">Loading...</div>
           ) : error ? (
-            <div className="text-center text-destructive">{String(error)}</div>
+            <div className="flex h-full items-center justify-center text-center text-destructive">{String(error)}</div>
           ) : records.length === 0 ? (
-            <div className="text-center text-muted-foreground">No saved configs found.</div>
+            <div className="flex h-full items-center justify-center text-center text-muted-foreground">
+              <div>
+                <p>No saved configs found.</p>
+                <p>Create one by clicking on the save button</p>
+              </div>
+            </div>
           ) : (
             <ul className="space-y-2">
               {records.map((rec) => (
