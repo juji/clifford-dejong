@@ -3,7 +3,11 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@repo/core/*": ["../../packages/core/*"],
+      "@repo/core": ["../../packages/core"],
+      "@repo/state/*": ["../../packages/state/*"],
+      "@repo/state": ["../../packages/state"]
     },
     "types": ["vitest", "vitest/globals", "react-native-web"],
     "plugins": [
