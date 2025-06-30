@@ -10,7 +10,7 @@ const mockSetImageUrl = vi.fn();
 const mockSetError = vi.fn();
 const mockSetQualityMode = vi.fn();
 
-// Mock Zustand store with attractorParameters and all required fields
+// Mock Zustand store with attractorParameters only
 vi.mock("../../../packages/state/attractor-store", () => {
   return {
     useAttractorStore: vi.fn((selector) =>
@@ -28,14 +28,6 @@ vi.mock("../../../packages/state/attractor-store", () => {
           left: 0,
           top: 0,
         },
-        setProgress: mockSetProgress,
-        setIsRendering: mockSetIsRendering,
-        setImageUrl: mockSetImageUrl,
-        setError: mockSetError,
-        DEFAULT_POINTS: 1000,
-        DEFAULT_SCALE: 1,
-        LOW_QUALITY_POINTS: 100,
-        LOW_QUALITY_INTERVAL: 0.5,
       })
     ),
   };
@@ -46,12 +38,23 @@ vi.mock("../hooks/use-debounced-value", () => ({
   useDebouncedValue: (v: any) => v,
 }));
 
-// Mock useUIStore for qualityMode and setQualityMode
+// Mock useUIStore for all UI-related state/actions
 vi.mock("../store/ui-store", () => ({
   useUIStore: vi.fn((selector) =>
     selector({
       qualityMode: "high",
       setQualityMode: mockSetQualityMode,
+      setProgress: mockSetProgress,
+      setImageUrl: mockSetImageUrl,
+      setError: mockSetError,
+      progress: 0,
+      imageUrl: null,
+      error: null,
+      DEFAULT_POINTS: 1000,
+      DEFAULT_SCALE: 1,
+      LOW_QUALITY_POINTS: 100,
+      LOW_QUALITY_INTERVAL: 0.5,
+      // Add any other UI state fields as needed
     })
   ),
 }));

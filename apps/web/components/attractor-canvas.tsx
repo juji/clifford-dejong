@@ -13,13 +13,13 @@ export function AttractorCanvas() {
 
   // Zustand selectors for attractor state
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
-  const setProgress = useAttractorStore((s) => s.setProgress);
-  const setImageUrl = useAttractorStore((s) => s.setImageUrl);
-  const setError = useAttractorStore((s) => s.setError);
-  const DEFAULT_POINTS = useAttractorStore((s) => s.DEFAULT_POINTS);
-  const DEFAULT_SCALE = useAttractorStore((s) => s.DEFAULT_SCALE);
-  const LOW_QUALITY_POINTS = useAttractorStore((s) => s.LOW_QUALITY_POINTS);
-  const LOW_QUALITY_INTERVAL = useAttractorStore((s) => s.LOW_QUALITY_INTERVAL);
+  const setProgress = useUIStore((s) => s.setProgress);
+  const setImageUrl = useUIStore((s) => s.setImageUrl);
+  const setError = useUIStore((s) => s.setError);
+  const DEFAULT_POINTS = useUIStore((s) => s.DEFAULT_POINTS);
+  const DEFAULT_SCALE = useUIStore((s) => s.DEFAULT_SCALE);
+  const LOW_QUALITY_POINTS = useUIStore((s) => s.LOW_QUALITY_POINTS);
+  const LOW_QUALITY_INTERVAL = useUIStore((s) => s.LOW_QUALITY_INTERVAL);
 
   // State for rendering
   const [canvasSize, setCanvasSize] = useState<{ width: number; height: number } | null>(null);

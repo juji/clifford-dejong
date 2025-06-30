@@ -7,22 +7,12 @@ import type { AttractorParameters } from "../core/types";
 // state structure for attractor app
 export type AttractorState = {
   attractorParameters: AttractorParameters;
-  progress: number;
-  imageUrl: string | null;
-  error: string | null;
-  DEFAULT_POINTS: number;
-  DEFAULT_SCALE: number;
-  LOW_QUALITY_POINTS: number;
-  LOW_QUALITY_INTERVAL: number;
 };
 
 // Separate actions from state for type safety
 export type AttractorActions = {
   setAttractorParams: (params: AttractorParameters) => void;
-  setProgress: (progress: number) => void;
-  setImageUrl: (url: string | null) => void;
   reset: () => void;
-  setError: (error: string | null) => void;
 };
 
 const defaultState: Omit<AttractorState, keyof AttractorActions> = {
@@ -40,13 +30,6 @@ const defaultState: Omit<AttractorState, keyof AttractorActions> = {
     left: 0,
     top: 0,
   },
-  progress: 0,
-  imageUrl: null,
-  error: null,
-  DEFAULT_POINTS: 20000000,
-  DEFAULT_SCALE: 150,
-  LOW_QUALITY_POINTS: 200000,
-  LOW_QUALITY_INTERVAL: 10,
 };
 
 export const useAttractorStore = create<AttractorState & AttractorActions>()(
@@ -54,10 +37,7 @@ export const useAttractorStore = create<AttractorState & AttractorActions>()(
     (set, get) => ({
       ...defaultState,
       setAttractorParams: (params) => set((state) => ({ ...state, attractorParameters: params })),
-      setProgress: (progress) => { set({ progress }); },
-      setImageUrl: (url) => set({ imageUrl: url }),
       reset: () => set({ ...defaultState }),
-      setError: (error) => set({ error }),
     }),
     {
       name: "attractor-store",
