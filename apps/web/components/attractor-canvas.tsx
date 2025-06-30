@@ -300,6 +300,7 @@ export function AttractorCanvas() {
     <div className="flex items-center justify-center w-full h-full fixed top-0 left-0">
       <canvas
         ref={canvasRef}
+        style={{ touchAction: 'none' }}
         className={`block w-full h-full transition-opacity ${canvasVisible ? 'opacity-100' : 'opacity-0'}`}
       />
     </div>

@@ -56,6 +56,7 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
 
     // --- Touch for top/left and pinch/scale ---
     const onTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
       if (e.touches.length === 1) {
         const t = e.touches[0];
         if (t) {
@@ -72,6 +73,7 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
       }
     };
     const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
       if (e.touches.length === 1 && dragging.current && last.current) {
         const t = e.touches[0];
         if (t) {
