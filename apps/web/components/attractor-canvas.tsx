@@ -6,6 +6,7 @@ import { useAttractorWorker } from "../hooks/use-attractor-worker";
 import { mainThreadDrawing } from "../lib/main-thread-drawing";
 import { useUIStore } from "../store/ui-store";
 import { usePointerControl } from "../hooks/use-pointer-control";
+import { DEFAULT_POINTS, DEFAULT_SCALE, LOW_QUALITY_POINTS, LOW_QUALITY_INTERVAL } from "../lib/constants";
 
 export function AttractorCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -16,10 +17,6 @@ export function AttractorCanvas() {
   const setProgress = useUIStore((s) => s.setProgress);
   const setImageUrl = useUIStore((s) => s.setImageUrl);
   const setError = useUIStore((s) => s.setError);
-  const DEFAULT_POINTS = useUIStore((s) => s.DEFAULT_POINTS);
-  const DEFAULT_SCALE = useUIStore((s) => s.DEFAULT_SCALE);
-  const LOW_QUALITY_POINTS = useUIStore((s) => s.LOW_QUALITY_POINTS);
-  const LOW_QUALITY_INTERVAL = useUIStore((s) => s.LOW_QUALITY_INTERVAL);
 
   // State for rendering
   const [canvasSize, setCanvasSize] = useState<{ width: number; height: number } | null>(null);

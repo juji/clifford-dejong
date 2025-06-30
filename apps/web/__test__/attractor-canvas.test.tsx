@@ -2,6 +2,7 @@ import { render, waitFor } from "@testing-library/react";
 import { AttractorCanvas } from "../components/attractor-canvas";
 import React from "react";
 import { act } from "react";
+import { DEFAULT_POINTS, DEFAULT_SCALE, LOW_QUALITY_POINTS, LOW_QUALITY_INTERVAL } from "../lib/constants";
 
 // Create mock functions for Zustand actions
 const mockSetProgress = vi.fn();
@@ -50,10 +51,10 @@ vi.mock("../store/ui-store", () => ({
       progress: 0,
       imageUrl: null,
       error: null,
-      DEFAULT_POINTS: 1000,
-      DEFAULT_SCALE: 1,
-      LOW_QUALITY_POINTS: 100,
-      LOW_QUALITY_INTERVAL: 0.5,
+      DEFAULT_POINTS,
+      DEFAULT_SCALE,
+      LOW_QUALITY_POINTS,
+      LOW_QUALITY_INTERVAL,
       // Add any other UI state fields as needed
     })
   ),

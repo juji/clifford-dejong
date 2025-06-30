@@ -25,14 +25,6 @@ interface UIState {
   setImageUrl: (url: string | null) => void
   error: string | null
   setError: (error: string | null) => void
-  DEFAULT_POINTS: number
-  DEFAULT_SCALE: number
-  LOW_QUALITY_POINTS: number
-  LOW_QUALITY_INTERVAL: number
-  setDefaultPoints: (n: number) => void
-  setDefaultScale: (n: number) => void
-  setLowQualityPoints: (n: number) => void
-  setLowQualityInterval: (n: number) => void
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -56,12 +48,4 @@ export const useUIStore = create<UIState>((set) => ({
   setImageUrl: (url) => set({ imageUrl: url }),
   error: null,
   setError: (error) => set({ error }),
-  DEFAULT_POINTS: 20000000,
-  setDefaultPoints: (n) => set({ DEFAULT_POINTS: n }),
-  DEFAULT_SCALE: 150,
-  setDefaultScale: (n) => set({ DEFAULT_SCALE: n }),
-  LOW_QUALITY_POINTS: 200000,
-  setLowQualityPoints: (n) => set({ LOW_QUALITY_POINTS: n }),
-  LOW_QUALITY_INTERVAL: 10,
-  setLowQualityInterval: (n) => set({ LOW_QUALITY_INTERVAL: n }),
 }))
