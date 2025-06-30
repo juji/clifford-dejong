@@ -47,6 +47,7 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Save Config</DialogTitle>
+          <p className="text-sm text-muted-foreground mt-1">save current attractor configuration</p>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <input
