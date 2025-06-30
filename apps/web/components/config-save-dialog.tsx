@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
   const [error, setError] = useState<unknown>(null);
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
 
+  const handleSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleSave = async () => {
     setSaving(true);
     setSuccess(false);
@@ -27,7 +28,13 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
       setSuccess(true);
       setName("");
       if (onSave) onSave();
-      onOpenChange(false);
+      if(handleSaveTimeoutRef.current) {
+        clearTimeout(handleSaveTimeoutRef.current);
+      }
+      handleSaveTimeoutRef.current = setTimeout(() => {
+        setSuccess(false);
+        onOpenChange(false);
+      }, 1000);
     } catch (err) {
       setError(err);
     } finally {
