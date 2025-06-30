@@ -32,7 +32,7 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
       if (!last.current) return;
       const dx = e.clientX - last.current.x;
       const dy = e.clientY - last.current.y;
-      const sensitivity = 0.005;
+      const sensitivity = 0.001; // reduced from 0.005 for finer control
       setAttractorParams({
         ...attractorParameters,
         left: clamp(last.current.left + dx * sensitivity, -1, 1),
