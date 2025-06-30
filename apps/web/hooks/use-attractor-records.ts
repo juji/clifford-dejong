@@ -20,7 +20,7 @@ export function useAttractorRecords() {
     setError(null);
     try {
       const { records: newRecords, total } = await getPaginatedAttractors(page);
-      setRecords((prev) => [...prev, ...newRecords]);
+      setRecords((prev) => [...newRecords, ...prev]);
       setTotal(total);
     } catch (err) {
       setError(err);
@@ -79,6 +79,11 @@ export function useAttractorRecords() {
     setPage(0);
   }, []);
 
+  const flushRecords = useCallback(() => {
+    setRecords([]);
+    setPage(0);
+  }, []);
+
   return {
     records,
     total,
@@ -88,5 +93,6 @@ export function useAttractorRecords() {
     removeRecord,
     loadMore,
     refresh,
+    flushRecords,
   };
 }
