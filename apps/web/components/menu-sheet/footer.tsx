@@ -3,16 +3,24 @@ import { Button } from "../ui/button"
 import { Bolt } from "lucide-react"
 import { useAttractorStore } from "@repo/state/attractor-store"
 import { ConfigSelectionDialog } from "../config-selection-dialog"
+import { ConfigSaveDialog } from "../config-save-dialog"
 
 export function MenuSheetFooter() {
   const reset = useAttractorStore((s) => s.reset)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [loadDialogOpen, setLoadDialogOpen] = useState(false)
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   return (
     <div className="p-4 py-3 border-t border-border text-muted-foreground flex justify-center items-center gap-2">
       <Button variant="outline" size="sm" aria-label="Bolt">
         <Bolt className="w-5 h-5" />
       </Button>
-      <Button variant="outline" size="sm" aria-label="Save" className="flex-1">
+      <Button
+        variant="outline"
+        size="sm"
+        aria-label="Save"
+        className="flex-1"
+        onClick={() => setSaveDialogOpen(true)}
+      >
         save
       </Button>
       <Button
@@ -20,14 +28,15 @@ export function MenuSheetFooter() {
         size="sm"
         aria-label="Load"
         className="flex-1"
-        onClick={() => setDialogOpen(true)}
+        onClick={() => setLoadDialogOpen(true)}
       >
         load
       </Button>
       <Button variant="outline" size="sm" aria-label="Reset" className="flex-1" onClick={reset}>
         reset
       </Button>
-      <ConfigSelectionDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <ConfigSelectionDialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen} />
+      <ConfigSaveDialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen} />
     </div>
   )
 }
