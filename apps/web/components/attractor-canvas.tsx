@@ -2,34 +2,14 @@
 import { useEffect, useRef, useState } from "react";
 import { runAttractorBenchmark } from "../lib/attractor-benchmark";
 import { useAttractorStore } from "../../../packages/state/attractor-store";
-import { useUIStore } from "../store/ui-store";
 import { useAttractorWorker } from "../hooks/use-attractor-worker";
 import { mainThreadDrawing } from "../lib/canvas-drawing";
-
-function ModeToggleButton({
-  mode,
-  onToggle,
-}: {
-  mode: string;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className="fixed bottom-6 right-6 z-[201] px-4 py-2 rounded bg-background border border-foreground shadow text-foreground text-xs font-semibold hover:bg-foreground hover:text-background transition-colors"
-      onClick={onToggle}
-      aria-label="Toggle quality mode"
-    >
-      {mode === "high" ? "Low Quality" : "High Quality"}
-    </button>
-  );
-}
+import { useUIStore } from "../store/ui-store";
 
 export function AttractorCanvas() {
-  
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Zustand selectors for all attractor state
+  // Zustand selectors for attractor state
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
   const setProgress = useAttractorStore((s) => s.setProgress);
   const setImageUrl = useAttractorStore((s) => s.setImageUrl);
@@ -42,21 +22,15 @@ export function AttractorCanvas() {
   // State for rendering
   const [canvasSize, setCanvasSize] = useState<{ width: number; height: number } | null>(null);
   const [canvasVisible, setCanvasVisible] = useState(true);
-  
-  //
-  // initialization factors
-  const [ initialized, setInitialized ] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const offscreenSupported = useRef(typeof window !== 'undefined' && typeof window.OffscreenCanvas !== 'undefined');
-  // const offscreenSupported = false
   const offscreenTransferredRef = useRef(false);
   const dynamicProgressIntervalRef = useRef<number | null>(null);
   const [workerReady, setWorkerReady] = useState(false);
 
   // initialize
   useEffect(() => {
-
     (async () => {
-
       // run benchmark on first render
       const result = await runAttractorBenchmark();
       let interval;
@@ -85,40 +59,6 @@ export function AttractorCanvas() {
     })();
 
   }, []);
-
-  // qualityMode
-  // should be set automatically
-  // based on params changes
-  // this is an initial setup
-  const qualityMode = useUIStore((s) => s.qualityMode);
-  const setQualityMode = useUIStore((s) => s.setQualityMode);
-  useEffect(() => {
-
-    if(!workerRef.current) return;
-    workerRef.current.postMessage({ type: "stop" });
-
-    // on low quality mode change
-    if (qualityMode === 'low') {
-
-      workerRef.current?.postMessage({
-        type: 'update',
-        progressInterval: LOW_QUALITY_INTERVAL,
-        points: LOW_QUALITY_POINTS,
-        qualityMode: qualityMode,
-      })
-
-    }else{
-
-      workerRef.current?.postMessage({
-        type: 'update',
-        progressInterval: dynamicProgressIntervalRef.current,
-        points: DEFAULT_POINTS,
-        qualityMode: qualityMode,
-      })
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qualityMode]);
 
   // Use custom worker hook
   const workerRef = useAttractorWorker({
@@ -167,6 +107,31 @@ export function AttractorCanvas() {
       setError(error || "Unknown error in worker");
     },
   });
+
+  // qualityMode from store
+  // update worker on quality mode change
+  const qualityMode = useUIStore((s) => s.qualityMode);
+  useEffect(() => {
+    if (!workerRef.current) return;
+    workerRef.current.postMessage({ type: "stop" });
+    // on low quality mode change
+    if (qualityMode === 'low') {
+      workerRef.current?.postMessage({
+        type: 'update',
+        progressInterval: LOW_QUALITY_INTERVAL,
+        points: LOW_QUALITY_POINTS,
+        qualityMode: qualityMode,
+      })
+    }else{
+      workerRef.current?.postMessage({
+        type: 'update',
+        progressInterval: dynamicProgressIntervalRef.current,
+        points: DEFAULT_POINTS,
+        qualityMode: qualityMode,
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qualityMode]);
 
   // Listen for window resize and update canvas size state
   const canvasVisibleRef = useRef(canvasVisible);
@@ -329,14 +294,12 @@ export function AttractorCanvas() {
     }
   }, [canvasSize, workerReady]);
 
-
   return (
-    <div className="flex items-center justify-center w-full h-full">
+    <div className="flex items-center justify-center w-full h-full fixed top-0 left-0">
       <canvas
         ref={canvasRef}
-        className={`block max-w-full max-h-full transition-opacity duration-300 ${canvasVisible ? 'opacity-100' : 'opacity-0'}`}
+        className={`block w-full h-full transition-opacity duration-300 ${canvasVisible ? 'opacity-100' : 'opacity-0'}`}
       />
-      <ModeToggleButton mode={qualityMode} onToggle={() => setQualityMode(qualityMode === 'high' ? 'low' : 'high')} />
     </div>
   );
 }
