@@ -6,6 +6,20 @@ function clamp(val: number, min: number, max: number) {
   return Math.max(min, Math.min(max, val));
 }
 
+// translate 
+function getNewTopLeftPosition(
+  deltaMouse: { x: number; y: number },
+  screen: { width: number; height: number },
+  currentValues: { top: number, left: number } // these should be -1 to 1
+){
+
+  return {
+    top: clamp(currentValues.top + (deltaMouse.y/screen.height), -1, 1),
+    left:  clamp(currentValues.left + (deltaMouse.x/screen.width), -1, 1),
+  }
+
+}
+
 export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
   const last = useRef<{ x: number; y: number; top: number; left: number } | null>(null);
   const lastDistance = useRef<number | null>(null);
@@ -28,14 +42,18 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
       setQualityMode("low");
     };
     const onMouseMove = (e: MouseEvent) => {
-      if (!dragging.current || !last.current) return;
-      const dx = e.clientX - last.current.x;
-      const dy = e.clientY - last.current.y;
-      const sensitivity = 0.001;
+      if (!dragging.current || !el || !last.current) return;
+      const deltaMouse = {
+        x: e.clientX - last.current.x,
+        y: e.clientY - last.current.y,
+      };
+      const rect = el.getBoundingClientRect();
+      const screen = { width: rect.width, height: rect.height };
+      const { top: newTop, left: newLeft } = getNewTopLeftPosition(deltaMouse, screen, { top: last.current.top, left: last.current.left });
       setAttractorParams({
         ...attractorParameters,
-        left: clamp(last.current.left + dx * sensitivity, -1, 1),
-        top: clamp(last.current.top + dy * sensitivity, -1, 1),
+        left: newLeft,
+        top: newTop,
       });
     };
     const onMouseUp = () => {
@@ -74,16 +92,20 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
     };
     const onTouchMove = (e: TouchEvent) => {
       e.preventDefault();
-      if (e.touches.length === 1 && dragging.current && last.current) {
+      if (e.touches.length === 1 && dragging.current && el && last.current) {
         const t = e.touches[0];
         if (t) {
-          const dx = t.clientX - last.current.x;
-          const dy = t.clientY - last.current.y;
-          const sensitivity = 0.001;
+          const deltaMouse = {
+            x: t.clientX - last.current.x,
+            y: t.clientY - last.current.y,
+          };
+          const rect = el.getBoundingClientRect();
+          const screen = { width: rect.width, height: rect.height };
+          const { top: newTop, left: newLeft } = getNewTopLeftPosition(deltaMouse, screen, { top: last.current.top, left: last.current.left });
           setAttractorParams({
             ...attractorParameters,
-            left: clamp(last.current.left + dx * sensitivity, -1, 1),
-            top: clamp(last.current.top + dy * sensitivity, -1, 1),
+            left: newLeft,
+            top: newTop,
           });
         }
       } else if (e.touches.length === 2 && lastDistance.current !== null) {
