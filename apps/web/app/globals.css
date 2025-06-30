@@ -143,3 +143,24 @@ a {
     @apply bg-background text-foreground;
   }
 }
+
+/* Minimal scrollbar styles */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) var(--background);
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
