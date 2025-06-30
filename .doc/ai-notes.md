@@ -14,7 +14,7 @@ This file documents conventions, preferences, and workflow notes for collaborati
 - If you need to create a new file, use kebab-case for the filename as well.
 - For example, if you are creating a new file for a Zustand store, you might name it `attractor-store.ts`. If you are creating a new file for a worker, you might name it `mock-worker.ts`.
 - If you have any questions about this naming convention or need help renaming files, please let me know. I can assist you with the renaming process or provide guidance on how to implement this convention in your project.
-- it kinda feel rebelious if you think about it.
+- it kinda feel rebelious if you think about it. (not gonna change the typo error)
 
 ## Workflow Tips
 - If you want the AI to follow a specific convention, add it here and reference this file at the start of a session.
