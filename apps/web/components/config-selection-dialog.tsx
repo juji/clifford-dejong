@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { useAttractorRecords } from "../hooks/use-attractor-records";
 import {
   Dialog,
@@ -8,7 +9,11 @@ import {
 } from "./ui/dialog";
 
 export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const { records, loading, error } = useAttractorRecords();
+  const { records, loading, error, refresh } = useAttractorRecords();
+
+  useEffect(() => {
+    if (open) refresh();
+  }, [open, refresh]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

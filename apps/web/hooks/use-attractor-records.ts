@@ -11,11 +11,12 @@ import {
 export function useAttractorRecords() {
   const [records, setRecords] = useState<AttractorRecord[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
   const fetchRecords = useCallback(async () => {
+    if (page === null) return;
     setLoading(true);
     setError(null);
     try {
@@ -69,17 +70,13 @@ export function useAttractorRecords() {
   );
 
   const loadMore = useCallback(() => {
+    if (page === null) return;
     if (records.length < total && !loading) {
-      setPage((p) => p + 1);
+      setPage((p) => (p === null ? 0 : p + 1));
     }
-  }, [records.length, total, loading]);
+  }, [records.length, total, loading, page]);
 
   const refresh = useCallback(() => {
-    setRecords([]);
-    setPage(0);
-  }, []);
-
-  const flushRecords = useCallback(() => {
     setRecords([]);
     setPage(0);
   }, []);
@@ -93,6 +90,5 @@ export function useAttractorRecords() {
     removeRecord,
     loadMore,
     refresh,
-    flushRecords,
   };
 }
