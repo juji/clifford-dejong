@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { AttractorRecord } from "../lib/attractor-indexdb";
+import type { AttractorRecord } from "../lib/attractor-indexdb";
 
 export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const records = useAttractorRecordsStore((s) => s.records);
