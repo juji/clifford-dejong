@@ -6,13 +6,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { useAttractorRecords } from "../hooks/use-attractor-records";
+import { useAttractorRecordsStore } from "../store/attractor-records-store";
 import { Button } from "./ui/button";
 import { useAttractorStore } from "@repo/state/attractor-store";
 
 export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean; onOpenChange: (open: boolean) => void; onSave?: () => void }) {
   const [name, setName] = useState("");
-  const { addRecord } = useAttractorRecords();
+  const addRecord = useAttractorRecordsStore((s) => s.addRecord);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<unknown>(null);
