@@ -29,6 +29,7 @@
     "@tamagui/polyfill-dev": "^1.129.4",
     "bezier-easing": "^2.1.0",
     "react-native-web": "^0.20.0",
+    "uuid": "^11.1.0",
     "zustand": "^5.0.6"
   },
   "lint-staged": {
