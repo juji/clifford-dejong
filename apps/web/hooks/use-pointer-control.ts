@@ -9,6 +9,7 @@ function clamp(val: number, min: number, max: number) {
 export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
   const last = useRef<{ x: number; y: number; top: number; left: number } | null>(null);
   const lastDistance = useRef<number | null>(null);
+  const dragging = useRef(false);
 
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
   const setAttractorParams = useAttractorStore((s) => s.setAttractorParams);
@@ -20,31 +21,26 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
     const el = targetRef.current;
     if (!el) return;
 
-    // --- Pointer events for top/left ---
-    const onPointerDown = (e: PointerEvent) => {
-      if (el.setPointerCapture) {
-        el.setPointerCapture(e.pointerId);
-      }
+    // --- Mouse events for top/left ---
+    const onMouseDown = (e: MouseEvent) => {
+      dragging.current = true;
       last.current = { x: e.clientX, y: e.clientY, top, left };
       setQualityMode("low");
     };
-    const onPointerMove = (e: PointerEvent) => {
-      if (!last.current) return;
+    const onMouseMove = (e: MouseEvent) => {
+      if (!dragging.current || !last.current) return;
       const dx = e.clientX - last.current.x;
       const dy = e.clientY - last.current.y;
-      const sensitivity = 0.001; // reduced from 0.005 for finer control
+      const sensitivity = 0.001;
       setAttractorParams({
         ...attractorParameters,
         left: clamp(last.current.left + dx * sensitivity, -1, 1),
         top: clamp(last.current.top + dy * sensitivity, -1, 1),
       });
     };
-    const onPointerUp = (e: PointerEvent) => {
-      if (el.releasePointerCapture) {
-        el.releasePointerCapture(e.pointerId);
-      }
+    const onMouseUp = () => {
+      dragging.current = false;
       last.current = null;
-      lastDistance.current = null;
       setQualityMode("high");
     };
 
@@ -58,9 +54,16 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
       });
     };
 
-    // --- Touch for pinch/scale ---
+    // --- Touch for top/left and pinch/scale ---
     const onTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
+      if (e.touches.length === 1) {
+        const t = e.touches[0];
+        if (t) {
+          dragging.current = true;
+          last.current = { x: t.clientX, y: t.clientY, top, left };
+          setQualityMode("low");
+        }
+      } else if (e.touches.length === 2) {
         const t1 = e.touches[0];
         const t2 = e.touches[1];
         if (t1 && t2) {
@@ -69,7 +72,19 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
       }
     };
     const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2 && lastDistance.current !== null) {
+      if (e.touches.length === 1 && dragging.current && last.current) {
+        const t = e.touches[0];
+        if (t) {
+          const dx = t.clientX - last.current.x;
+          const dy = t.clientY - last.current.y;
+          const sensitivity = 0.001;
+          setAttractorParams({
+            ...attractorParameters,
+            left: clamp(last.current.left + dx * sensitivity, -1, 1),
+            top: clamp(last.current.top + dy * sensitivity, -1, 1),
+          });
+        }
+      } else if (e.touches.length === 2 && lastDistance.current !== null) {
         const t1 = e.touches[0];
         const t2 = e.touches[1];
         if (t1 && t2) {
@@ -83,24 +98,27 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
         }
       }
     };
-    const onTouchEnd = () => {
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0) {
+        dragging.current = false;
+        last.current = null;
+        setQualityMode("high");
+      }
       lastDistance.current = null;
     };
 
-    el.addEventListener("pointerdown", onPointerDown);
-    el.addEventListener("pointermove", onPointerMove);
-    el.addEventListener("pointerup", onPointerUp);
-    el.addEventListener("pointerleave", onPointerUp);
+    el.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
     el.addEventListener("wheel", onWheel, { passive: false });
     el.addEventListener("touchstart", onTouchStart);
     el.addEventListener("touchmove", onTouchMove);
     el.addEventListener("touchend", onTouchEnd);
 
     return () => {
-      el.removeEventListener("pointerdown", onPointerDown);
-      el.removeEventListener("pointermove", onPointerMove);
-      el.removeEventListener("pointerup", onPointerUp);
-      el.removeEventListener("pointerleave", onPointerUp);
+      el.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
       el.removeEventListener("wheel", onWheel);
       el.removeEventListener("touchstart", onTouchStart);
       el.removeEventListener("touchmove", onTouchMove);
