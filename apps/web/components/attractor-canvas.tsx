@@ -1,11 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { getColorData } from "@repo/core/color";
 import { runAttractorBenchmark } from "../lib/attractor-benchmark";
 import { useAttractorStore } from "../../../packages/state/attractor-store";
 import { useUIStore } from "../store/ui-store";
 import { useAttractorWorker } from "../hooks/use-attractor-worker";
-import { AttractorParameters } from "@repo/core/types";
+import { mainThreadDrawing } from "../lib/canvas-drawing";
 
 function ModeToggleButton({
   mode,
@@ -48,6 +47,7 @@ export function AttractorCanvas() {
   // initialization factors
   const [ initialized, setInitialized ] = useState(false);
   const offscreenSupported = useRef(typeof window !== 'undefined' && typeof window.OffscreenCanvas !== 'undefined');
+  // const offscreenSupported = false
   const offscreenTransferredRef = useRef(false);
   const dynamicProgressIntervalRef = useRef<number | null>(null);
   const [workerReady, setWorkerReady] = useState(false);
@@ -55,28 +55,35 @@ export function AttractorCanvas() {
   // initialize
   useEffect(() => {
 
-    // run benchmark on first render
-    const result = runAttractorBenchmark();
-    let interval;
-    if (result.msPer100k < 10)
-      interval = 0.5;
-    else if (result.msPer100k < 30)
-      interval = 1;
-    else interval = 2.5;
-    dynamicProgressIntervalRef.current = interval
+    (async () => {
 
-    // set default canvas size
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const parent = canvas.parentElement;
-      if (parent) {
-        const width = parent.clientWidth;
-        const height = parent.clientHeight;
-        canvas.width = width;
-        canvas.height = height;
-        setCanvasSize({ width, height });
+      // run benchmark on first render
+      const result = await runAttractorBenchmark();
+      let interval;
+      if (result.msPer100k < 10)
+        interval = 0.5;
+      else if (result.msPer100k < 30)
+        interval = 1;
+      else interval = 2.5;
+      dynamicProgressIntervalRef.current = interval
+
+      // this waits for benchmark to finish
+      // before setting initial state
+      // set default canvas size
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const parent = canvas.parentElement;
+        if (parent) {
+          const width = parent.clientWidth;
+          const height = parent.clientHeight;
+          canvas.width = width;
+          canvas.height = height;
+          setCanvasSize({ width, height });
+        }
       }
-    }
+
+    })();
+
   }, []);
 
   // qualityMode
@@ -113,54 +120,6 @@ export function AttractorCanvas() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qualityMode]);
 
-  // Refactored mainThreadDrawing to a regular function
-  function mainThreadDrawing(
-    pixels: number[],
-    maxDensity: number,
-    progress: number,
-    qualityMode: string,
-    attractorParameters: AttractorParameters
-  ) {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const width = canvas.width;
-    const height = canvas.height;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const imageData = ctx.createImageData(width, height);
-    const data = new Uint32Array(imageData.data.buffer);
-    const bgArr = attractorParameters.background;
-
-    const bgColor =
-      (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
-
-    if (qualityMode === 'low') {
-      for (let i = 0; i < pixels.length; i++) {
-        data[i] = (pixels[i] ?? 0) > 0 ? 0xffffffff : bgColor;
-      }
-    } else {
-      for (let i = 0; i < pixels.length; i++) {
-        const density = pixels[i] ?? 0;
-        if (density > 0) {
-          data[i] = getColorData(
-            density,
-            maxDensity,
-            attractorParameters.hue ?? 120,
-            attractorParameters.saturation ?? 100,
-            attractorParameters.brightness ?? 100,
-            progress > 0 ? progress / 100 : 1,
-          );
-        } else {
-          data[i] = bgColor;
-        }
-      }
-    }
-    ctx.putImageData(imageData, 0, 0);
-  }
-
   // Use custom worker hook
   const workerRef = useAttractorWorker({
     onReady: () => {
@@ -175,6 +134,7 @@ export function AttractorCanvas() {
 
       if(e.data.pixels && e.data.pixels.length > 0) {
         mainThreadDrawing(
+          canvasRef.current,
           e.data.pixels, 
           e.data.maxDensity, 
           progress,
@@ -190,6 +150,7 @@ export function AttractorCanvas() {
 
       if(e.data.pixels && e.data.pixels.length > 0) {
         mainThreadDrawing(
+          canvasRef.current,
           e.data.pixels, 
           e.data.maxDensity, 
           progress,
