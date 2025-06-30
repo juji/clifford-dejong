@@ -1,5 +1,6 @@
 import { useEffect, useRef, RefObject } from "react";
 import { useAttractorStore } from "@repo/state/attractor-store";
+import { useUIStore } from "../store/ui-store";
 
 function clamp(val: number, min: number, max: number) {
   return Math.max(min, Math.min(max, val));
@@ -13,6 +14,8 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
   const setAttractorParams = useAttractorStore((s) => s.setAttractorParams);
   const { top, left, scale } = attractorParameters;
 
+  const setQualityMode = useUIStore((s) => s.setQualityMode);
+
   useEffect(() => {
     const el = targetRef.current;
     if (!el) return;
@@ -23,6 +26,7 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
         el.setPointerCapture(e.pointerId);
       }
       last.current = { x: e.clientX, y: e.clientY, top, left };
+      setQualityMode("low");
     };
     const onPointerMove = (e: PointerEvent) => {
       if (!last.current) return;
@@ -41,6 +45,7 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
       }
       last.current = null;
       lastDistance.current = null;
+      setQualityMode("high");
     };
 
     // --- Wheel for scale ---
@@ -101,5 +106,5 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
     };
-  }, [targetRef, attractorParameters, setAttractorParams, top, left, scale]);
+  }, [targetRef, attractorParameters, setAttractorParams, top, left, scale, setQualityMode]);
 }
