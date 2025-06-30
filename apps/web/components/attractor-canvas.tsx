@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { runAttractorBenchmark } from "../lib/attractor-benchmark";
 import { useAttractorStore } from "../../../packages/state/attractor-store";
 import { useAttractorWorker } from "../hooks/use-attractor-worker";
-import { mainThreadDrawing } from "../lib/canvas-drawing";
+import { mainThreadDrawing } from "../lib/main-thread-drawing";
 import { useUIStore } from "../store/ui-store";
 
 export function AttractorCanvas() {
