@@ -7,6 +7,116 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from ".
 import { ColorWithOpacityPicker } from "../ui/color-with-opacity-picker";
 import { useEffect, useRef } from "react";
 
+// --- Extracted Components ---
+
+type AttractorParamControlProps = {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+};
+function AttractorParamControl({ label, value, onChange }: AttractorParamControlProps) {
+  return (
+    <div className="mb-4 w-full menu-item">
+      <div className="flex items-center gap-2 w-full mb-5">
+        <label className="font-semibold text-lg w-4 flex-shrink-0">{label}</label>
+        <div className="flex-1 flex justify-end">
+          <Input
+            type="number"
+            step="0.01"
+            min={-5}
+            max={5}
+            value={value}
+            onChange={e => onChange(parseFloat(e.target.value))}
+            className="w-20 text-right flex-shrink-0"
+          />
+        </div>
+      </div>
+      <Slider
+        min={-5}
+        max={5}
+        step={0.01}
+        value={[value]}
+        onValueChange={([v]) => onChange(parseFloat((v ?? 0).toFixed(2)))}
+        className="flex-1"
+      />
+    </div>
+  );
+}
+
+type ColorControlProps = {
+  label: string;
+  min: number;
+  max: number;
+  step?: number;
+  value: number;
+  onChange: (value: number) => void;
+};
+function ColorControl({ label, min, max, step = 1, value, onChange }: ColorControlProps) {
+  return (
+    <div className="mb-4 w-full menu-item">
+      <div className="flex items-center gap-2 w-full mb-5">
+        <label className="font-semibold text-lg w-24 flex-shrink-0">{label}</label>
+        <div className="flex-1 flex justify-end">
+          <Input
+            type="number"
+            step={step}
+            min={min}
+            max={max}
+            value={value}
+            onChange={e => onChange(parseInt(e.target.value))}
+            className="w-20 text-right flex-shrink-0"
+          />
+        </div>
+      </div>
+      <Slider
+        min={min}
+        max={max}
+        step={step}
+        value={[value]}
+        onValueChange={([v]) => onChange(parseInt((v ?? 0).toFixed(0)))}
+        className="flex-1"
+      />
+    </div>
+  );
+}
+
+type PositionControlProps = {
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  onChange: (value: number) => void;
+};
+function PositionControl({ label, min, max, step, value, onChange }: PositionControlProps) {
+  return (
+    <div className="mb-4 w-full menu-item">
+      <div className="flex items-center gap-2 w-full mb-5">
+        <label className="font-semibold text-lg w-16 flex-shrink-0">{label}</label>
+        <div className="flex-1 flex justify-end">
+          <Input
+            type="number"
+            step={step}
+            min={min}
+            max={max}
+            value={value}
+            onChange={e => onChange(parseFloat(e.target.value))}
+            className="w-24 text-right flex-shrink-0"
+          />
+        </div>
+      </div>
+      <Slider
+        min={min}
+        max={max}
+        step={step}
+        value={[value]}
+        onValueChange={([v]) => onChange(parseFloat((v ?? 0).toFixed(3)))}
+        className="flex-1"
+      />
+    </div>
+  );
+}
+
 export function Menu() {
   const openTab = useUIStore((s: { openTab: string }) => s.openTab);
   const attractorParameters = useAttractorStore((s: { attractorParameters: AttractorParameters }) => s.attractorParameters);
@@ -63,93 +173,6 @@ export function Menu() {
     setAttractorParams({ ...attractorParameters, attractor: value as AttractorParameters['attractor'] });
   }
 
-  function renderAttractorParamControl(param: keyof Pick<AttractorParameters, 'a' | 'b' | 'c' | 'd'>, label: string) {
-    return (
-      <div className="mb-4 w-full menu-item">
-        <div className="flex items-center gap-2 w-full mb-5">
-          <label className="font-semibold text-lg w-4 flex-shrink-0">{label}</label>
-          <div className="flex-1 flex justify-end">
-            <Input
-              type="number"
-              step="0.01"
-              min={-5}
-              max={5}
-              value={attractorParameters[param]}
-              onChange={e => handleParamChange(param, parseFloat(e.target.value))}
-              className="w-20 text-right flex-shrink-0"
-            />
-          </div>
-        </div>
-        <Slider
-          min={-5}
-          max={5}
-          step={0.01}
-          value={[attractorParameters[param]]}
-          onValueChange={([v]) => handleParamChange(param, parseFloat((v ?? 0).toFixed(2)))}
-          className="flex-1"
-        />
-      </div>
-    );
-  }
-
-  function renderColorControl(param: keyof Pick<AttractorParameters, 'hue' | 'saturation' | 'brightness'>, label: string, min: number, max: number, step: number = 1) {
-    return (
-      <div className="mb-4 w-full menu-item">
-        <div className="flex items-center gap-2 w-full mb-5">
-          <label className="font-semibold text-lg w-24 flex-shrink-0">{label}</label>
-          <div className="flex-1 flex justify-end">
-            <Input
-              type="number"
-              step={step}
-              min={min}
-              max={max}
-              value={attractorParameters[param]}
-              onChange={e => setAttractorParams({ ...attractorParameters, [param]: parseInt(e.target.value) })}
-              className="w-20 text-right flex-shrink-0"
-            />
-          </div>
-        </div>
-        <Slider
-          min={min}
-          max={max}
-          step={step}
-          value={[attractorParameters[param]]}
-          onValueChange={([v]) => setAttractorParams({ ...attractorParameters, [param]: parseInt((v ?? 0).toFixed(0)) })}
-          className="flex-1"
-        />
-      </div>
-    );
-  }
-
-  function renderPositionControl(param: keyof Pick<AttractorParameters, 'top' | 'left' | 'scale'>, label: string, min: number, max: number, step: number) {
-    return (
-      <div className="mb-4 w-full menu-item">
-        <div className="flex items-center gap-2 w-full mb-5">
-          <label className="font-semibold text-lg w-16 flex-shrink-0">{label}</label>
-          <div className="flex-1 flex justify-end">
-            <Input
-              type="number"
-              step={step}
-              min={min}
-              max={max}
-              value={attractorParameters[param]}
-              onChange={e => setAttractorParams({ ...attractorParameters, [param]: parseFloat(e.target.value) })}
-              className="w-24 text-right flex-shrink-0"
-            />
-          </div>
-        </div>
-        <Slider
-          min={min}
-          max={max}
-          step={step}
-          value={[attractorParameters[param]]}
-          onValueChange={([v]) => setAttractorParams({ ...attractorParameters, [param]: parseFloat((v ?? 0).toFixed(3)) })}
-          className="flex-1"
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       {openTab === "attractor" && (
@@ -165,18 +188,18 @@ export function Menu() {
             </SelectContent>
           </Select>
           <div className="mb-4 font-semibold">Attractor Parameters</div>
-          {renderAttractorParamControl('a', 'a')}
-          {renderAttractorParamControl('b', 'b')}
-          {renderAttractorParamControl('c', 'c')}
-          {renderAttractorParamControl('d', 'd')}
+          <AttractorParamControl label="a" value={attractorParameters.a} onChange={v => handleParamChange('a', v)} />
+          <AttractorParamControl label="b" value={attractorParameters.b} onChange={v => handleParamChange('b', v)} />
+          <AttractorParamControl label="c" value={attractorParameters.c} onChange={v => handleParamChange('c', v)} />
+          <AttractorParamControl label="d" value={attractorParameters.d} onChange={v => handleParamChange('d', v)} />
         </div>
       )}
       {openTab === "color" && (
         <div className="rounded p-3">
           <div className="mb-4 font-semibold">Color Options</div>
-          {renderColorControl('hue', 'Hue', 0, 360, 1)}
-          {renderColorControl('saturation', 'Saturation', 0, 100, 1)}
-          {renderColorControl('brightness', 'Brightness', 0, 100, 1)}
+          <ColorControl label="Hue" min={0} max={360} step={1} value={attractorParameters.hue} onChange={v => setAttractorParams({ ...attractorParameters, hue: v })} />
+          <ColorControl label="Saturation" min={0} max={100} step={1} value={attractorParameters.saturation} onChange={v => setAttractorParams({ ...attractorParameters, saturation: v })} />
+          <ColorControl label="Brightness" min={0} max={100} step={1} value={attractorParameters.brightness} onChange={v => setAttractorParams({ ...attractorParameters, brightness: v })} />
           <ColorWithOpacityPicker
             label="Background"
             color={`#${attractorParameters.background.slice(0,3).map(x=>x.toString(16).padStart(2,"0")).join("")}`}
@@ -211,9 +234,9 @@ export function Menu() {
       {openTab === "position" && (
         <div className="rounded p-3">
           <div className="mb-4 font-semibold">Position Options</div>
-          {renderPositionControl('top', 'Top', -1, 1, 0.001)}
-          {renderPositionControl('left', 'Left', -1, 1, 0.001)}
-          {renderPositionControl('scale', 'Scale', 0.001, 5, 0.001)}
+          <PositionControl label="Top" min={-1} max={1} step={0.001} value={attractorParameters.top} onChange={v => setAttractorParams({ ...attractorParameters, top: v })} />
+          <PositionControl label="Left" min={-1} max={1} step={0.001} value={attractorParameters.left} onChange={v => setAttractorParams({ ...attractorParameters, left: v })} />
+          <PositionControl label="Scale" min={0.001} max={5} step={0.001} value={attractorParameters.scale} onChange={v => setAttractorParams({ ...attractorParameters, scale: v })} />
         </div>
       )}
     </div>
