@@ -4,6 +4,7 @@ import type { AttractorParameters } from "@repo/core/types";
 import { Slider } from "../ui/slider";
 import { Input } from "../ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
+import { ColorWithOpacityPicker } from "../ui/color-with-opacity-picker";
 
 export function Menu() {
   const openTab = useUIStore((s: { openTab: string }) => s.openTab);
@@ -103,6 +104,35 @@ export function Menu() {
           {renderColorControl('hue', 'Hue', 0, 360, 1)}
           {renderColorControl('saturation', 'Saturation', 0, 100, 1)}
           {renderColorControl('brightness', 'Brightness', 0, 100, 1)}
+          <ColorWithOpacityPicker
+            label="Background"
+            color={`#${attractorParameters.background.slice(0,3).map(x=>x.toString(16).padStart(2,"0")).join("")}`}
+            opacity={attractorParameters.background[3] / 255}
+            onColorChange={color => {
+              const rgb = color.match(/#(..)(..)(..)/)?.slice(1).map(x => parseInt(x, 16)) || [0,0,0];
+              setAttractorParams({
+                ...attractorParameters,
+                background: [
+                  rgb[0] ?? 0,
+                  rgb[1] ?? 0,
+                  rgb[2] ?? 0,
+                  attractorParameters.background[3]
+                ]
+              });
+            }}
+            onOpacityChange={opacity => {
+              setAttractorParams({
+                ...attractorParameters,
+                background: [
+                  attractorParameters.background[0],
+                  attractorParameters.background[1],
+                  attractorParameters.background[2],
+                  Math.round(opacity * 255)
+                ]
+              });
+            }}
+            className="mt-6"
+          />
         </div>
       )}
       {openTab === "position" && (
