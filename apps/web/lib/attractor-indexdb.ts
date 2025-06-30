@@ -49,7 +49,8 @@ export async function saveAttractor(
 }
 
 export async function getPaginatedAttractors(
-  page: number
+  page: number,
+  pageSize: number = 33
 ): Promise<{ records: AttractorRecord[]; total: number }> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -61,7 +62,6 @@ export async function getPaginatedAttractors(
     let skipped = 0;
     let added = 0;
     let total = 0;
-    const pageSize = 33;
     req.onsuccess = (event) => {
       const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
       if (cursor) {
