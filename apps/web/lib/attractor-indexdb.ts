@@ -1,4 +1,5 @@
 import type { AttractorParameters } from "@repo/core/types";
+import { v4 as uuidv4 } from "uuid";
 
 export type AttractorRecord = {
   uuid: string;
@@ -24,18 +25,25 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-export async function saveAttractor(record: AttractorRecord): Promise<void> {
+export async function saveAttractor(
+  record: Omit<AttractorRecord, "uuid">
+): Promise<AttractorRecord> {
+  const uuid = uuidv4();
   const db = await openDB();
+  const attractorRecord = { uuid, ...record };
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
-    store.put(record);
-    tx.oncomplete = () => resolve();
+    store.put(attractorRecord);
+    tx.oncomplete = () => resolve(attractorRecord);
     tx.onerror = () => reject(tx.error);
   });
 }
 
-export async function getPaginatedAttractors(page: number, pageSize: number): Promise<{ records: AttractorRecord[]; total: number }> {
+export async function getPaginatedAttractors(
+  page: number,
+  pageSize: number
+): Promise<{ records: AttractorRecord[]; total: number }> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, "readonly");
