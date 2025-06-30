@@ -13,6 +13,12 @@ interface UIState {
   setQualityMode: (mode: QualityMode) => void
   menuPosition: MenuPosition
   setMenuPosition: (pos: MenuPosition) => void
+  showInfo: boolean
+  toggleInfo: () => void
+  showSettings: boolean
+  toggleSettings: () => void
+  fullscreen: boolean
+  toggleFullscreen: () => void
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -24,4 +30,10 @@ export const useUIStore = create<UIState>((set) => ({
   setQualityMode: (mode) => set({ qualityMode: mode }),
   menuPosition: 'left',
   setMenuPosition: (pos) => set({ menuPosition: pos }),
+  showInfo: false,
+  toggleInfo: () => set((state) => ({ showInfo: !state.showInfo })),
+  showSettings: false,
+  toggleSettings: () => set((state) => ({ showSettings: !state.showSettings })),
+  fullscreen: false,
+  toggleFullscreen: () => set((state) => ({ fullscreen: !state.fullscreen })),
 }))
