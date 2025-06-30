@@ -80,7 +80,7 @@ function AttractorRecordList() {
   return (
     <ul className="space-y-2 h-full overflow-y-auto">
       {records.map((rec, idx) => {
-        const isDetectionElm = idx === records.length - 3;
+        const isDetectionElm = idx === records.length - 10;
         return (
           <li
             key={rec.uuid}
