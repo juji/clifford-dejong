@@ -1,6 +1,7 @@
 "use client"
 
-import { Sheet, SheetContent, SheetHeader } from "../ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { useUIStore } from "../../store/ui-store"
 import { useEffect, useState } from "react"
 import { MenuSheetFooter } from "./footer"
@@ -35,7 +36,9 @@ export function MenuSheet() {
           {/* Top row */}
           <div className="p-4 flex items-center justify-between border-b border-border">
             <SheetHeader>
-              {/* <SheetTitle>Menu</SheetTitle> */}
+              <VisuallyHidden asChild>
+                <SheetTitle>Menu</SheetTitle>
+              </VisuallyHidden>
               <AttractorMenu />
             </SheetHeader>
           </div>
