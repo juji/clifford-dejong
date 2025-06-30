@@ -23,6 +23,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@radix-ui/react-visually-hidden": "^1.2.3",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@tamagui/core": "^1.129.4",
     "@tamagui/polyfill-dev": "^1.129.4",
