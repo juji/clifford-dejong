@@ -13,7 +13,8 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
 
   useEffect(() => {
     if (open) refresh();
-  }, [open, refresh]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
