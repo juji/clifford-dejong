@@ -68,26 +68,27 @@ export function AttractorCanvas() {
     onLoadError: (error: string) => {
       setError(error || "Worker failed to load");
     },
-    onPreview: ( progress, e ) => {
+    onPreview: (progress, e) => {
+      if (progress === 0) setImageUrl(null);
       setProgress(progress);
-      if(e.data.pixels && e.data.pixels.length > 0) {
+      if (e.data.pixels && e.data.pixels.length > 0) {
         mainThreadDrawing(
           canvasRef.current,
-          e.data.pixels, 
-          e.data.maxDensity, 
+          e.data.pixels,
+          e.data.maxDensity,
           progress,
           e.data.qualityMode,
           e.data.attractorParameters
         );
       }
     },
-    onDone: ( progress, e ) => {
+    onDone: (progress, e) => {
       setProgress(progress);
-      if(e.data.pixels && e.data.pixels.length > 0) {
+      if (e.data.pixels && e.data.pixels.length > 0) {
         mainThreadDrawing(
           canvasRef.current,
-          e.data.pixels, 
-          e.data.maxDensity, 
+          e.data.pixels,
+          e.data.maxDensity,
           progress,
           e.data.qualityMode,
           e.data.attractorParameters
