@@ -95,7 +95,7 @@ export function AttractorCanvas() {
         );
       }
       const canvas = canvasRef.current;
-      if (canvas) setImageUrl(canvas.toDataURL("image/png"));
+      if (canvas && e.data.qualityMode === 'high') setImageUrl(canvas.toDataURL("image/png"));
     },
     onError: (error: string) => {
       setError(error || "Unknown error in worker");

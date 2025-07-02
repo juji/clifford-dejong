@@ -250,6 +250,7 @@ function runAttractorOffscreen({
         self.postMessage({
           type: typeVal,
           progress: progressVal,
+          qualityMode: qualityMode,
         });
       }
     }
