@@ -1,4 +1,4 @@
-import { getColorData } from "@repo/core/color";
+import { getColorData, hsv2rgb } from "@repo/core/color";
 import { AttractorParameters } from "@repo/core/types";
 
 export function mainThreadDrawing(
@@ -25,8 +25,16 @@ export function mainThreadDrawing(
     (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
 
   if (qualityMode === 'low') {
+    const hue = attractorParameters.hue ?? 120;
+    const saturation = attractorParameters.saturation ?? 100;
+    const brightness = attractorParameters.brightness ?? 100;
     for (let i = 0; i < pixels.length; i++) {
-      data[i] = (pixels[i] ?? 0) > 0 ? 0xffffffff : bgColor;
+      if ((pixels[i] ?? 0) > 0) {
+        const [r, g, b] = hsv2rgb(hue, saturation, brightness);
+        data[i] = (255 << 24) | (b << 16) | (g << 8) | r;
+      } else {
+        data[i] = bgColor;
+      }
     }
   } else {
     for (let i = 0; i < pixels.length; i++) {

@@ -8,7 +8,7 @@
 //   This is set dynamically by the main thread based on device performance.
 
 import { clifford, dejong } from "@repo/core";
-import { getColorData } from "@repo/core/color";
+import { getColorData, hsv2rgb } from "@repo/core/color";
 import type { AttractorParameters } from "@repo/core/types";
 
 type Params = {
@@ -202,7 +202,13 @@ function runAttractorOffscreen({
       
       for (let i = 0; i < pixels.length; i++) {
         const val = Number(pixels[i]) || 0;
-        data[i] = val > 0 ? 0xffffffff : bgColor;
+        if (val > 0) {
+          // Use HSV to RGB conversion for low quality mode
+          const [r, g, b] = hsv2rgb(hue, saturation, brightness);
+          data[i] = (255 << 24) | (b << 16) | (g << 8) | r;
+        } else {
+          data[i] = bgColor;
+        }
       }
 
     } else {
