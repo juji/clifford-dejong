@@ -177,7 +177,10 @@ export function AttractorCanvas() {
     }
 
     window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
+    return () => {
+      window.removeEventListener("resize", updateSize);
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
