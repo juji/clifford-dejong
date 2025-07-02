@@ -104,6 +104,7 @@ export function AttractorCanvas() {
   useEffect(() => {
     return () => {
       if (workerRef.current) {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         workerRef.current.postMessage({ type: "stop" });
       }
     };
