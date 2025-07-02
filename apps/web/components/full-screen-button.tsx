@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
 import { useUIStore } from "../store/ui-store";
+import { useTouchScale } from "../hooks/use-touch-scale";
 
 const TRANSFORM_DURATION = '0.3s';
 
@@ -26,15 +27,7 @@ export function FullScreenButton() {
 
 function FullScreenButtonChild() {
   const [rotated, setRotated] = useState(false);
-  const [scaleClass, setScaleClass] = useState('scale-60');
-
-  // Detect coarse or none pointer (touch device)
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      const isTouch = window.matchMedia('(pointer: coarse), (pointer: none)').matches;
-      setScaleClass(isTouch ? 'scale-75' : 'scale-60');
-    }
-  }, []);
+  const { scaleClass, handleTouchStart, handleTouchEnd } = useTouchScale();
 
   function handleFullScreen() {
     const el = document.documentElement;
@@ -100,15 +93,6 @@ function FullScreenButtonChild() {
       className: `${cornerBase} border-b-3 border-r-3 border-t-0 border-l-0 rounded-br-sm`,
     },
   ];
-
-  function handleTouchStart(e: React.TouchEvent<HTMLButtonElement>) {
-    e.currentTarget.classList.remove('scale-75');
-    e.currentTarget.classList.add('scale-60');
-  }
-  function handleTouchEnd(e: React.TouchEvent<HTMLButtonElement>) {
-    e.currentTarget.classList.remove('scale-60');
-    e.currentTarget.classList.add('scale-75');
-  }
 
   return (
     <button
