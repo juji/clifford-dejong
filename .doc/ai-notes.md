@@ -20,10 +20,5 @@ This file documents conventions, preferences, and workflow notes for collaborati
 - If you want the AI to follow a specific convention, add it here and reference this file at the start of a session.
 - For persistent preferences, update this file as needed.
 
-## AI Limitations & Session Memory
-- GitHub Copilot (and similar AI assistants) do not retain memory between sessions. If you close or refresh the UI, or if the session times out, all context and preferences are lost.
-- To maintain continuity, reference this file at the start of each session or after a reset.
-- The AI can only "see" a limited amount of recent context (recent files, messages, and changes). For large projects or long sessions, remind the AI of important details as needed.
-
 ---
 _Last updated: 2025-07-01_
