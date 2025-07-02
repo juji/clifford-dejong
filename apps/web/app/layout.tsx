@@ -10,6 +10,58 @@ export const metadata: Metadata = {
   title: "Clifford-de Jong Attractor Wallpaper Creator",
   description:
     "A cross-platform app for generating beautiful mathematical art wallpapers using Clifford and de Jong attractors.",
+  applicationName: "Clifford-de Jong Attractor Wallpaper Creator",
+  manifest: "/manifest.webmanifest", // Next.js will serve this from /app/manifest.ts
+  themeColor: "#18181b", // Match your Tailwind/brand color
+  appleWebApp: {
+    capable: true,
+    title: "Clifford-de Jong Attractor Wallpaper Creator",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    telephone: false,
+    address: false,
+    email: false,
+  },
+  icons: [
+    { rel: "icon", url: "/icons/icon-192x192.png", sizes: "192x192" },
+    { rel: "icon", url: "/icons/icon-512x512.png", sizes: "512x512" },
+    { rel: "apple-touch-icon", url: "/icons/apple-touch-icon.png", sizes: "180x180" },
+    { rel: "mask-icon", url: "/icons/safari-pinned-tab.svg", color: "#18181b" },
+  ],
+  openGraph: {
+    title: "Clifford-de Jong Attractor Wallpaper Creator",
+    description:
+      "A cross-platform app for generating beautiful mathematical art wallpapers using Clifford and de Jong attractors.",
+    url: "https://clifford-dejong.example.com/", // Update to your canonical URL
+    siteName: "Clifford-de Jong Attractor Wallpaper Creator",
+    images: [
+      {
+        url: "/og-image.png", // Use the image in the public directory
+        width: 1200,
+        height: 630,
+        alt: "Clifford-de Jong Attractor Wallpaper Creator Open Graph Image",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Clifford-de Jong Attractor Wallpaper Creator",
+    description:
+      "A cross-platform app for generating beautiful mathematical art wallpapers using Clifford and de Jong attractors.",
+    images: [
+      "/og-image.png"
+    ],
+    creator: "@your_twitter_handle", // Update as needed
+  },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
 export default function RootLayout({
