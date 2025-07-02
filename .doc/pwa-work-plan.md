@@ -6,24 +6,24 @@ Integrate Progressive Web App (PWA) support into the Next.js app in `apps/web` u
 ## Steps
 
 1. **Install Dependencies**
-   - Add `next-pwa` to `apps/web`.
+   - [x] Add `next-pwa` to `apps/web`.
 
 2. **Update Next.js Configuration**
-   - Edit `next.config.js` to wrap the config with `next-pwa` and enable PWA in production.
+   - [x] Edit `next.config.js` to wrap the config with `next-pwa` and enable PWA in production.
 
 3. **Add Manifest and Icons**
-   - Create `public/manifest.json` with app details.
-   - Add required icons (`icon-192x192.png`, `icon-512x512.png`) to `public/`.
+   - [x] Create `public/manifest.json` with app details.
+   - [x] Add required icons (all standard Android, iOS, and Windows icons) to `public/icons/`.
 
 4. **Update Document Structure**
-   - Add meta tags and manifest links in `app/layout.tsx` using the `<Head>` component or the metadata API, as this project uses the App Router (Next.js 13+).
+   - [ ] Add meta tags and manifest links in `app/layout.tsx` using the `<Head>` component or the metadata API, as this project uses the App Router (Next.js 13+).
 
 5. **Test PWA Functionality**
-   - Build the app and verify service worker registration, offline support, and manifest loading.
-   - Test with Lighthouse or similar tools for PWA compliance.
+   - [ ] Build the app and verify service worker registration, offline support, and manifest loading.
+   - [ ] Test with Lighthouse or similar tools for PWA compliance.
 
 6. **Document the Integration**
-   - Update project documentation to describe PWA features and how to maintain them.
+   - [ ] Update project documentation to describe PWA features and how to maintain them.
 
 ## Notes
 - Remove any incorrect or unused files (e.g., `public/_document.html`).
