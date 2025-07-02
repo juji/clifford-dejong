@@ -68,9 +68,7 @@ export function AttractorCanvas() {
       setError(error || "Worker failed to load");
     },
     onPreview: ( progress, e ) => {
-
       setProgress(progress);
-
       if(e.data.pixels && e.data.pixels.length > 0) {
         mainThreadDrawing(
           canvasRef.current,
@@ -81,12 +79,9 @@ export function AttractorCanvas() {
           e.data.attractorParameters
         );
       }
-
     },
     onDone: ( progress, e ) => {
-
       setProgress(progress);
-
       if(e.data.pixels && e.data.pixels.length > 0) {
         mainThreadDrawing(
           canvasRef.current,
@@ -97,8 +92,6 @@ export function AttractorCanvas() {
           e.data.attractorParameters
         );
       }
-
-      // Optionally, you can get image data from the canvas if needed
       const canvas = canvasRef.current;
       if (canvas) setImageUrl(canvas.toDataURL("image/png"));
     },
@@ -106,6 +99,16 @@ export function AttractorCanvas() {
       setError(error || "Unknown error in worker");
     },
   });
+
+  // Cleanup worker on unmount
+  useEffect(() => {
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.postMessage({ type: "stop" });
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // qualityMode from store
   // update worker on quality mode change
