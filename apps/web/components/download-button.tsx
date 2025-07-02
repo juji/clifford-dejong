@@ -36,11 +36,10 @@ export function DownloadButton() {
       type="button"
       aria-label="Download attractor image"
       onClick={handleDownload}
-      className={`fixed bottom-15 left-1/2 -translate-x-1/2 z-[200] rounded-full min-w-40 h-16 px-8 bg-background text-foreground shadow-lg border-2 border-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer hover:scale-75 transition-transform duration-200 ${scaleClass} hover:bg-background hover:text-foreground overflow-hidden`}
+      className={`fixed bottom-15 left-1/2 -translate-x-1/2 z-[200] rounded-full min-w-40 h-16 px-8 bg-background text-foreground shadow-lg border-2 border-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer hover:scale-75 transition-transform duration-200 ${scaleClass} hover:bg-background hover:text-foreground overflow-hidden ${styles.downloadButton}`}
       size="default"
     >
-      <span className={`relative w-full h-full flex flex-row items-center justify-center gap-2 ${styles.sweepParent}`}>
-        <span className={styles.sweepEffect} />
+      <span className="relative w-full h-full flex flex-row items-center justify-center gap-2">
         <Download className="size-6" />
         <span className="text-lg font-semibold">Download</span>
       </span>

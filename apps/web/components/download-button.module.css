@@ -18,7 +18,12 @@
   }
 }
 
-.sweepEffect {
+.downloadButton {
+  overflow: hidden;
+}
+
+.downloadButton::before {
+  content: "";
   pointer-events: none;
   position: absolute;
   top: 0;
