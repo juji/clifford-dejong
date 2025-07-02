@@ -86,8 +86,12 @@ beforeAll(() => {
 });
 
 describe("AttractorCanvas", () => {
-  it("renders a canvas element", () => {
-    const { container } = render(<AttractorCanvas />);
+  it("renders a canvas element", async () => {
+    let renderResult: ReturnType<typeof render>;
+    await act(async () => {
+      renderResult = render(<AttractorCanvas />);
+    });
+    const { container } = renderResult!;
     const canvas = container.querySelector("canvas");
     expect(canvas).toBeInTheDocument();
     expect(canvas?.tagName).toBe("CANVAS");
@@ -117,7 +121,11 @@ describe("AttractorCanvas (detailed)", () => {
     wrapper.style.height = '600px';
     document.body.appendChild(wrapper);
 
-    const { container } = render(<AttractorCanvas />, { container: wrapper });
+    let renderResult: ReturnType<typeof render>;
+    await act(async () => {
+      renderResult = render(<AttractorCanvas />, { container: wrapper });
+    });
+    const { container } = renderResult!;
     const canvas = container.querySelector("canvas");
     expect(canvas).toBeInTheDocument();
 
