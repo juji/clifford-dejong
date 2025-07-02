@@ -11,13 +11,13 @@ export function MenuSheetFooter() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   return (
     <div className="p-4 py-3 border-t border-border text-muted-foreground flex justify-center items-center gap-2">
-      <Button variant="outline" size="sm" aria-label="Bolt">
+      <Button variant="outline" size="sm" aria-label="Additional Settings">
         <Bolt className="w-5 h-5" />
       </Button>
       <Button
         variant="outline"
         size="sm"
-        aria-label="Save"
+        aria-label="Save Settings"
         className="flex-1"
         onClick={() => setSaveDialogOpen(true)}
       >
@@ -26,13 +26,13 @@ export function MenuSheetFooter() {
       <Button
         variant="outline"
         size="sm"
-        aria-label="Load"
+        aria-label="Load Settings"
         className="flex-1"
         onClick={() => setLoadDialogOpen(true)}
       >
         load
       </Button>
-      <Button variant="outline" size="sm" aria-label="Reset" className="flex-1" onClick={reset}>
+      <Button variant="outline" size="sm" aria-label="Reset Settings" className="flex-1" onClick={reset}>
         reset
       </Button>
       <ConfigSelectionDialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen} />

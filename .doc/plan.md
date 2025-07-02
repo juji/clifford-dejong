@@ -33,10 +33,10 @@
 - [x] Optimize rendering or add progress indicator if slow
 - [x] Check and improve color contrast
 - [x] Add a download button
-- [ ] PWA integration
-- [ ] Add keyboard navigation support to all interactive elements
-- [ ] Test accessibility with axe or Lighthouse
-- [ ] Ensure all UI is screen reader accessible
+- [x] PWA integration
+- [x] Test accessibility with axe or Lighthouse
+- [x] Ensure all UI is screen reader accessible
+- [ ] Additional Settings button.
 - [ ] Add tutorial.
 - [ ] Add a welcome message. user can optionally follow tutorials.
 - [ ] Profile attractor rendering on web
