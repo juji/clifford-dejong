@@ -33,6 +33,7 @@
 - [x] Optimize rendering or add progress indicator if slow
 - [x] Check and improve color contrast
 - [ ] Add a download button
+- [ ] PWA integration
 - [ ] Add keyboard navigation support to all interactive elements
 - [ ] Test accessibility with axe or Lighthouse
 - [ ] Ensure all UI is screen reader accessible
