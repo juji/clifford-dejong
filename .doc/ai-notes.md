@@ -2,6 +2,12 @@
 
 This file documents conventions, preferences, and workflow notes for collaborating with GitHub Copilot or other AI assistants in this project.
 
+## Message to AI
+- Simpler is better. Do not add extra options, details, or files unless explicitly requested.
+- Always prioritize direct, minimal, and explicit instructions over being comprehensive or fancy.
+- More is not always better.
+- If in doubt, ask for clarification instead of assuming more is needed.
+
 ## Commit Message Conventions
 - Use `(m)` in commit messages to indicate a manual edit. Example:
   - `fix(component): update logic for edge case (m)`
