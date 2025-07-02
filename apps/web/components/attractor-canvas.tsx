@@ -71,24 +71,24 @@ export function AttractorCanvas() {
     onPreview: (progress, e) => {
       if (progress === 0) setImageUrl(null);
       setProgress(progress);
-      if (e.data.pixels && e.data.pixels.length > 0) {
+      if(e.data.pixels && e.data.pixels.length > 0) {
         mainThreadDrawing(
           canvasRef.current,
-          e.data.pixels,
-          e.data.maxDensity,
+          e.data.pixels, 
+          e.data.maxDensity, 
           progress,
           e.data.qualityMode,
           e.data.attractorParameters
         );
       }
     },
-    onDone: (progress, e) => {
+    onDone: ( progress, e ) => {
       setProgress(progress);
-      if (e.data.pixels && e.data.pixels.length > 0) {
+      if(e.data.pixels && e.data.pixels.length > 0) {
         mainThreadDrawing(
           canvasRef.current,
-          e.data.pixels,
-          e.data.maxDensity,
+          e.data.pixels, 
+          e.data.maxDensity, 
           progress,
           e.data.qualityMode,
           e.data.attractorParameters

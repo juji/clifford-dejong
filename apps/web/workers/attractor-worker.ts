@@ -105,6 +105,11 @@ function initialize( data: any ){
 }
 
 function handleStart(){
+  // Send initial progress=0 preview before any points are processed
+  self.postMessage({
+    type: "preview",
+    progress: 0,
+  });
 
   if(!parameters?.params) return;
   if(offscreenCanvas && offscreenCtx) {
