@@ -5,6 +5,7 @@ import { DarkModeToggle } from "../components/dark-mode-toggle";
 import { FullScreenButton } from "../components/full-screen-button";
 import { MenuToggleButton } from "../components/menu-toggle-button";
 import { MenuSheet } from "../components/menu-sheet";
+import { DownloadButton } from "../components/download-button";
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
       <FullScreenButton />
       <MenuToggleButton />
       <AttractorCanvas />
+      <DownloadButton />
       <Footer />
     </>
   );
