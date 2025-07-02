@@ -7,6 +7,7 @@ import { mainThreadDrawing } from "../lib/main-thread-drawing";
 import { useUIStore } from "../store/ui-store";
 import { usePointerControl } from "../hooks/use-pointer-control";
 import { DEFAULT_POINTS, DEFAULT_SCALE, LOW_QUALITY_POINTS, LOW_QUALITY_INTERVAL } from "../lib/constants";
+import debounce from "debounce";
 
 export function AttractorCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -139,54 +140,43 @@ export function AttractorCanvas() {
   // Listen for window resize and update canvas size state
   const canvasVisibleRef = useRef(canvasVisible);
   useEffect(() => {
+    // Debounced function for expensive resize logic
+    const debouncedResize = debounce((newSize: { width: number; height: number }) => {
+      setCanvasSize(newSize);
+      setTimeout(() => {
+        setCanvasVisible(true);
+        canvasVisibleRef.current = true;
+      }, 100);
+    }, 500);
 
-    let lastSize = { width: 0, height: 0 };
-    const HEIGHT_THRESHOLD = 40; // px, ignore small height changes (e.g. mobile scroll)
-
-    let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
     function updateSize() {
-      
-      if(canvasVisibleRef.current) {
-        
+      const canvas = canvasRef.current;
+      const parent = canvas?.parentElement;
+      if (!(canvas && parent)) return;
+      const newSize = {
+        width: parent.clientWidth,
+        height: parent.clientHeight,
+      };
+      if (canvasVisibleRef.current) {
         setCanvasVisible(false);
-        canvasVisibleRef.current = false
-
-        // stop calculation immediately
+        canvasVisibleRef.current = false;
         if (workerRef.current) workerRef.current.postMessage({ type: "stop" });
       }
-
-      if(resizeTimeout) clearTimeout(resizeTimeout);
-      
-      resizeTimeout = setTimeout(() => {
-        const canvas = canvasRef.current;
-        const parent = canvas?.parentElement;
-        if (!(canvas && parent)) return;
-
-        const newSize = {
-          width: parent.clientWidth,
-          height: parent.clientHeight,
-        };
-
-        const heightDelta = Math.abs(newSize.height - lastSize.height);
-        if (newSize.width !== lastSize.width || heightDelta > HEIGHT_THRESHOLD) {
-          lastSize = newSize;
-          setCanvasSize(newSize);
-          canvasVisibleRef.current = true
-          setTimeout(() => { 
-            setCanvasVisible(true); 
-            canvasVisibleRef.current = true
-          },100)
-        }
-      }, 500);
+      // Only update if size changed
+      if (!canvasSize || newSize.width !== canvasSize.width || newSize.height !== canvasSize.height) {
+        debouncedResize(newSize);
+      }
     }
 
     window.addEventListener("resize", updateSize);
     return () => {
       window.removeEventListener("resize", updateSize);
-      if (resizeTimeout) clearTimeout(resizeTimeout);
+      if (typeof debouncedResize.clear === 'function') {
+        debouncedResize.clear();
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [canvasSize]);
 
   const workerInitiated = useRef(false);
   function initiateWorker() {
