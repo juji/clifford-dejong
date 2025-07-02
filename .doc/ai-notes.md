@@ -10,7 +10,7 @@ This file documents conventions, preferences, and workflow notes for collaborati
 - Always review the actual changes before committing and generate a clear, specific commit message that accurately summarizes the edits. Do not use generic commit messages.
 
 ## Commit Message Conventions
-- Use `(m)` in commit messages to indicate a manual edit. Example:
+- Use `(m)` in commit messages to indicate a manual edit. Only, if manual edit happened. Example:
   - `fix(component): update logic for edge case (m)`
 - Do not include extra explanations about manual edits in the commit message unless specifically requested.
 - Treat all manual edits and creations as canonical. Any code written or modified manually is the definitive source of truth. Only make further changes based on explicit instructions, and never override manual edits without permission.
