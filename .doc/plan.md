@@ -1,4 +1,4 @@
-# Migration Plan: Vite Project to React & React Native with Tamagui
+# Migration Plan: Vite Project to React & React Native
 
 ## Attainable Steps
 
