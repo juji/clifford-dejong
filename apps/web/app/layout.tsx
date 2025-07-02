@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "../components/theme-provider";
@@ -12,23 +12,23 @@ export const metadata: Metadata = {
     "A cross-platform app for generating beautiful mathematical art wallpapers using Clifford and de Jong attractors.",
   applicationName: "Clifford-de Jong Attractor Wallpaper Creator",
   manifest: "/manifest.webmanifest", // Next.js will serve this from /app/manifest.ts
-  themeColor: "#18181b", // Match your Tailwind/brand color
-  appleWebApp: {
-    capable: true,
-    title: "Clifford-de Jong Attractor Wallpaper Creator",
-    statusBarStyle: "black-translucent",
-  },
-  formatDetection: {
-    telephone: false,
-    address: false,
-    email: false,
-  },
+  metadataBase: new URL("https://clifford-dejong.vercel.app/"), // Set to your canonical URL
   icons: [
     { rel: "icon", url: "/icons/icon-192x192.png", sizes: "192x192" },
     { rel: "icon", url: "/icons/icon-512x512.png", sizes: "512x512" },
     { rel: "apple-touch-icon", url: "/icons/apple-touch-icon.png", sizes: "180x180" },
     { rel: "mask-icon", url: "/icons/safari-pinned-tab.svg", color: "#18181b" },
   ],
+  formatDetection: {
+    telephone: false,
+    address: false,
+    email: false,
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Clifford-de Jong Attractor Wallpaper Creator",
+    statusBarStyle: "black-translucent",
+  },
   openGraph: {
     title: "Clifford-de Jong Attractor Wallpaper Creator",
     description:
@@ -56,12 +56,14 @@ export const metadata: Metadata = {
     ],
     creator: "@your_twitter_handle", // Update as needed
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#18181b",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
