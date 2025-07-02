@@ -1,31 +1,31 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 
 /**
- * Custom hook to handle touch scaling logic for buttons.
+ * Custom hook to handle the pressed state for an interactive element,
+ * supporting both touch and mouse events.
  * Returns:
- *   - scaleClass: string (the current scale class)
- *   - handleTouchStart: (e) => void
- *   - handleTouchEnd: (e) => void
+ *   - isPressed: boolean (the current pressed state)
+ *   - pressProps: object (props to spread onto the element)
  */
 export function useTouchScale() {
-  const [scaleClass, setScaleClass] = useState("scale-60");
+  const [isPressed, setIsPressed] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.matchMedia) {
-      const isTouch = window.matchMedia("(pointer: coarse), (pointer: none)").matches;
-      setScaleClass(isTouch ? "scale-75" : "scale-60");
-    }
+  const handlePressStart = useCallback(() => {
+    setIsPressed(true);
   }, []);
 
-  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLElement>) => {
-    e.currentTarget.classList.remove("scale-75");
-    e.currentTarget.classList.add("scale-60");
+  const handlePressEnd = useCallback(() => {
+    setIsPressed(false);
   }, []);
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLElement>) => {
-    e.currentTarget.classList.remove("scale-60");
-    e.currentTarget.classList.add("scale-75");
-  }, []);
-
-  return { scaleClass, handleTouchStart, handleTouchEnd };
+  return {
+    isPressed,
+    pressProps: {
+      onMouseDown: handlePressStart,
+      onMouseUp: handlePressEnd,
+      onMouseLeave: handlePressEnd, // End press if mouse leaves element
+      onTouchStart: handlePressStart,
+      onTouchEnd: handlePressEnd,
+    },
+  };
 }
