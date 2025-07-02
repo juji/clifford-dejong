@@ -16,8 +16,5 @@ This file documents conventions, preferences, and workflow notes for collaborati
 - If you have any questions about this naming convention or need help renaming files, please let me know. I can assist you with the renaming process or provide guidance on how to implement this convention in your project.
 - it kinda feel rebelious if you think about it. (not gonna change the typo error)
 
-## Workflow Tips
-- If you want the AI to follow a specific convention, add it here and reference this file at the start of a session.
-- For persistent preferences, update this file as needed.
 
 
