@@ -1,39 +1,19 @@
-import { useEffect, useRef } from 'react';
-import { Howl } from 'howler';
-
+import { useCallback } from "react";
+import { useHowl } from "./use-howl";
 
 export function useDoneSound(
   url: string = 'https://clifford-dejong.vercel.app/done.mp3',
-  volume: number = 1,
-){
+  volume: number = 1
+) {
+  const sound = useHowl({
+    src: [url],
+    preload: true,
+    volume: volume,
+  });
 
-  const sound = useRef<Howl | null>(null);
-
-  function playDone() {
-    if (sound.current) {
-      sound.current.play();
-    } else {
-      console.warn("Can't play. Sound not loaded yet");
-    }
-  }
-
-  useEffect(() => {
-    if (sound.current) {
-      sound.current.unload();
-    } else {
-      sound.current = new Howl({
-        src: [url],
-        preload: true,
-        volume: volume,
-      });
-    }
-
-    return () => {
-      sound.current?.unload();
-      sound.current = null;
-    };
-  }, [url, volume]);
+  const playDone = useCallback(() => {
+    sound?.play();
+  }, [sound]);
 
   return { playDone };
-
 }
