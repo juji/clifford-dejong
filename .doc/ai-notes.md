@@ -7,6 +7,7 @@ This file documents conventions, preferences, and workflow notes for collaborati
 - Always prioritize direct, minimal, and explicit instructions over being comprehensive or fancy.
 - More is not always better.
 - If in doubt, ask for clarification instead of assuming more is needed.
+- Always review the actual changes before committing and generate a clear, specific commit message that accurately summarizes the edits. Do not use generic commit messages.
 
 ## Commit Message Conventions
 - Use `(m)` in commit messages to indicate a manual edit. Example:
