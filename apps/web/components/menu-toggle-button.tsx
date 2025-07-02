@@ -3,29 +3,12 @@
 import { useUIStore } from "../store/ui-store"
 import { cn } from "@/lib/utils"
 import { MenuIcon } from "lucide-react"
-import React, { useState, useEffect } from "react"
+import { useTouchScale } from "../hooks/use-touch-scale"
 
 export function MenuToggleButton({ className }: { className?: string }) {
   const menuOpen = useUIStore((s) => s.menuOpen)
   const setMenuOpen = useUIStore((s) => s.setMenuOpen)
-  const [scaleClass, setScaleClass] = useState('scale-60')
-
-  // Match touch scaling with FullScreenButton
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      const isTouch = window.matchMedia('(pointer: coarse), (pointer: none)').matches;
-      setScaleClass(isTouch ? 'scale-75' : 'scale-60');
-    }
-  }, [])
-
-  function handleTouchStart(e: React.TouchEvent<HTMLButtonElement>) {
-    e.currentTarget.classList.remove('scale-75');
-    e.currentTarget.classList.add('scale-60');
-  }
-  function handleTouchEnd(e: React.TouchEvent<HTMLButtonElement>) {
-    e.currentTarget.classList.remove('scale-60');
-    e.currentTarget.classList.add('scale-75');
-  }
+  const { scaleClass, handleTouchStart, handleTouchEnd } = useTouchScale()
 
   // Hide button with CSS instead of early return to avoid hook order issues
   return (
