@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import type { AttractorRecord } from "../lib/attractor-indexdb";
+import { useAttractorStore } from "@repo/state/attractor-store";
 
 export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const records = useAttractorRecordsStore((s) => s.records);
@@ -25,7 +26,7 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Saved Config</DialogTitle>
+          <DialogTitle>Attractor Gallery</DialogTitle>
         </DialogHeader>
         <div className="mt-4 h-64 border rounded bg-muted/30 p-2 flex flex-col">
           {error ? (
@@ -38,7 +39,7 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
               </div>
             </div>
           ) : (
-            <AttractorRecordList />
+            <AttractorRecordList onSelect={() => onOpenChange(false)} />
           )}
         </div>
         <button
@@ -53,12 +54,15 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
   );
 }
 
-function AttractorRecordList() {
+function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
   const records = useAttractorRecordsStore((s) => s.records) as AttractorRecord[];
   const loading = useAttractorRecordsStore((s) => s.loading);
   const loadMore = useAttractorRecordsStore((s) => s.loadMore);
+  const removeRecord = useAttractorRecordsStore((s) => s.removeRecord);
+  const hasMore = useAttractorRecordsStore((s) => s.records.length < s.total);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const detectionElmRef = useRef<HTMLLIElement | null>(null);
+    const setAttractorParams = useAttractorStore((s) => s.setAttractorParams);
 
   useEffect(() => {
     if (observerRef.current) {
@@ -75,21 +79,35 @@ function AttractorRecordList() {
     );
     observerRef.current.observe(detectionElmRef.current);
     return () => observerRef.current?.disconnect();
-  }, [records.length, loadMore, loading]);
+  }, [records.length, loadMore, loading, hasMore]);
 
   return (
     <ul className="space-y-2 h-full overflow-y-auto">
       {records.map((rec, idx) => {
-        const isDetectionElm = idx === records.length - 10;
+        const isLastElement = idx === records.length - 1;
         return (
           <li
             key={rec.uuid}
             data-record-uuid={rec.uuid}
-            className="flex justify-between items-center p-2 bg-background rounded shadow-sm"
-            ref={isDetectionElm ? detectionElmRef : undefined}
+            className="flex justify-between items-center p-2 bg-background rounded shadow-sm group"
+            ref={isLastElement && hasMore ? detectionElmRef : undefined}
           >
-            <span className="font-medium">{rec.name}</span>
-            <span className="text-xs text-muted-foreground">{new Date(rec.createdAt).toLocaleString()}</span>
+            <div
+              className="flex-grow cursor-pointer"
+              onClick={() => {
+                setAttractorParams(rec.attractorParameters);
+                onSelect();
+              }}
+            >
+              <span className="font-medium">{rec.name}</span>
+              <span className="text-xs text-muted-foreground block">{new Date(rec.createdAt).toLocaleString()}</span>
+            </div>
+            <button
+              onClick={() => removeRecord(rec.uuid)}
+              className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+            >
+              Delete
+            </button>
           </li>
         );
       })}

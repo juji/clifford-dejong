@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,23 +18,14 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
   const [error, setError] = useState<unknown>(null);
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
 
-  const handleSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleSave = async () => {
     setSaving(true);
-    setSuccess(false);
     setError(null);
     try {
       await addRecord({ name, attractorParameters });
       setSuccess(true);
       setName("");
       if (onSave) onSave();
-      if(handleSaveTimeoutRef.current) {
-        clearTimeout(handleSaveTimeoutRef.current);
-      }
-      handleSaveTimeoutRef.current = setTimeout(() => {
-        setSuccess(false);
-        onOpenChange(false);
-      }, 1000);
     } catch (err) {
       setError(err);
     } finally {
@@ -42,8 +33,16 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
     }
   };
 
+  const handleClose = () => {
+    // Reset state on close
+    setSuccess(false);
+    setError(null);
+    setName("");
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Save Config</DialogTitle>
@@ -55,10 +54,14 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
             type="text"
             placeholder="Config name"
             value={name}
+            autoFocus
             onChange={e => setName(e.target.value)}
           />
-          <Button onClick={handleSave} disabled={saving || !name.trim()}>
-            {saving ? "Saving..." : "Save"}
+          <Button
+            onClick={success ? handleClose : handleSave}
+            disabled={saving || (!name.trim() && !success)}
+          >
+            {success ? "Close" : saving ? "Saving..." : "Save"}
           </Button>
           {error ? <div className="text-destructive text-center">{String(error)}</div> : null}
           {success ? <div className="text-green-600 text-center">Saved!</div> : null}

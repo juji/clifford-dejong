@@ -13,7 +13,7 @@ interface AttractorRecordsState {
   page: number | null;
   loading: boolean;
   error: unknown;
-  fetchRecords: () => Promise<void>;
+  fetchRecords: (pageToFetch: number) => Promise<void>;
   addRecord: (record: { name: string; attractorParameters: AttractorParameters }) => Promise<void>;
   removeRecord: (uuid: string) => Promise<void>;
   loadMore: () => void;
@@ -26,15 +26,14 @@ export const useAttractorRecordsStore = create<AttractorRecordsState>((set, get)
   page: null,
   loading: false,
   error: null,
-  fetchRecords: async () => {
-    const { page } = get();
-    if (page === null) return;
+  fetchRecords: async (pageToFetch) => {
     set({ loading: true, error: null });
     try {
-      const { records: newRecords, total } = await getPaginatedAttractors(page);
+      const { records: newRecords, total } = await getPaginatedAttractors(pageToFetch);
       set((state) => ({
-        records: [...state.records, ...newRecords],
+        records: pageToFetch === 0 ? newRecords : [...state.records, ...newRecords],
         total,
+        page: pageToFetch,
       }));
     } catch (err) {
       set({ error: err });
@@ -46,8 +45,7 @@ export const useAttractorRecordsStore = create<AttractorRecordsState>((set, get)
     set({ loading: true, error: null });
     try {
       await saveAttractor(record);
-      set({ records: [], page: 0 });
-      await get().fetchRecords();
+      await get().fetchRecords(0);
     } catch (err) {
       set({ error: err });
     } finally {
@@ -58,8 +56,7 @@ export const useAttractorRecordsStore = create<AttractorRecordsState>((set, get)
     set({ loading: true, error: null });
     try {
       await deleteAttractor(uuid);
-      set({ records: [], page: 0 });
-      await get().fetchRecords();
+      await get().fetchRecords(0);
     } catch (err) {
       set({ error: err });
     } finally {
@@ -68,14 +65,12 @@ export const useAttractorRecordsStore = create<AttractorRecordsState>((set, get)
   },
   loadMore: () => {
     const { page, records, total, loading } = get();
-    if (page === null) return;
     if (records.length < total && !loading) {
-      set({ page: page === null ? 0 : page + 1 });
-      get().fetchRecords();
+      const nextPage = (page ?? -1) + 1;
+      get().fetchRecords(nextPage);
     }
   },
   refresh: () => {
-    set({ records: [], page: 0 });
-    get().fetchRecords();
+    get().fetchRecords(0);
   },
 }));
