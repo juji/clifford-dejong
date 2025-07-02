@@ -4,7 +4,7 @@ import { Download } from "lucide-react";
 import { Button } from "./ui/button";
 import { useUIStore } from "../store/ui-store";
 import React, { useState, useEffect } from "react";
-import styles from "./DownloadButton.module.css";
+import styles from "./download-button.module.css";
 
 export function DownloadButton() {
   const imageUrl = useUIStore((s) => s.imageUrl);
