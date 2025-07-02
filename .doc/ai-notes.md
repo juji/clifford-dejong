@@ -20,5 +20,4 @@ This file documents conventions, preferences, and workflow notes for collaborati
 - If you want the AI to follow a specific convention, add it here and reference this file at the start of a session.
 - For persistent preferences, update this file as needed.
 
----
-_Last updated: 2025-07-01_
+
