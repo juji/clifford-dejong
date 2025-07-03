@@ -24,10 +24,11 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent aria-describedby="gallery-description">
         <DialogHeader>
           <DialogTitle>Attractor Gallery</DialogTitle>
         </DialogHeader>
+        <div id="gallery-description" className="sr-only">Browse and select from your saved attractor configurations.</div>
         <div className="mt-4 h-64 border rounded bg-muted/30 p-2 flex flex-col">
           {error ? (
             <div className="flex h-full items-center justify-center text-center text-destructive">{String(error)}</div>
@@ -65,20 +66,43 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
     const setAttractorParams = useAttractorStore((s) => s.setAttractorParams);
 
   useEffect(() => {
+    // Clean up any existing observer
     if (observerRef.current) {
       observerRef.current.disconnect();
+      observerRef.current = null;
     }
-    if (!detectionElmRef.current) return;
-    observerRef.current = new window.IntersectionObserver(
-      (entries) => {
-        if (entries[0] && entries[0].isIntersecting && !loading) {
-          loadMore();
-        }
-      },
-      { root: detectionElmRef.current.parentElement, threshold: 0.1 }
-    );
-    observerRef.current.observe(detectionElmRef.current);
-    return () => observerRef.current?.disconnect();
+    
+    // If there's no element to observe or we don't need more data, don't set up the observer
+    if (!detectionElmRef.current || !hasMore) return;
+    
+    // Create a local variable to avoid issues with closures
+    const currentElement = detectionElmRef.current;
+    
+    try {
+      // Create new observer
+      const observer = new window.IntersectionObserver(
+        (entries) => {
+          if (entries[0] && entries[0].isIntersecting && !loading) {
+            loadMore();
+          }
+        },
+        { root: currentElement.parentElement, threshold: 0.1 }
+      );
+      
+      // Start observing
+      observer.observe(currentElement);
+      observerRef.current = observer;
+      
+      // Return cleanup function
+      return () => {
+        observer.disconnect();
+        observerRef.current = null;
+      };
+    } catch (error) {
+      console.error("Error setting up IntersectionObserver:", error);
+      // Fallback to regular loading if IntersectionObserver fails
+      return undefined;
+    }
   }, [records.length, loadMore, loading, hasMore]);
 
   return (

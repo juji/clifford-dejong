@@ -1,0 +1,8 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`dejong attractor > should produce expected output for known inputs > de Jong 10th iteration 1`] = `
+[
+  0.9244077163657564,
+  1.429480962967685,
+]
+`;

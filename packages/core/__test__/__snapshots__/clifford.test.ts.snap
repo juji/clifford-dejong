@@ -1,0 +1,8 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`clifford attractor > should produce expected output for known inputs > Clifford 10th iteration 1`] = `
+[
+  0.33486533952432906,
+  0.1631105131493641,
+]
+`;

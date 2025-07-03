@@ -26,9 +26,9 @@
 
 #### 🔥 **IMMEDIATE PRIORITIES** (A- → A+ Grade)
 - [ ] **IntersectionObserver Mock** - Fix mock in `config-selection-dialog.test.tsx` to un-skip 6 tests
-- [ ] **DialogContent Accessibility** - Add missing `Description` or `aria-describedby` to fix warnings
-- [ ] **Clifford Test** - Add snapshot test with known input/output for mathematical accuracy
-- [ ] **de Jong Test** - Add snapshot test with known input/output for mathematical accuracy
+- [x] **DialogContent Accessibility** - Add missing `Description` or `aria-describedby` to fix warnings
+- [x] **Clifford Test** - Add snapshot test with known input/output for mathematical accuracy
+- [x] **de Jong Test** - Add snapshot test with known input/output for mathematical accuracy
 
 #### ✅ **COMPLETED COMPONENTS**
 - [x] **MenuSheetFooter** - Button interactions, dropdown menus, dialog triggers (11 tests)
@@ -60,8 +60,8 @@
 - [ ] **AttractorRecordsStore** - CRUD operations, IndexedDB integration
 
 #### 🧮 **MATH & UTILITIES**
-- [x] **Clifford Attractor** - Basic shape validation ⚠️ *needs value verification - fix above*
-- [x] **de Jong Attractor** - Basic shape validation ⚠️ *needs value verification - fix above*
+- [x] **Clifford Attractor** - Basic shape validation and snapshot testing ✅
+- [x] **de Jong Attractor** - Basic shape validation and snapshot testing ✅
 - [ ] **Color utilities** - HSB to RGB conversion, color manipulation
 - [ ] **Canvas utilities** - Drawing operations, coordinate transformations
 
@@ -218,9 +218,9 @@ describe('StoreName', () => {
 
 Execute the **UNIFIED LINEAR CHECKLIST** above in order. Start with 🔥 **IMMEDIATE PRIORITIES** to reach A+ grade, then continue down the list.
 
-### 📊 **Current Status: A- Grade**
-- **Total Tests**: 55 passing + 6 skipped = 61 tests
-- **Next Target**: A+ Grade (fix 4 immediate priorities above)
+### 📊 **Current Status: A Grade**
+- **Total Tests**: 55 passing + 6 skipped + 2 new = 63 tests
+- **Next Target**: A+ Grade (fix IntersectionObserver mock to un-skip 6 tests)
 
 ## Maintenance
 
