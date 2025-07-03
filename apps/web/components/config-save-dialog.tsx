@@ -48,6 +48,10 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
   };
 
   const handleClose = () => {
+    setName("");
+    setSuccess(false);
+    setError(null);
+    setSaving(false);
     onOpenChange(false);
   };
 

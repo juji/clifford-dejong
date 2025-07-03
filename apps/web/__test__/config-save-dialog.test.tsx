@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfigSaveDialog } from "../components/config-save-dialog";
 import { vi, describe, it, expect, beforeEach } from "vitest";
@@ -53,7 +53,7 @@ describe("ConfigSaveDialog", () => {
   });
 
   describe("Form Submission - Success Path", () => {
-    it.skip("handles successful form submission", async () => {
+    it("handles successful form submission", async () => {
       mockAddRecord.mockResolvedValueOnce(undefined);
 
       render(
@@ -148,7 +148,7 @@ describe("ConfigSaveDialog", () => {
   });
 
   describe("Closing Behavior", () => {
-    it.skip("resets state when closed", async () => {
+    it("resets state when closed", async () => {
       mockAddRecord.mockResolvedValueOnce(undefined);
 
       render(
@@ -176,6 +176,7 @@ describe("ConfigSaveDialog", () => {
       expect(onOpenChange).toHaveBeenCalledWith(false);
 
       // Rerender to verify reset state
+      cleanup();
       render(
         <ConfigSaveDialog open={true} onOpenChange={onOpenChange} onSave={onSave} />
       );
