@@ -4,6 +4,7 @@ import { useAttractorRecordsStore } from "../store/attractor-records-store";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
@@ -24,9 +25,12 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent description="Browse and select from your saved attractor configurations.">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Attractor Gallery</DialogTitle>
+          <DialogDescription>
+            Browse and select from your saved attractor configurations.
+          </DialogDescription>
         </DialogHeader>
         <div className="mt-4 h-64 border rounded bg-muted/30 p-2 flex flex-col">
           {error ? (
