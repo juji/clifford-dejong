@@ -28,7 +28,7 @@ export function DarkModeToggle() {
         aria-label="Toggle dark mode"
         onClick={() => setTheme(isDark ? "light" : "dark")}
       >
-        {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        {isDark ? <Sun className="h-5 w-5" data-testid="sun-icon" /> : <Moon className="h-5 w-5" data-testid="moon-icon" />}
         <span className="sr-only">Toggle dark mode</span>
       </Button>
     </div>

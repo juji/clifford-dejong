@@ -40,8 +40,8 @@
   - No skipped tests - test file completely refactored
 
 #### 📱 **NEXT COMPONENTS**
-- [ ] **ConfigSaveDialog** - Form submission, error handling
-- [ ] **DarkModeToggle** - Theme switching
+- [x] **ConfigSaveDialog** - Form submission, error handling ✅
+- [x] **DarkModeToggle** - Theme switching ✅
 - [ ] **FullScreenButton** - Fullscreen API integration
 - [ ] **ProgressIndicator** - Progress updates, animations
 
