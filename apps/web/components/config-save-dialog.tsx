@@ -33,10 +33,10 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
     setSaving(true);
     setError(null);
     setSuccess(false);
+    // Add a small delay to ensure the saving state is visible
+    await new Promise(resolve => setTimeout(resolve, 100));
     try {
       await addRecord({ name, attractorParameters });
-      // Add a small delay to ensure the saving state is visible
-      await new Promise(resolve => setTimeout(resolve, 100));
       setName("");
       setSuccess(true);
       if (onSave) onSave();
