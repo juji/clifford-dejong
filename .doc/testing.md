@@ -26,7 +26,7 @@
 
 #### Core UI Components
 - [x] **MenuSheetFooter** - Button interactions, dropdown menus, dialog triggers ✅
-- [ ] **AttractorCanvas** - Expand existing tests, canvas rendering, worker integration
+- [x] **AttractorCanvas** - Expand existing tests, canvas rendering, worker integration ✅
 - [ ] **ConfigSelectionDialog** - Form interactions, validation, save/load
 - [ ] **ConfigSaveDialog** - Form submission, error handling
 - [ ] **DarkModeToggle** - Theme switching
