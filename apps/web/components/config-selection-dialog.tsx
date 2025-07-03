@@ -24,11 +24,10 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent aria-describedby="gallery-description">
+      <DialogContent description="Browse and select from your saved attractor configurations.">
         <DialogHeader>
           <DialogTitle>Attractor Gallery</DialogTitle>
         </DialogHeader>
-        <div id="gallery-description" className="sr-only">Browse and select from your saved attractor configurations.</div>
         <div className="mt-4 h-64 border rounded bg-muted/30 p-2 flex flex-col">
           {error ? (
             <div className="flex h-full items-center justify-center text-center text-destructive">{String(error)}</div>
