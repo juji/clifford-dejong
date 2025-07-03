@@ -76,13 +76,13 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
               value={name}
               autoFocus
               onChange={e => setName(e.target.value)}
-              data-testid="config-name-input"
+              role="textbox"
+              aria-label="Config name"
             />
           </div>
           <Button
             onClick={success ? handleClose : handleSave}
             disabled={saving || (!name.trim() && !success)}
-            data-testid={success ? "close-button" : saving ? "saving-button" : "save-button"}
             aria-label={success ? "Close" : saving ? "Saving..." : "Save"}
             aria-busy={saving}
           >

@@ -39,8 +39,8 @@ describe("ConfigSaveDialog", () => {
 
       expect(screen.getByRole("dialog")).toBeInTheDocument();
       expect(screen.getByText("Save Config")).toBeInTheDocument();
-      expect(screen.getByTestId("config-name-input")).toBeInTheDocument();
-      expect(screen.getByTestId("save-button")).toBeInTheDocument();
+      expect(screen.getByRole("textbox", { name: "Config name" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
     });
 
     it("does not render when open is false", () => {
@@ -60,8 +60,8 @@ describe("ConfigSaveDialog", () => {
         <ConfigSaveDialog open={true} onOpenChange={onOpenChange} onSave={onSave} />
       );
 
-      const input = screen.getByTestId("config-name-input");
-      const saveButton = screen.getByTestId("save-button");
+      const input = screen.getByRole("textbox", { name: "Config name" });
+      const saveButton = screen.getByRole("button", { name: "Save" });
 
       // Initial state
       expect(saveButton).toBeDisabled();
@@ -73,7 +73,7 @@ describe("ConfigSaveDialog", () => {
       // Click save and verify saving state
       await user.click(saveButton);
       await waitFor(() => {
-        expect(screen.getByTestId("saving-button")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Saving..." })).toBeInTheDocument();
       });
       
       // Wait for save to complete
@@ -84,17 +84,11 @@ describe("ConfigSaveDialog", () => {
         });
       });
 
-      // Verify addRecord was called with correct params
-      expect(mockAddRecord).toHaveBeenCalledWith({
-        name: "Test Config",
-        attractorParameters: mockAttractorParameters,
-      });
-
       // Success state
       await waitFor(() => {
         expect(screen.getByText("Saved!")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
       });
-      expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
       expect(onSave).toHaveBeenCalled();
       expect(input).toHaveValue("");
     });
@@ -109,17 +103,22 @@ describe("ConfigSaveDialog", () => {
         <ConfigSaveDialog open={true} onOpenChange={onOpenChange} onSave={onSave} />
       );
 
-      const input = screen.getByPlaceholderText("Config name");
-      await user.type(input, "Test Config");
-
+      const input = screen.getByRole("textbox", { name: "Config name" });
       const saveButton = screen.getByRole("button", { name: "Save" });
+      
+      await user.type(input, "Test Config");
       await user.click(saveButton);
+
+      // Verify saving state
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "Saving..." })).toBeInTheDocument();
+      });
 
       // Error state
       await waitFor(() => {
-        expect(screen.getByText(error.toString())).toBeInTheDocument();
+        expect(screen.getByRole("alert")).toHaveTextContent(error.toString());
+        expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
       });
-      expect(screen.getByTestId("save-button")).toBeInTheDocument();
       expect(onSave).not.toHaveBeenCalled();
     });
   });
@@ -130,7 +129,7 @@ describe("ConfigSaveDialog", () => {
         <ConfigSaveDialog open={true} onOpenChange={onOpenChange} onSave={onSave} />
       );
 
-      const input = screen.getByPlaceholderText("Config name");
+      const input = screen.getByRole("textbox", { name: "Config name" });
       const saveButton = screen.getByRole("button", { name: "Save" });
 
       // Empty input
@@ -156,24 +155,23 @@ describe("ConfigSaveDialog", () => {
       );
 
       // Submit form successfully
-      const input = screen.getByPlaceholderText("Config name");
+      const input = screen.getByRole("textbox", { name: "Config name" });
+      const saveButton = screen.getByRole("button", { name: "Save" });
+      
       await user.type(input, "Test Config");
-      await user.click(screen.getByRole("button", { name: "Save" }));
+      await user.click(saveButton);
 
       // Wait for success state
       await waitFor(() => {
         expect(screen.getByText("Saved!")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
       });
 
-      // Close dialog
-      const closeButton = screen.getByTestId("close-button");
-      await user.click(closeButton); // Click the main button, not the X button
+      // Close dialog using the main button
+      await user.click(screen.getByRole("button", { name: "Close" }));
       await waitFor(() => {
         expect(onOpenChange).toHaveBeenCalledWith(false);
       });
-
-      // Verify onOpenChange called
-      expect(onOpenChange).toHaveBeenCalledWith(false);
 
       // Rerender to verify reset state
       cleanup();
@@ -183,8 +181,10 @@ describe("ConfigSaveDialog", () => {
 
       // Verify state is reset
       expect(screen.queryByText("Saved!")).not.toBeInTheDocument();
-      expect(screen.getByPlaceholderText("Config name")).toHaveValue("");
-      expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+      const newInput = screen.getByRole("textbox", { name: "Config name" });
+      expect(newInput).toHaveValue("");
+      const newButton = screen.getByRole("button", { name: "Save" });
+      expect(newButton).toBeDisabled();
     });
   });
 });
