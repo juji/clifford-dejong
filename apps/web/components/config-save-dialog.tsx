@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "./ui/dialog";
 import { useAttractorRecordsStore } from "../store/attractor-records-store";
 import { Button } from "./ui/button";
@@ -55,7 +56,9 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Save Config</DialogTitle>
-          <p className="text-sm text-muted-foreground mt-1">save current attractor configuration</p>
+          <DialogDescription className="text-sm text-muted-foreground mt-1">
+            save current attractor configuration
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div>
