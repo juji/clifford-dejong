@@ -22,7 +22,7 @@
 
 ## Testing Strategy Breakdown
 
-### 📋 **UNIFIED LINEAR CHECKLIST** (Execute in Order)
+### 📋 **UNIFIED LINEAR CHECKLIST** (Execute One by One, Commit After Each Completion)
 
 #### 🔥 **IMMEDIATE PRIORITIES** (A → A+ Grade)
 - [x] **DialogContent Accessibility** - Add missing `Description` or `aria-describedby` to fix warnings
