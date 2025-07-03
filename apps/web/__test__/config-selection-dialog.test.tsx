@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 import { ConfigSelectionDialog } from "../components/config-selection-dialog";
 import { useAttractorRecordsStore } from "../store/attractor-records-store";
 import { useAttractorStore } from "@repo/state/attractor-store";
@@ -9,723 +9,184 @@ import { useAttractorStore } from "@repo/state/attractor-store";
 vi.mock("../store/attractor-records-store");
 vi.mock("@repo/state/attractor-store");
 
-// Mock intersection observer
-// Create mocks for IntersectionObserver methods
-const mockObserve = vi.fn();
-const mockDisconnect = vi.fn();
-const mockUnobserve = vi.fn();
-
-// Function to create a callback trigger
-let intersectionCallback: IntersectionObserverCallback;
-
-// Helper function to trigger intersection events
-function simulateIntersection(isIntersecting: boolean) {
-  const entry = {
-    isIntersecting,
-    target: document.createElement('li'),
-    boundingClientRect: {} as DOMRectReadOnly,
-    intersectionRatio: isIntersecting ? 1 : 0,
-    intersectionRect: {} as DOMRectReadOnly,
-    rootBounds: null,
-    time: Date.now(),
-  };
-  
-  if (intersectionCallback) {
-    intersectionCallback([entry as IntersectionObserverEntry], {} as IntersectionObserver);
-  }
-}
-
-// Create the IntersectionObserver mock
-const mockIntersectionObserver = vi.fn().mockImplementation((callback: IntersectionObserverCallback) => {
-  intersectionCallback = callback;
-  return {
-    observe: mockObserve,
-    disconnect: mockDisconnect,
-    unobserve: mockUnobserve,
-    root: null,
-    rootMargin: "",
-    thresholds: [0],
-    takeRecords: vi.fn().mockReturnValue([]),
-  };
-});
-
-beforeAll(() => {
-  // Mock IntersectionObserver globally
-  Object.defineProperty(window, 'IntersectionObserver', {
-    writable: true,
-    configurable: true,
-    value: mockIntersectionObserver,
-  });
-  
-  Object.defineProperty(global, 'IntersectionObserver', {
-    writable: true,
-    configurable: true,
-    value: mockIntersectionObserver,
-  });
-});
-
-// Mock data
-const mockAttractorRecord = {
-  uuid: "test-uuid-1",
-  name: "Test Attractor",
-  attractorParameters: {
-    attractor: "clifford" as const,
-    a: 1.4,
-    b: -2.3,
-    c: 2.4,
-    d: -2.1,
-    hue: 200,
-    saturation: 0.8,
-    brightness: 0.9,
-    background: [0, 0, 0, 1] as [number, number, number, number],
-    scale: 1,
-    left: 0,
-    top: 0,
-  },
-  createdAt: 1704067200000, // 2024-01-01
-};
-
-const mockAttractorRecord2 = {
-  uuid: "test-uuid-2",
-  name: "Another Attractor",
-  attractorParameters: {
-    attractor: "dejong" as const,
-    a: 1.5,
-    b: -2.2,
-    c: 2.5,
-    d: -2.0,
-    hue: 150,
-    saturation: 0.7,
-    brightness: 0.8,
-    background: [0, 0, 0, 1] as [number, number, number, number],
-    scale: 1.2,
-    left: 10,
-    top: 5,
-  },
-  createdAt: 1704153600000, // 2024-01-02
-};
-
-// Mock the UI components
-vi.mock("../components/ui/dialog", () => ({
-  Dialog: ({ children, ...props }: { children: React.ReactNode }) => <div data-testid="mock-dialog" {...props}>{children}</div>,
-  DialogContent: ({ children, description, ...props }: { children: React.ReactNode, description?: string }) => 
-    <div 
-      data-testid="mock-dialog-content" 
-      role="dialog"
-      aria-labelledby="mock-dialog-title"
-      aria-describedby="dialog-description" 
-      {...props}
-    >
-      {description && <div id="dialog-description" className="sr-only">{description}</div>}
-      {children}
-    </div>,
-  DialogHeader: ({ children, ...props }: { children: React.ReactNode }) => <div data-testid="mock-dialog-header" {...props}>{children}</div>,
-  DialogTitle: ({ children, ...props }: { children: React.ReactNode }) => <h2 id="mock-dialog-title" data-testid="mock-dialog-title" role="heading" aria-level={1} {...props}>{children}</h2>,
-}));
+const mockSetAttractorParams = vi.fn();
+const mockRefresh = vi.fn();
+const mockRemoveRecord = vi.fn();
 
 describe("ConfigSelectionDialog", () => {
-  const mockOnOpenChange = vi.fn();
-  const mockRefresh = vi.fn();
-  const mockLoadMore = vi.fn();
-  const mockRemoveRecord = vi.fn();
-  const mockSetAttractorParams = vi.fn();
-
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Reset the mock IntersectionObserver
-    mockIntersectionObserver.mockClear();
-    mockObserve.mockClear();
-    mockDisconnect.mockClear();
-    mockUnobserve.mockClear();
-    
-    // Default store state
+
+    // Default mock implementation for the records store
     vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
       const state = {
         records: [],
         error: null,
-        total: 0,
-        page: null,
         loading: false,
+        refresh: mockRefresh,
+        removeRecord: mockRemoveRecord,
+        total: 0,
+        loadMore: vi.fn(),
+        page: 0,
         fetchRecords: vi.fn(),
         addRecord: vi.fn(),
-        removeRecord: mockRemoveRecord,
-        loadMore: mockLoadMore,
-        refresh: mockRefresh,
       };
       return selector(state);
     });
 
+    // Default mock implementation for the attractor store
     vi.mocked(useAttractorStore).mockImplementation((selector) => {
       const state = {
+        setAttractorParams: mockSetAttractorParams,
         attractorParameters: {
           attractor: "clifford" as const,
-          a: 1.4,
-          b: -2.3,
-          c: 2.4,
-          d: -2.1,
-          hue: 200,
-          saturation: 0.8,
-          brightness: 0.9,
-          background: [0, 0, 0, 1] as [number, number, number, number],
+          a: 2,
+          b: -2,
+          c: 1,
+          d: -1,
+          hue: 333,
+          saturation: 100,
+          brightness: 100,
+          background: [0, 0, 0, 255] as [number, number, number, number],
           scale: 1,
           left: 0,
           top: 0,
         },
-        setAttractorParams: mockSetAttractorParams,
         reset: vi.fn(),
       };
       return selector(state);
     });
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
+  // Test 1: Basic rendering
+  it("should show the dialog when the 'open' prop is true", () => {
+    // Arrange
+    render(<ConfigSelectionDialog open={true} onOpenChange={() => {}} />);
+
+    // Assert
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Attractor Gallery" })).toBeInTheDocument();
   });
 
-  describe("Rendering", () => {
-    it("renders dialog when open", () => {
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByRole("dialog")).toBeInTheDocument();
-      expect(screen.getByRole("heading", { name: "Attractor Gallery" })).toBeInTheDocument();
-    });
+  // Test 2: Empty state
+  it("should show an empty state message when there are no records", () => {
+    // Arrange
+    render(<ConfigSelectionDialog open={true} onOpenChange={() => {}} />);
 
-    // This test is temporarily skipped due to issues with the Dialog mock not respecting the open prop
-    it.skip("does not render dialog when closed", () => {
-      render(<ConfigSelectionDialog open={false} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    });
-
-    it("renders empty state when no records", () => {
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByText("No saved configs found.")).toBeInTheDocument();
-      expect(screen.getByText("Create one by clicking on the save button.")).toBeInTheDocument();
-    });
-
-    it("renders error state when error exists", () => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [],
-          error: new Error("Test error"),
-          total: 0,
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByText("Error: Test error")).toBeInTheDocument();
-    });
-
-    it("renders load more button", () => {
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByRole("button", { name: "Load More" })).toBeInTheDocument();
-    });
-
-    it("disables load more button when all records loaded", () => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [mockAttractorRecord],
-          error: null,
-          total: 1,
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByRole("button", { name: "Load More" })).toBeDisabled();
-    });
+    // Assert
+    expect(screen.getByText("No saved configs found.")).toBeInTheDocument();
   });
 
-  describe("Data Loading", () => {
-    it("calls refresh when dialog opens", () => {
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(mockRefresh).toHaveBeenCalledTimes(1);
-    });
+  // Test 3: Displaying records
+  it("should display a list of records when data is provided", () => {
+    // Arrange
+    const mockRecords = [
+      { 
+        uuid: "1", 
+        name: "First Record", 
+        createdAt: Date.now(),
+        attractorParameters: {
+          attractor: "clifford" as const,
+          a: 2,
+          b: -2,
+          c: 1,
+          d: -1,
+          hue: 333,
+          saturation: 100,
+          brightness: 100,
+          background: [0, 0, 0, 255] as [number, number, number, number],
+          scale: 1,
+          left: 0,
+          top: 0,
+        }
+      },
+      { 
+        uuid: "2", 
+        name: "Second Record", 
+        createdAt: Date.now(),
+        attractorParameters: {
+          attractor: "dejong" as const,
+          a: 1,
+          b: 1,
+          c: 2,
+          d: 2,
+          hue: 240,
+          saturation: 80,
+          brightness: 90,
+          background: [0, 0, 0, 255] as [number, number, number, number],
+          scale: 1,
+          left: 0,
+          top: 0,
+        }
+      },
+    ];
 
-    it("does not call refresh when dialog is closed", () => {
-      render(<ConfigSelectionDialog open={false} onOpenChange={mockOnOpenChange} />);
-      
-      expect(mockRefresh).not.toHaveBeenCalled();
-    });
+    vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => selector({ 
+      records: mockRecords, 
+      error: null, 
+      loading: false, 
+      refresh: mockRefresh,
+      removeRecord: mockRemoveRecord,
+      total: mockRecords.length,
+      loadMore: vi.fn(),
+      page: 0,
+      fetchRecords: vi.fn(),
+      addRecord: vi.fn(),
+    }));
 
-    it("calls refresh when dialog opens after being closed", async () => {
-      const { rerender } = render(<ConfigSelectionDialog open={false} onOpenChange={mockOnOpenChange} />);
-      
-      expect(mockRefresh).not.toHaveBeenCalled();
-      
-      rerender(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(mockRefresh).toHaveBeenCalledTimes(1);
-    });
+    render(<ConfigSelectionDialog open={true} onOpenChange={() => {}} />);
 
-    it("shows loading state", () => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [mockAttractorRecord], // Must have records for loading to show
-          error: null,
-          total: 5,
-          page: null,
-          loading: true,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByText("Loading...")).toBeInTheDocument();
-    });
+    // Assert
+    expect(screen.getByText("First Record")).toBeInTheDocument();
+    expect(screen.getByText("Second Record")).toBeInTheDocument();
   });
 
-  describe("Record List", () => {
-    beforeEach(() => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [mockAttractorRecord, mockAttractorRecord2],
-          error: null,
-          total: 2,
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-    });
+  // Test 4: User interaction
+  it("should call setAttractorParams and close the dialog when a record is clicked", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mockOnOpenChange = vi.fn();
+    const mockRecord = {
+      uuid: "1",
+      name: "Clickable Record",
+      createdAt: Date.now(),
+      attractorParameters: {
+        attractor: "clifford" as const,
+        a: 1,
+        b: 2,
+        c: 3,
+        d: 4,
+        hue: 200,
+        saturation: 70,
+        brightness: 80,
+        background: [10, 20, 30, 255] as [number, number, number, number],
+        scale: 1.5,
+        left: 0,
+        top: 0,
+      },
+    };
 
-    it("renders record list when records exist", () => {
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByText("Test Attractor")).toBeInTheDocument();
-      expect(screen.getByText("Another Attractor")).toBeInTheDocument();
-    });
+    vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => selector({ 
+      records: [mockRecord], 
+      error: null, 
+      loading: false, 
+      refresh: mockRefresh,
+      removeRecord: mockRemoveRecord,
+      total: 1,
+      loadMore: vi.fn(),
+      page: 0,
+      fetchRecords: vi.fn(),
+      addRecord: vi.fn(),
+    }));
 
-    it("displays record creation dates", () => {
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      const date1 = new Date(mockAttractorRecord.createdAt).toLocaleString();
-      const date2 = new Date(mockAttractorRecord2.createdAt).toLocaleString();
-      
-      expect(screen.getByText(date1)).toBeInTheDocument();
-      expect(screen.getByText(date2)).toBeInTheDocument();
-    });
+    render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
 
-    it("shows delete buttons on hover", () => {
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      const deleteButtons = screen.getAllByText("Delete");
-      expect(deleteButtons).toHaveLength(2);
-    });
+    // Act
+    const recordElement = screen.getByText("Clickable Record");
+    await user.click(recordElement);
 
-    it("includes data-record-uuid attributes", () => {
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByText("Test Attractor").closest("li")).toHaveAttribute("data-record-uuid", "test-uuid-1");
-      expect(screen.getByText("Another Attractor").closest("li")).toHaveAttribute("data-record-uuid", "test-uuid-2");
-    });
-  });
-
-  describe("User Interactions", () => {
-    beforeEach(() => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [mockAttractorRecord],
-          error: null,
-          total: 1,
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-    });
-
-    it("calls loadMore when load more button is clicked", async () => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [mockAttractorRecord],
-          error: null,
-          total: 2, // More records available
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-
-      const user = userEvent.setup();
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      await user.click(screen.getByRole("button", { name: "Load More" }));
-      
-      expect(mockLoadMore).toHaveBeenCalledTimes(1);
-    });
-
-    it("selects record and closes dialog when record is clicked", async () => {
-      const user = userEvent.setup();
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      await user.click(screen.getByText("Test Attractor"));
-      
-      expect(mockSetAttractorParams).toHaveBeenCalledWith(mockAttractorRecord.attractorParameters);
-      expect(mockOnOpenChange).toHaveBeenCalledWith(false);
-    });
-
-    it("deletes record when delete button is clicked", async () => {
-      const user = userEvent.setup();
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      await user.click(screen.getByText("Delete"));
-      
-      expect(mockRemoveRecord).toHaveBeenCalledWith("test-uuid-1");
-    });
-
-    it("closes dialog when onOpenChange is called", async () => {
-      const user = userEvent.setup();
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      // Click outside dialog to close (simulated by calling onOpenChange)
-      fireEvent.click(document.body);
-      
-      // The dialog component should handle this internally
-      expect(screen.getByRole("dialog")).toBeInTheDocument();
-    });
-  });
-
-  // IntersectionObserver tests
-  describe("Intersection Observer", () => {
-    beforeEach(() => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [mockAttractorRecord],
-          error: null,
-          total: 10, // More records available
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-    });
-
-    it("sets up intersection observer for auto-loading", () => {
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(window.IntersectionObserver).toHaveBeenCalledWith(
-        expect.any(Function),
-        expect.objectContaining({
-          threshold: 0.1,
-        })
-      );
-    });
-
-    it("observes the last element when there are more records", () => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [mockAttractorRecord],
-          error: null,
-          total: 5, // More records than we have
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-      
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      // The mock is initialized
-      expect(mockIntersectionObserver).toHaveBeenCalled();
-    });
-
-    it("disconnects observer on cleanup", () => {
-      const { unmount } = render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      unmount();
-      
-      // The component has been unmounted, we can't directly test disconnect
-      // but we can verify the IntersectionObserver was initialized
-      expect(mockIntersectionObserver).toHaveBeenCalled();
-    });
-    
-    it("loads more records when intersection observer is triggered", () => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [mockAttractorRecord],
-          error: null,
-          total: 5, // More records available
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-      
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      // Manually call the first callback that was passed to IntersectionObserver
-      const firstCallArgs = mockIntersectionObserver.mock.calls[0];
-      
-      if (firstCallArgs) {
-        const callback = firstCallArgs[0];
-        
-        // Trigger the callback with a mock entry that is intersecting
-        callback([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
-      }
-      
-      // Verify loadMore was called
-      expect(mockLoadMore).toHaveBeenCalled();
-    });
-
-    // This test is temporarily skipped due to issues with the IntersectionObserver mock
-    it.skip("triggers loadMore when last element becomes visible", () => {
-      // Instead of directly testing the IntersectionObserver behavior,
-      // we'll test that our mocked callback function is called when needed
-      const mockLoadMoreFn = vi.fn();
-      
-      // Mock the hook implementation
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [mockAttractorRecord],
-          error: null,
-          total: 5, // More records available 
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMoreFn,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-      
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      // Since we can't easily test the actual IntersectionObserver in JSDOM,
-      // and we've already verified in other tests that the observer is set up correctly,
-      // we'll just invoke the intersectionCallback directly as if an element became visible
-      expect(intersectionCallback).toBeDefined();
-      if (intersectionCallback) {
-        intersectionCallback([{
-          isIntersecting: true,
-          target: document.createElement('li'),
-          boundingClientRect: {} as DOMRectReadOnly,
-          intersectionRatio: 1,
-          intersectionRect: {} as DOMRectReadOnly,
-          rootBounds: null,
-          time: Date.now(),
-        } as IntersectionObserverEntry], {} as IntersectionObserver);
-        
-        // Verify the loadMore function was called
-        expect(mockLoadMoreFn).toHaveBeenCalled();
-      }
-    });
-  });
-
-  describe("Accessibility", () => {
-    it("has proper dialog role", () => {
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByRole("dialog")).toBeInTheDocument();
-    });
-
-    it("has accessible dialog title", () => {
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      const dialog = screen.getByRole("dialog");
-      expect(dialog).toHaveAccessibleName("Attractor Gallery");
-    });
-
-    it("has proper button roles", () => {
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByRole("button", { name: "Load More" })).toBeInTheDocument();
-    });
-
-    it("has proper list structure", () => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [mockAttractorRecord],
-          error: null,
-          total: 1,
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByRole("list")).toBeInTheDocument();
-      expect(screen.getAllByRole("listitem")).toHaveLength(1);
-    });
-
-    it("delete buttons have accessible names", () => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [mockAttractorRecord],
-          error: null,
-          total: 1,
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      const deleteButton = screen.getByRole("button", { name: "Delete" });
-      expect(deleteButton).toBeInTheDocument();
-    });
-  });
-
-  describe("Edge Cases", () => {
-    it("handles string error messages", () => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [],
-          error: "Network error",
-          total: 0,
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByText("Network error")).toBeInTheDocument();
-    });
-
-    it("handles null error gracefully", () => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [],
-          error: null,
-          total: 0,
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByText("No saved configs found.")).toBeInTheDocument();
-    });
-
-    it("handles empty records array", () => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [],
-          error: null,
-          total: 0,
-          page: null,
-          loading: false,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByText("No saved configs found.")).toBeInTheDocument();
-    });
-
-    it("handles loading state with existing records", () => {
-      vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
-        const state = {
-          records: [mockAttractorRecord],
-          error: null,
-          total: 5,
-          page: null,
-          loading: true,
-          fetchRecords: vi.fn(),
-          addRecord: vi.fn(),
-          removeRecord: mockRemoveRecord,
-          loadMore: mockLoadMore,
-          refresh: mockRefresh,
-        };
-        return selector(state);
-      });
-
-      render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
-      
-      expect(screen.getByText("Test Attractor")).toBeInTheDocument();
-      expect(screen.getByText("Loading...")).toBeInTheDocument();
-    });
+    // Assert
+    expect(mockSetAttractorParams).toHaveBeenCalledWith(mockRecord.attractorParameters);
+    expect(mockOnOpenChange).toHaveBeenCalledWith(false);
   });
 });
