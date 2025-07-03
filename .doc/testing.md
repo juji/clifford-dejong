@@ -218,10 +218,79 @@ describe('StoreName', () => {
 
 ## Next Steps
 
-1. **Immediate**: Start with MenuSheetFooter component test
-2. **Short-term**: Expand AttractorCanvas tests
-3. **Medium-term**: Implement store testing utilities
-4. **Long-term**: Add E2E testing with Playwright
+### 🔥 **PRIORITY: External Review Findings (A- → A+)**
+
+Based on comprehensive external review, addressing these issues in order:
+
+1. **Fix Skipped Tests** (HIGHEST PRIORITY)
+   - [ ] **IntersectionObserver Mock** - Fix mock in `config-selection-dialog.test.tsx`
+   - [ ] Un-skip 6 tests: loading state, load more button, intersection observer tests
+   - **Impact**: Close known gaps in test coverage
+
+2. **Address Accessibility Warnings** (HIGH PRIORITY)
+   - [ ] **DialogContent Component** - Add missing `Description` or `aria-describedby`
+   - [ ] Fix accessibility warnings in `config-selection-dialog.test.tsx`
+   - **Impact**: Fix real accessibility bugs discovered by tests
+
+3. **Improve Math Tests** (MEDIUM PRIORITY)
+   - [ ] **Clifford Test** - Add snapshot test with known input/output
+   - [ ] **de Jong Test** - Add snapshot test with known input/output
+   - **Impact**: Verify mathematical accuracy, not just data shape
+
+4. **Review Canvas Test** (DOCUMENTATION)
+   - [x] **Understanding** - Canvas tests logic, not visual output (accepted limitation)
+
+### 📊 **Current Status: A- Grade**
+- **Total Tests**: 55 passing + 6 skipped = 61 tests
+- **Coverage**: High for UI components, basic for math functions
+- **Strengths**: Well-structured, comprehensive UI testing
+- **Weaknesses**: Skipped tests, accessibility bugs, basic math tests
+
+### 🎯 **Target: A+ Grade**
+- Fix all skipped tests
+- Resolve accessibility warnings  
+- Add mathematical accuracy tests
+- Maintain comprehensive UI coverage
+
+### 🔄 **Original Roadmap** (Continue after priorities)
+
+#### Phase 1: Foundation (Week 1-2) - ✅ COMPLETED
+- [x] MenuSheetFooter (11 tests)
+- [x] AttractorCanvas (19 tests) 
+- [x] ConfigSelectionDialog (24 tests)
+
+#### Phase 2: State & Logic (Week 3-4)
+1. **Store Testing**
+   - [ ] AttractorStore - Parameter updates, reset functionality, persistence
+   - [ ] UIStore - Menu position, theme state, modal states
+   - [ ] AttractorRecordsStore - CRUD operations, IndexedDB integration
+
+2. **Hook Testing**
+   - [ ] useAttractorWorker - Worker lifecycle, message handling, cleanup
+   - [ ] useBoppopSound - Audio playback, loading states
+   - [ ] useDebouncedValue - Debouncing logic, timing
+   - [ ] usePointerControl - Mouse/touch interactions
+   - [ ] useTouchScale - Gesture handling, scaling calculations
+
+#### Phase 3: Integration (Week 5-6)
+1. **Feature Testing**
+   - [ ] Save/load workflows
+   - [ ] Rendering pipelines
+   - [ ] Error handling scenarios
+
+2. **Performance Testing**
+   - [ ] Benchmark setup
+   - [ ] Memory leak detection
+   - [ ] Bundle analysis
+
+#### Phase 4: Polish (Week 7-8)
+1. **Accessibility Testing**
+   - [ ] A11y test automation
+   - [ ] Manual testing protocols
+
+2. **Visual Testing**
+   - [ ] Screenshot testing setup
+   - [ ] Regression detection
 
 ## Maintenance
 
@@ -236,3 +305,23 @@ describe('StoreName', () => {
 - **Cross-browser testing**
 - **Mobile responsiveness testing**
 - **Performance profiling**
+
+## External Review Summary
+
+### Overall Grade: **A-** → Target: **A+**
+
+**Files Reviewed:**
+1. `config-selection-dialog.test.tsx` - Excellent (A-) - *skipped tests & accessibility warnings*
+2. `attractor-canvas.test.tsx` - Good (B+) - *tests logic, not visual output*
+3. `menu-sheet-footer.test.tsx` - Excellent (A) - *comprehensive UI testing*
+4. `sound-download.test.ts` - Good but Simple (B) - *basic but sufficient*
+5. `clifford.test.ts` - Sufficient but Basic (C+) - *needs value verification*
+6. `dejong.test.ts` - Sufficient but Basic (C+) - *needs value verification*
+
+**Key Findings:**
+- ✅ Modern testing practices, well-structured
+- ✅ Comprehensive UI component coverage
+- ✅ Good user interaction testing
+- ❌ 6 skipped tests (IntersectionObserver mock)
+- ❌ Real accessibility bugs discovered
+- ❌ Math tests only verify shape, not values
