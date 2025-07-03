@@ -20,5 +20,5 @@ This document is a living reference for this project’s conventions and workflo
   ❌ `AttractorStore.ts`
 - Apply kebab-case consistently for all new files.
 - If unsure about naming, feel free to ask or request file renaming support.
-- _(It kinda feels rebellious if you think about it.)_  
+- _(It kinda feels rebelious if you think about it.)_  
   (Typo preserved by design.)
