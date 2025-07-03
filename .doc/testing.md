@@ -25,15 +25,17 @@
 ### 📋 **UNIFIED LINEAR CHECKLIST** (Execute in Order)
 
 #### 🔥 **IMMEDIATE PRIORITIES** (A- → A+ Grade)
-- [ ] **IntersectionObserver Mock** - Fix mock in `config-selection-dialog.test.tsx` to un-skip 6 tests
+- [ ] **IntersectionObserver Mock** - Fix mock in `config-selection-dialog.test.tsx` to un-skip 2 tests
+  - "does not render dialog when closed" - Dialog mock not respecting the open prop
+  - "triggers loadMore when last element becomes visible" - IntersectionObserver mock issue
 - [x] **DialogContent Accessibility** - Add missing `Description` or `aria-describedby` to fix warnings
 - [x] **Clifford Test** - Add snapshot test with known input/output for mathematical accuracy
 - [x] **de Jong Test** - Add snapshot test with known input/output for mathematical accuracy
 
 #### ✅ **COMPLETED COMPONENTS**
-- [x] **MenuSheetFooter** - Button interactions, dropdown menus, dialog triggers (11 tests)
-- [x] **AttractorCanvas** - Canvas rendering, worker integration (19 tests) 
-- [x] **ConfigSelectionDialog** - Form interactions, validation, save/load (24 tests) ⚠️ *6 tests skipped - fix above*
+- [x] **MenuSheetFooter** - Button interactions, dropdown menus, dialog triggers (11 tests) ✅
+- [x] **AttractorCanvas** - Canvas rendering, worker integration (9 tests) ✅
+- [x] **ConfigSelectionDialog** - Form interactions, validation, save/load (23 tests) ⚠️ *2 tests skipped - fix above*
 
 #### 📱 **NEXT COMPONENTS**
 - [ ] **ConfigSaveDialog** - Form submission, error handling
@@ -219,8 +221,14 @@ describe('StoreName', () => {
 Execute the **UNIFIED LINEAR CHECKLIST** above in order. Start with 🔥 **IMMEDIATE PRIORITIES** to reach A+ grade, then continue down the list.
 
 ### 📊 **Current Status: A Grade**
-- **Total Tests**: 55 passing + 6 skipped + 2 new = 63 tests
-- **Next Target**: A+ Grade (fix IntersectionObserver mock to un-skip 6 tests)
+- **Total Tests**: 
+  - ConfigSelectionDialog: 21 passing + 2 skipped = 23 tests
+  - MenuSheetFooter: 11 tests
+  - AttractorCanvas: 9 tests
+  - Sound Download: 1 test
+  - Core Math Functions: 4 tests
+  - Total: 45 passing + 2 skipped = 47 tests
+- **Next Target**: A+ Grade (fix IntersectionObserver mock to un-skip 2 tests)
 
 ## Maintenance
 
@@ -252,6 +260,43 @@ Execute the **UNIFIED LINEAR CHECKLIST** above in order. Start with 🔥 **IMMED
 - ✅ Modern testing practices, well-structured
 - ✅ Comprehensive UI component coverage
 - ✅ Good user interaction testing
-- ❌ 6 skipped tests (IntersectionObserver mock)
+- ❌ 2 skipped tests (IntersectionObserver mock and Dialog component)
 - ❌ Real accessibility bugs discovered
 - ❌ Math tests only verify shape, not values
+
+## 🔧 Test Fixes Needed (Part of Immediate Priorities)
+
+### IntersectionObserver Mock Issue
+
+The current IntersectionObserver mock implementation in `config-selection-dialog.test.tsx` has two main issues:
+
+1. **Dialog Mock Issue**: The mock Dialog component doesn't properly respect the `open` prop, making it impossible to test when the dialog is closed.
+
+   **Solution**: Update the Dialog mock to conditionally render based on the `open` prop:
+   ```tsx
+   Dialog: ({ children, open, ...props }: { children: React.ReactNode, open: boolean }) => 
+     open ? <div data-testid="mock-dialog" {...props}>{children}</div> : null,
+   ```
+
+2. **IntersectionObserver Callback Issue**: The current implementation doesn't properly simulate the intersection event for the specific target element.
+
+   **Solution**: Enhance the simulateIntersection helper to accept a target element:
+   ```tsx
+   function simulateIntersection(element: Element, isIntersecting: boolean) {
+     if (intersectionCallback) {
+       const entry = {
+         isIntersecting,
+         target: element,
+         boundingClientRect: {} as DOMRectReadOnly,
+         intersectionRatio: isIntersecting ? 1 : 0,
+         intersectionRect: {} as DOMRectReadOnly,
+         rootBounds: null,
+         time: Date.now(),
+       };
+       
+       intersectionCallback([entry as IntersectionObserverEntry], {} as IntersectionObserver);
+     }
+   }
+   ```
+
+These fixes would enable us to un-skip the two remaining tests and achieve 100% test coverage for the ConfigSelectionDialog component.
