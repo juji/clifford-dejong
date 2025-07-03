@@ -25,7 +25,7 @@
 ### 1. Component Testing (Priority: HIGH)
 
 #### Core UI Components
-- [ ] **MenuSheetFooter** - Button interactions, dropdown menus, dialog triggers
+- [x] **MenuSheetFooter** - Button interactions, dropdown menus, dialog triggers ✅
 - [ ] **AttractorCanvas** - Expand existing tests, canvas rendering, worker integration
 - [ ] **ConfigSelectionDialog** - Form interactions, validation, save/load
 - [ ] **ConfigSaveDialog** - Form submission, error handling
