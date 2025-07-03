@@ -35,7 +35,10 @@ export function MenuSheetFooter() {
         <DropdownMenuContent side="top" align="start" sideOffset={8}>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>Position</DropdownMenuSubTrigger>
-            <DropdownMenuSubContent>
+            <DropdownMenuSubContent 
+            sideOffset={5}
+            alignOffset={-100}
+            >
               <DropdownMenuRadioGroup
                 value={menuPosition}
                 onValueChange={(value) => setMenuPosition(value as MenuPosition)}

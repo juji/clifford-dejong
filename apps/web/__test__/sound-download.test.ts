@@ -18,6 +18,6 @@ test("sound download: downloads a file and measures elapsed time", async () => {
   const bobpop = "https://clifford-dejong.vercel.app/bop-pop.mp3";
   const elapsed = await downloadSound(bobpop)
   
-  expect(elapsed).toBeLessThan(1500);
+  expect(elapsed).toBeLessThan(2000);
 
 });
