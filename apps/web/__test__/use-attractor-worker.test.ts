@@ -573,6 +573,99 @@ describe('useAttractorWorker', () => {
       // Verify onDone was still called with the invalid value
       expect(onDone).toHaveBeenLastCalledWith('not a number', expect.any(MessageEvent));
     });
+
+    it('should handle basic done message with progress value', () => {
+      const onDone = vi.fn();
+      const onLoadError = vi.fn();
+
+      // Render the hook with required callbacks
+      const { result } = renderHook(() => useAttractorWorker({
+        onReady: vi.fn(),
+        onLoadError,
+        onPreview: vi.fn(),
+        onDone,
+        onError: vi.fn(),
+      }));
+
+      // Get the worker instance
+      const mockWorkerFn = global.Worker as ReturnType<typeof vi.fn>;
+      const workerInstance = mockWorkerFn.mock.results[0]?.value;
+      expect(workerInstance).toBeDefined();
+
+      // Send done message with progress value
+      const doneMessage = new MessageEvent('message', {
+        data: { type: 'done', progress: 100 }
+      });
+      workerInstance.onmessage?.(doneMessage);
+
+      // Verify onDone was called with correct parameters
+      expect(onDone).toHaveBeenCalledTimes(1);
+      expect(onDone).toHaveBeenCalledWith(100, doneMessage);
+    });
+
+    it('should handle done message without prior start message', () => {
+      const onDone = vi.fn();
+      const onLoadError = vi.fn();
+
+      // Render the hook with required callbacks
+      const { result } = renderHook(() => useAttractorWorker({
+        onReady: vi.fn(),
+        onLoadError,
+        onPreview: vi.fn(),
+        onDone,
+        onError: vi.fn(),
+      }));
+
+      // Get the worker instance
+      const mockWorkerFn = global.Worker as ReturnType<typeof vi.fn>;
+      const workerInstance = mockWorkerFn.mock.results[0]?.value;
+      expect(workerInstance).toBeDefined();
+
+      // Send done message without any prior messages
+      const doneMessage = new MessageEvent('message', {
+        data: { type: 'done', progress: 100 }
+      });
+      workerInstance.onmessage?.(doneMessage);
+
+      // Verify onDone was called even without prior start
+      expect(onDone).toHaveBeenCalledTimes(1);
+      expect(onDone).toHaveBeenCalledWith(100, doneMessage);
+    });
+
+    it('should handle multiple done messages', () => {
+      const onDone = vi.fn();
+      const onLoadError = vi.fn();
+
+      // Render the hook with required callbacks
+      const { result } = renderHook(() => useAttractorWorker({
+        onReady: vi.fn(),
+        onLoadError,
+        onPreview: vi.fn(),
+        onDone,
+        onError: vi.fn(),
+      }));
+
+      // Get the worker instance
+      const mockWorkerFn = global.Worker as ReturnType<typeof vi.fn>;
+      const workerInstance = mockWorkerFn.mock.results[0]?.value;
+      expect(workerInstance).toBeDefined();
+
+      // Send multiple done messages with different progress values
+      const doneMessages = [
+        new MessageEvent('message', { data: { type: 'done', progress: 90 } }),
+        new MessageEvent('message', { data: { type: 'done', progress: 95 } }),
+        new MessageEvent('message', { data: { type: 'done', progress: 100 } })
+      ];
+
+      // Send messages in rapid succession
+      doneMessages.forEach(msg => workerInstance.onmessage?.(msg));
+
+      // Verify onDone was called for each message
+      expect(onDone).toHaveBeenCalledTimes(3);
+      expect(onDone).toHaveBeenNthCalledWith(1, 90, doneMessages[0]);
+      expect(onDone).toHaveBeenNthCalledWith(2, 95, doneMessages[1]);
+      expect(onDone).toHaveBeenNthCalledWith(3, 100, doneMessages[2]);
+    });
   });
 
   describe('Error Message Handling', () => {
