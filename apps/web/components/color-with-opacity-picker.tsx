@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Slider } from "./slider";
-import { Input } from "./input";
+import { Slider } from "./ui/slider";
+import { Input } from "./ui/input";
 
 interface ColorWithOpacityPickerProps {
   label?: string;

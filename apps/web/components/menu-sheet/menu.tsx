@@ -4,7 +4,7 @@ import type { AttractorParameters } from "@repo/core/types";
 import { Slider } from "../ui/slider";
 import { Input } from "../ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
-import { ColorWithOpacityPicker } from "../ui/color-with-opacity-picker";
+import { ColorWithOpacityPicker } from "../color-with-opacity-picker";
 import { useEffect, useRef } from "react";
 
 // --- Extracted Components ---
