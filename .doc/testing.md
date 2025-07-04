@@ -52,7 +52,7 @@
 - [x] **Dialog** components - Open/close, accessibility ✅
 
 #### 🎣 **HOOKS**
-- [ ] **useAttractorWorker** - Worker lifecycle, message handling, cleanup
+- [x] **useAttractorWorker** - Worker lifecycle, message handling, cleanup ✅
 - [ ] **useBoppopSound** - Audio playback, loading states
 - [ ] **useDebouncedValue** - Debouncing logic, timing
 - [ ] **usePointerControl** - Mouse/touch interactions
