@@ -24,7 +24,7 @@ export function FullScreenButton() {
   return <FullScreenButtonChild />;
 }
 
-function FullScreenButtonChild() {
+export function FullScreenButtonChild() {
   const [rotated, setRotated] = useState(false);
   const [scaleClass, setScaleClass] = useState('scale-60');
 
