@@ -7,11 +7,9 @@ import { ConfigSaveDialog } from "../config-save-dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
@@ -33,23 +31,17 @@ export function MenuSheetFooter() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="start" sideOffset={8}>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Position</DropdownMenuSubTrigger>
-            <DropdownMenuSubContent 
-            sideOffset={5}
-            alignOffset={-100}
-            >
-              <DropdownMenuRadioGroup
-                value={menuPosition}
-                onValueChange={(value) => setMenuPosition(value as MenuPosition)}
-              >
-                <DropdownMenuRadioItem value="left">Left</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="right">Right</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="top">Top</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="bottom">Bottom</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
+          <DropdownMenuLabel>Position</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuRadioGroup
+            value={menuPosition}
+            onValueChange={(value) => setMenuPosition(value as MenuPosition)}
+          >
+            <DropdownMenuRadioItem value="left">Left</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="right">Right</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="top">Top</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="bottom">Bottom</DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
       <Button
