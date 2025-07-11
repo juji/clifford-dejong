@@ -37,6 +37,9 @@
 - [x] Ensure all UI is screen reader accessible
 - [ ] Set up i18n framework if planning for multiple languages
 - [ ] Add translations for all user-facing text
+- [ ] Implement orientation handling for the web app:
+  - [ ] Add CSS and JavaScript to discourage landscape orientation on mobile browsers
+  - [ ] Create a "please rotate your device" overlay when in landscape on mobile
 
 ### 5. Mobile App Setup (After Web is Stable)
 - [ ] Initialize a new React Native app in `apps/mobile` using pure React Native CLI (not Expo)
@@ -168,6 +171,85 @@ React Native apps run fullscreen by default, so instead of a fullscreen button w
    };
    ```
 
+### Preventing Landscape Orientation in Web Browsers
+
+While web browsers can't strictly lock orientation like native apps, you can discourage landscape use with these techniques:
+
+1. **CSS Media Queries**:
+   ```css
+   @media screen and (orientation: landscape) and (max-width: 900px) {
+     .rotation-prompt {
+       display: flex;
+       position: fixed;
+       top: 0;
+       left: 0;
+       right: 0;
+       bottom: 0;
+       z-index: 9999;
+       background: rgba(0, 0, 0, 0.9);
+       color: white;
+       justify-content: center;
+       align-items: center;
+       flex-direction: column;
+     }
+   }
+
+   @media screen and (orientation: portrait), (min-width: 901px) {
+     .rotation-prompt {
+       display: none;
+     }
+   }
+   ```
+
+2. **JavaScript Screen Orientation API** (modern browsers):
+   ```javascript
+   // Try to lock to portrait if supported
+   if (screen.orientation && screen.orientation.lock) {
+     screen.orientation.lock('portrait').catch(err => {
+       console.log('Orientation lock not supported:', err);
+       // Fall back to overlay method
+     });
+   }
+   ```
+
+3. **Rotation Overlay Component**:
+   ```jsx
+   function RotationPrompt() {
+     const [isLandscape, setIsLandscape] = useState(false);
+     
+     useEffect(() => {
+       const checkOrientation = () => {
+         // Consider only mobile devices (ignore tablets/desktops)
+         if (window.innerWidth < 900) {
+           setIsLandscape(window.innerWidth > window.innerHeight);
+         } else {
+           setIsLandscape(false); // Don't show on larger screens
+         }
+       };
+       
+       checkOrientation();
+       window.addEventListener('resize', checkOrientation);
+       window.addEventListener('orientationchange', checkOrientation);
+       
+       return () => {
+         window.removeEventListener('resize', checkOrientation);
+         window.removeEventListener('orientationchange', checkOrientation);
+       };
+     }, []);
+     
+     if (!isLandscape) return null;
+     
+     return (
+       <div className="rotation-prompt">
+         <div className="rotate-icon">↺</div>
+         <p>Please rotate your device to portrait mode</p>
+       </div>
+     );
+   }
+   ```
+
+Note that these methods don't force the orientation, they just provide a better user experience by prompting users to rotate their devices.
+
 ### Key Challenges to Address
 
 1. **Background Processing**: Replace Web Workers with Reanimated worklets for UI thread optimization
@@ -194,4 +276,5 @@ React Native apps run fullscreen by default, so instead of a fullscreen button w
 4. [Reanimated Documentation](https://docs.swmansion.com/react-native-reanimated/) - For implementing performant UI thread animations
 5. [Fastlane Documentation](https://docs.fastlane.tools) - For automating build and release workflows for iOS and Android apps
 6. [React Native Orientation Locker](https://github.com/wonday/react-native-orientation-locker) - For controlling screen orientation in React Native apps
+7. [MDN - Screen Orientation API](https://developer.mozilla.org/en-US/docs/Web/API/Screen/orientation) - Web API for handling screen orientation in browsers
 
