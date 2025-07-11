@@ -53,8 +53,12 @@
 - [ ] Implement canvas rendering with React Native Skia:
   - [ ] Set up React Native Skia for high-performance drawing
   - [ ] Implement pixel manipulation via Skia's Uint8Array and Image API (see reference [issue #2199](https://github.com/Shopify/react-native-skia/issues/2199))
+  - [ ] Use Skia's Image.MakeImage with raw pixel data for attractor rendering
   - [ ] Use Reanimated for UI thread performance with worklets
   - [ ] Implement the attractor drawing algorithm as worklets
+    - [ ] Check `apps/web/workers/attractor-worker.ts` for implementing the attractor calculation, the resulting image should be 100% exact with the web-version
+    - [ ] Use the exact same color generation code from `packages/core/color.ts`, including `hsv2rgb` and `getColorData` functions, to ensure identical visual output
+    - [ ] Match all bezier curve effects and color transformations for pixel-perfect rendering
   - [ ] Optimize memory usage for large pixel arrays
 - [ ] Implement touch-optimized controls:
   - [ ] Replace hover states with appropriate touch feedback
@@ -184,5 +188,6 @@ React Native apps run fullscreen by default, so instead of a fullscreen button w
 
 1. [React Native Skia Issue #2199](https://github.com/Shopify/react-native-skia/issues/2199) - Discussion on pixel manipulation techniques for high-performance drawing with Skia and Reanimated
 2. [React Native Skia Documentation](https://shopify.github.io/react-native-skia/docs/getting-started/installation) - Official documentation for React Native Skia
-3. [Reanimated Documentation](https://docs.swmansion.com/react-native-reanimated/) - For implementing performant UI thread animations
+3. [React Native Skia Images](https://shopify.github.io/react-native-skia/docs/images) - Documentation on image handling and pixel data manipulation in Skia
+4. [Reanimated Documentation](https://docs.swmansion.com/react-native-reanimated/) - For implementing performant UI thread animations
 
