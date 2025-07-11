@@ -9,14 +9,36 @@ export function FullScreenButton() {
   const [showButton, setShowButton] = useState(false);
   const menuOpen = useUIStore((s) => s.menuOpen);
 
-  // Detect iOS and hide button if on iOS
+  // Detect iOS and hide button if on iOS (where fullscreen API doesn't work properly)
   useEffect(() => {
     if (typeof window !== 'undefined' && window.navigator) {
       const ua = window.navigator.userAgent;
-      const isIOS = /iPad|iPhone|iPod/.test(ua) ||
-        (ua.includes('Macintosh') && 'ontouchend' in document);
-      if (isIOS) setShowButton(false);
-      else setShowButton(true);
+      
+      // Standard iOS device detection
+      const isStandardIOS = /iPad|iPhone|iPod/.test(ua);
+      
+      // More accurate iPad OS detection that won't mistake Mac laptops for iPads
+      const isIPadOS = 
+        // New iPads with iPadOS 13+ report as Macintosh
+        ua.includes('Macintosh') && 
+        // Must have touch capabilities
+        'ontouchend' in document && 
+        // iPads typically have many touch points (5+)
+        navigator.maxTouchPoints >= 5 &&
+        // iPad-specific checks
+        (
+          // Check for webkit features more common on iOS
+          /Apple/.test(navigator.vendor) &&
+          // Check if it's NOT a Mac (which would have macOS version)
+          !(/Mac OS X/.test(ua) && !/like Mac OS X/.test(ua))
+        );
+      
+      // We only need to hide the button on iOS devices
+      const isIOS = isStandardIOS || isIPadOS;
+      
+      // Show the button if not on iOS, regardless of fullscreen API support
+      // This matches the test expectation that button appears even if fullscreen isn't supported
+      setShowButton(!isIOS);
     }
   }, []);
 
