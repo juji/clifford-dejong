@@ -39,13 +39,17 @@
 - [ ] Add translations for all user-facing text
 
 ### 5. Mobile App Setup (After Web is Stable)
-- [ ] Initialize a new React Native app in `apps/mobile` using React Native CLI or Expo
+- [ ] Initialize a new React Native app in `apps/mobile` using pure React Native CLI (not Expo)
 - [ ] Set up TypeScript configuration similar to web app
 - [ ] Integrate NativeWind for styling (consistent with web Tailwind approach)
-- [ ] Configure shared packages in monorepo for cross-platform usage
+- [x] Configure shared packages in monorepo for cross-platform usage
 - [ ] Create platform-specific entry points for shared components
 - [ ] Implement mobile navigation structure
 - [ ] Create mobile-specific versions of core components
+- [ ] Set up Fastlane for automated build and deployment
+  - [ ] Configure Fastlane for iOS build and App Store submission
+  - [ ] Configure Fastlane for Android build and Play Store deployment
+  - [ ] Set up CI/CD integration with Fastlane
 - [ ] Test thoroughly on iOS and Android devices
 - [ ] on web ios, create a popup that recommends the user to download from appstore
 
@@ -113,7 +117,7 @@ With the recent improvements in the web version, particularly the pure feature d
    - Share all pure logic components without modification
 
 3. **Fast-Track Options**:
-   - Use Expo for rapid development and simplified native API access
+   - Use pure React Native with Fastlane for deployment automation
    - Employ React Native Web for maximum code sharing
    - Utilize existing hooks with minimal changes
 
@@ -143,14 +147,12 @@ React Native apps run fullscreen by default, so instead of a fullscreen button w
    Immersive.setImmersive(true);
    ```
 
-3. **Screen Orientation**: Control orientation with react-native-orientation or Expo's ScreenOrientation:
+3. **Screen Orientation**: Control orientation with react-native-orientation:
    ```javascript
-   import * as ScreenOrientation from 'expo-screen-orientation';
+   import Orientation from 'react-native-orientation-locker';
    
-   // Lock to landscape
-   await ScreenOrientation.lockAsync(
-     ScreenOrientation.OrientationLock.LANDSCAPE
-   );
+   // Lock to portrait mode
+   Orientation.lockToPortrait();
    ```
 
 4. **Platform-Specific Handling**:
@@ -190,4 +192,6 @@ React Native apps run fullscreen by default, so instead of a fullscreen button w
 2. [React Native Skia Documentation](https://shopify.github.io/react-native-skia/docs/getting-started/installation) - Official documentation for React Native Skia
 3. [React Native Skia Images](https://shopify.github.io/react-native-skia/docs/images) - Documentation on image handling and pixel data manipulation in Skia
 4. [Reanimated Documentation](https://docs.swmansion.com/react-native-reanimated/) - For implementing performant UI thread animations
+5. [Fastlane Documentation](https://docs.fastlane.tools) - For automating build and release workflows for iOS and Android apps
+6. [React Native Orientation Locker](https://github.com/wonday/react-native-orientation-locker) - For controlling screen orientation in React Native apps
 
