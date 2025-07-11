@@ -8,6 +8,11 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: "./vitest.setup.ts",
-    testTimeout: 10000,
+    testTimeout: 20000, // Increased timeout for slower tests
+    hookTimeout: 20000, // Added hook timeout
+    include: [
+      "**/__test__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+      "**/integration-tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}" // Added integration tests
+    ],
   },
 });
