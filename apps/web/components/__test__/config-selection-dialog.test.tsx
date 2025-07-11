@@ -1,13 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { ConfigSelectionDialog } from "../components/config-selection-dialog";
-import { useAttractorRecordsStore } from "../store/attractor-records-store";
+import { ConfigSelectionDialog } from "../config-selection-dialog";
+import { useAttractorRecordsStore } from "../../store/attractor-records-store";
 import { useAttractorStore } from "@repo/state/attractor-store";
 
 // Mock the stores
-vi.mock("../store/attractor-records-store");
-vi.mock("@repo/state/attractor-store");
+vi.mock("../../store/attractor-records-store", () => ({
+  useAttractorRecordsStore: vi.fn(),
+}));
+vi.mock("@repo/state/attractor-store", () => ({
+  useAttractorStore: vi.fn(),
+}));
 
 const mockSetAttractorParams = vi.fn();
 const mockRefresh = vi.fn();

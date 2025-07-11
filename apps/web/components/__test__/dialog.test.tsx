@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../components/ui/dialog";
+} from "../ui/dialog";
 
 describe("Dialog", () => {
   const user = userEvent.setup();

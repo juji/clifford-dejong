@@ -1,6 +1,3 @@
-import "@testing-library/jest-dom";
-import { vi } from 'vitest';
-
 // Mock ResizeObserver for tests
 class ResizeObserverMock {
   observe = vi.fn();

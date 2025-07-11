@@ -1,11 +1,11 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { FullScreenButton } from "../components/full-screen-button";
+import { FullScreenButton } from "../full-screen-button";
 
 // Mock useUIStore
 const mockMenuOpen = vi.fn();
-vi.mock("../store/ui-store", () => ({
+vi.mock("../../store/ui-store", () => ({
   useUIStore: (selector: any) => selector({ menuOpen: mockMenuOpen() }),
 }));
 

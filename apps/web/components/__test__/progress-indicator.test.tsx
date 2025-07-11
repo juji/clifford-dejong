@@ -1,10 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { vi, describe, it, expect } from "vitest";
-import { ProgressIndicator } from "../components/progress-indicator";
+import { ProgressIndicator } from "../progress-indicator";
 
 // Mock useUIStore
 const mockProgress = vi.fn();
-vi.mock("../store/ui-store", () => ({
+vi.mock("../../store/ui-store", () => ({
   useUIStore: (selector: any) => selector({ progress: mockProgress() }),
 }));
 

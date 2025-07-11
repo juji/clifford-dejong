@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { ColorWithOpacityPicker } from "../components/color-with-opacity-picker";
+import { ColorWithOpacityPicker } from "../color-with-opacity-picker";
 import { ThemeProvider } from "next-themes";
 
 // Mock matchMedia for theme provider
@@ -19,7 +19,7 @@ Object.defineProperty(window, "matchMedia", {
 });
 
 // Mock the shadcn/ui components
-vi.mock("../components/ui/input", () => ({
+vi.mock("../ui/input", () => ({
   Input: ({ type, value, onChange, className, style }: any) => (
     <input
       type={type}
@@ -32,7 +32,7 @@ vi.mock("../components/ui/input", () => ({
   ),
 }));
 
-vi.mock("../components/ui/slider", () => ({
+vi.mock("../ui/slider", () => ({
   Slider: ({ min, max, step, value, onValueChange, className }: any) => (
     <div
       role="slider"

@@ -2,11 +2,11 @@
 
 import { renderHook, act } from '@testing-library/react';
 import { vi } from 'vitest';
-import { useBopPopSound } from '../hooks/use-boppop-sound';
-import { useHowl } from '../hooks/use-howl';
+import { useBopPopSound } from '../use-boppop-sound';
+import { useHowl } from '../use-howl';
 
 // Mock useHowl
-vi.mock('../hooks/use-howl', () => ({
+vi.mock('../use-howl', () => ({
   useHowl: vi.fn(() => ({
     play: vi.fn(),
     volume: vi.fn(),

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useAttractorWorker } from '../hooks/use-attractor-worker';
+import { useAttractorWorker } from '../use-attractor-worker';
 
 // Mock the Worker constructor
 const mockWorker = {

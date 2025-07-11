@@ -1,11 +1,11 @@
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ConfigSaveDialog } from "../components/config-save-dialog";
+import { ConfigSaveDialog } from "../config-save-dialog";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
 // Mock the store hooks
 const mockAddRecord = vi.fn();
-vi.mock("../store/attractor-records-store", () => ({
+vi.mock("../../store/attractor-records-store", () => ({
   useAttractorRecordsStore: (selector: any) =>
     selector({ addRecord: mockAddRecord }),
 }));

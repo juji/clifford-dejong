@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { DarkModeToggle } from "../components/dark-mode-toggle";
+import { DarkModeToggle } from "../dark-mode-toggle";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import React from "react";
 

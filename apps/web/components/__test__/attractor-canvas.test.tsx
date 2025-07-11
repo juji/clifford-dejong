@@ -1,8 +1,8 @@
 import { render, waitFor } from "@testing-library/react";
-import { AttractorCanvas } from "../components/attractor-canvas";
+import { AttractorCanvas } from "@/components/attractor-canvas";
 import React from "react";
 import { act } from "react";
-import { DEFAULT_POINTS, DEFAULT_SCALE, LOW_QUALITY_POINTS, LOW_QUALITY_INTERVAL } from "../lib/constants";
+import { DEFAULT_POINTS, DEFAULT_SCALE, LOW_QUALITY_POINTS, LOW_QUALITY_INTERVAL } from "@/lib/constants";
 
 // Create mock functions for Zustand actions
 const mockSetProgress = vi.fn();
@@ -12,7 +12,7 @@ const mockSetError = vi.fn();
 const mockSetQualityMode = vi.fn();
 
 // Mock Zustand store with attractorParameters only
-vi.mock("../../../packages/state/attractor-store", () => {
+vi.mock("@repo/state/attractor-store", () => {
   return {
     useAttractorStore: vi.fn((selector) =>
       selector({
@@ -40,7 +40,7 @@ vi.mock("../hooks/use-debounced-value", () => ({
 }));
 
 // Mock useUIStore for all UI-related state/actions
-vi.mock("../store/ui-store", () => ({
+vi.mock("../../store/ui-store", () => ({
   useUIStore: vi.fn((selector) =>
     selector({
       qualityMode: "high",

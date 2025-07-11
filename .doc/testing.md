@@ -58,7 +58,7 @@
 - [x] **usePointerControl** - Mouse/touch interactions
 
 #### 🗃️ **STORES**
-- [ ] **AttractorStore** - Parameter updates, reset functionality, persistence
+- [x] **AttractorStore** - Parameter updates, reset functionality, persistence
 - [ ] **UIStore** - Menu position, theme state, modal states
 - [ ] **AttractorRecordsStore** - CRUD operations, IndexedDB integration
 

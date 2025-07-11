@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { usePointerControl } from '../hooks/use-pointer-control';
+import { usePointerControl } from '../use-pointer-control';
 
 // Mock the store dependencies
 vi.mock('@repo/state/attractor-store', () => ({
@@ -26,7 +26,7 @@ vi.mock('@repo/state/attractor-store', () => ({
   }),
 }));
 
-vi.mock('../store/ui-store', () => ({
+vi.mock('../../store/ui-store', () => ({
   useUIStore: vi.fn().mockImplementation((selector) => {
     const state = {
       setQualityMode: vi.fn(),
@@ -37,7 +37,7 @@ vi.mock('../store/ui-store', () => ({
 
 // Import after mocking
 import { useAttractorStore } from '@repo/state/attractor-store';
-import { useUIStore } from '../store/ui-store';
+import { useUIStore } from '../../store/ui-store';
 
 describe('usePointerControl', () => {
   let mockElement: HTMLDivElement;
