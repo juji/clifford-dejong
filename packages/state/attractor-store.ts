@@ -15,7 +15,7 @@ export type AttractorActions = {
   reset: () => void;
 };
 
-const defaultState: Omit<AttractorState, keyof AttractorActions> = {
+export const defaultState: Omit<AttractorState, keyof AttractorActions> = {
   attractorParameters: {
     attractor: "clifford",
     a: 2,

@@ -1,0 +1,12 @@
+{
+  "name": "@repo/state",
+  "version": "0.1.0",
+  "main": "index.ts",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  },
+  "types": "vitest/globals"
+}
