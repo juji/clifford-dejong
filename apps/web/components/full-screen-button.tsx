@@ -111,28 +111,86 @@ export function FullScreenButtonChild() {
       
     if (!fullscreenElement) {
       // Request fullscreen using the appropriate method for the browser
-      if (el.requestFullscreen) {
-        el.requestFullscreen().catch(err => console.error("Error attempting to enable full-screen mode:", err));
-      } else if (el.webkitRequestFullscreen) {
-        el.webkitRequestFullscreen();
-      } else if (el.mozRequestFullScreen) {
-        el.mozRequestFullScreen();
-      } else if (el.msRequestFullscreen) {
-        el.msRequestFullscreen();
+      try {
+        if (el.requestFullscreen) {
+          el.requestFullscreen().catch(err => {
+            console.error("Error attempting to enable full-screen mode:", err);
+            return; // Prevent rotation if fullscreen fails
+          });
+        } else if (el.webkitRequestFullscreen) {
+          // Webkit doesn't always return a promise, so wrap in try-catch
+          const promise = el.webkitRequestFullscreen();
+          if (promise && promise.catch) {
+            promise.catch(err => {
+              console.error("Error attempting to enable webkit full-screen mode:", err);
+              return; // Prevent rotation if fullscreen fails
+            });
+          }
+        } else if (el.mozRequestFullScreen) {
+          // Moz doesn't always return a promise, so wrap in try-catch
+          const promise = el.mozRequestFullScreen();
+          if (promise && promise.catch) {
+            promise.catch(err => {
+              console.error("Error attempting to enable moz full-screen mode:", err);
+              return; // Prevent rotation if fullscreen fails
+            });
+          }
+        } else if (el.msRequestFullscreen) {
+          // MS doesn't always return a promise, so wrap in try-catch
+          const promise = el.msRequestFullscreen();
+          if (promise && promise.catch) {
+            promise.catch(err => {
+              console.error("Error attempting to enable ms full-screen mode:", err);
+              return; // Prevent rotation if fullscreen fails
+            });
+          }
+        }
+        // Only set rotated after a successful request
+        setRotated(true);
+      } catch (err) {
+        console.error("Error in fullscreen request:", err);
       }
-      setRotated(true);
     } else {
       // Exit fullscreen using the appropriate method for the browser
-      if (doc.exitFullscreen) {
-        doc.exitFullscreen().catch(err => console.error("Error attempting to exit full-screen mode:", err));
-      } else if (doc.webkitExitFullscreen) {
-        doc.webkitExitFullscreen();
-      } else if (doc.mozCancelFullScreen) {
-        doc.mozCancelFullScreen();
-      } else if (doc.msExitFullscreen) {
-        doc.msExitFullscreen();
+      try {
+        if (doc.exitFullscreen) {
+          doc.exitFullscreen().catch(err => {
+            console.error("Error attempting to exit full-screen mode:", err);
+            return; // Prevent rotation change if exit fails
+          });
+        } else if (doc.webkitExitFullscreen) {
+          // Webkit doesn't always return a promise, so wrap in try-catch
+          const promise = doc.webkitExitFullscreen();
+          if (promise && promise.catch) {
+            promise.catch(err => {
+              console.error("Error attempting to exit webkit full-screen mode:", err);
+              return; // Prevent rotation if fullscreen exit fails
+            });
+          }
+        } else if (doc.mozCancelFullScreen) {
+          // Moz doesn't always return a promise, so wrap in try-catch
+          const promise = doc.mozCancelFullScreen();
+          if (promise && promise.catch) {
+            promise.catch(err => {
+              console.error("Error attempting to exit moz full-screen mode:", err);
+              return; // Prevent rotation if fullscreen exit fails
+            });
+          }
+        } else if (doc.msExitFullscreen) {
+          // MS doesn't always return a promise, so wrap in try-catch
+          const promise = doc.msExitFullscreen();
+          if (promise && promise.catch) {
+            promise.catch(err => {
+              console.error("Error attempting to exit ms full-screen mode:", err);
+              return; // Prevent rotation if fullscreen exit fails
+            });
+          }
+        }
+        // Only set rotated after a successful exit
+        setRotated(false);
+      } catch (err) {
+        console.error("Error in fullscreen exit:", err);
       }
-      setRotated(false);
     }
   }
 
