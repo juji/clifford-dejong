@@ -25,7 +25,6 @@
 - [x] Add footer, fixed element on the bottom
 - [x] Create a progress indicator for attractor rendering
 - [x] use chadcn (shadcn/ui installed and initialized in apps/web)
-- [x] use howler.js to preload and play sound https://howlerjs.com/
 - [x] Check dark and light theme
 - [x] Create a Full screen button
 - [x] on ios, full screen button should not exist
@@ -36,63 +35,140 @@
 - [x] PWA integration
 - [x] Test accessibility with axe or Lighthouse
 - [x] Ensure all UI is screen reader accessible
-- [ ] Additional Settings button.
-- [ ] Add tutorial.
-- [ ] Add a welcome message. user can optionally follow tutorials.
-- [ ] Profile attractor rendering on web
-- [ ] Add user-friendly error messages for rendering and sound issues
-- [ ] Implement fallbacks for unsupported browsers/devices
-- [ ] Integrate basic analytics for usage tracking
-- [ ] (Optional) Add error logging for public demo
-- [ ] Add onboarding flow if needed
-- [ ] Ensure progress indicator is visible for slow operations
-- [ ] Persist user preferences (theme, sound, parameters) on web
 - [ ] Set up i18n framework if planning for multiple languages
 - [ ] Add translations for all user-facing text
-- [ ] Review app for common web vulnerabilities
-- [ ] Add a privacy policy if analytics or user data is collected
-- [ ] create mute control for sounds?
-- [ ] Test thoroughly on web
 
 ### 5. Mobile App Setup (After Web is Stable)
-- [ ] Initialize a new React Native app in `apps/mobile`
-- [ ] Integrate NativeWind for styling
-- [ ] Share code from the shared directory
-- [ ] Migrate UI and logic to React Native components
-- [ ] Test thoroughly on mobile devices
+- [ ] Initialize a new React Native app in `apps/mobile` using React Native CLI or Expo
+- [ ] Set up TypeScript configuration similar to web app
+- [ ] Integrate NativeWind for styling (consistent with web Tailwind approach)
+- [ ] Configure shared packages in monorepo for cross-platform usage
+- [ ] Create platform-specific entry points for shared components
+- [ ] Implement mobile navigation structure
+- [ ] Create mobile-specific versions of core components
+- [ ] Test thoroughly on iOS and Android devices
 - [ ] on web ios, create a popup that recommends the user to download from appstore
-- [ ] Profile attractor rendering on mobile
-- [ ] Optimize rendering or add progress indicator if slow
-- [ ] Persist user preferences (theme, sound, parameters) on mobile
-- [ ] Implement fallbacks for unsupported devices
-- [ ] Review app for common mobile vulnerabilities
-- [ ] Prepare app icons, splash screens, and store listing assets
-- [ ] Review and ensure compliance with app store guidelines
-- [ ] Set up i18n framework if planning for multiple languages (mobile)
-- [ ] Add translations for all user-facing text (mobile)
-- [ ] Add tooltips and help modals for new users (mobile)
-- [ ] Add onboarding flow if needed (mobile)
-- [ ] Add user-friendly error messages for rendering and sound issues (mobile)
-- [ ] Integrate basic analytics for usage tracking (mobile)
-- [ ] (Optional) Add error logging for public demo (mobile)
-- [ ] Add a privacy policy if analytics or user data is collected (mobile)
 
-### 6. Shared UI Components (Modular & Cross-Platform)
-- [ ] Refactor and centralize all common UI, hooks, and logic that can be reused between web and mobile
-- [ ] Create presentational components that work on both platforms (where possible)
-- [ ] Share business logic, validation, and utility functions
-- [ ] Ensure all shared UI is accessible (a11y best practices)
-- [ ] Ensure shared UI supports i18n
-- [ ] Ensure shared UI is performant and optimized for both web and mobile
-- [ ] Document what is shared and how to extend it for future platforms
+### 6. Platform-Specific Feature Implementation
+- [ ] Implement canvas rendering with React Native Skia:
+  - [ ] Set up React Native Skia for high-performance drawing
+  - [ ] Implement pixel manipulation via Skia's Uint8Array and Image API (see reference [issue #2199](https://github.com/Shopify/react-native-skia/issues/2199))
+  - [ ] Use Reanimated for UI thread performance with worklets
+  - [ ] Implement the attractor drawing algorithm as worklets
+  - [ ] Optimize memory usage for large pixel arrays
+- [ ] Implement touch-optimized controls:
+  - [ ] Replace hover states with appropriate touch feedback
+  - [ ] Adapt UI sizing for touch targets (minimum 44×44 points)
+  - [ ] Implement gesture handlers for pinch-to-zoom and other mobile interactions
 
-### 7. Documentation & Cleanup
-- [ ] Update documentation for new structure and usage
-- [ ] Remove obsolete code
-- [ ] Update migration plan and dev log as progress continues
-- [ ] Document accessibility, i18n, and performance strategies
-- [ ] Document analytics and privacy policy (if applicable)
-- [ ] Document deployment and CI/CD setup for both web and mobile
+---
+
+## React Native Conversion Timeline
+
+Based on the current state of the web application and the complexity of features, here's an estimated timeline for converting to React Native:
+
+1. **Environment Setup**: 1 week
+   - Initialize React Native project
+   - Configure monorepo for cross-platform development
+   - Set up shared TypeScript configurations
+
+2. **Core Shared Logic**: 1-2 weeks
+   - Move pure logic to platform-agnostic packages
+   - Create abstraction layers for platform-specific APIs
+   - Set up testing framework for cross-platform code
+
+3. **UI Component Adaptation**: 2-3 weeks
+   - Convert core UI components to React Native
+   - Implement React Native Skia for canvas rendering
+   - Create platform-specific styling system with NativeWind
+
+4. **Canvas & Performance**: 2-3 weeks
+   - Implement attractor rendering with React Native Skia
+   - Create Reanimated worklets for UI thread performance
+   - Optimize pixel manipulation with direct Uint8Array access
+   - Use notifyChange() for efficient updates to rendering
+   - Implement efficient memory management for large pixel arrays
+
+5. **Testing & Polish**: 2 weeks
+   - Cross-device testing (various iOS/Android devices)
+   - Performance optimization
+   - Accessibility improvements
+
+**Total estimated time**: 8-11 weeks for a production-ready React Native version, assuming 1 full-time developer.
+
+### Accelerating React Native Development
+
+With the recent improvements in the web version, particularly the pure feature detection approach in components like the fullscreen button, we can potentially speed up the React Native conversion:
+
+1. **Leveraging Existing Architecture**: 
+   - The clean separation of logic in hooks and state management will transfer easily
+   - Existing tests can be adapted for cross-platform validation
+
+2. **Component Reuse Strategy**:
+   - Create platform-specific versions only where necessary (like view/screen controls)
+   - Share all pure logic components without modification
+
+3. **Fast-Track Options**:
+   - Use Expo for rapid development and simplified native API access
+   - Employ React Native Web for maximum code sharing
+   - Utilize existing hooks with minimal changes
+
+With a focused effort on the minimal viable product features, an initial React Native version could be ready for testing in as little as 4-6 weeks.
+
+### Approach for View Mode Controls
+
+React Native apps run fullscreen by default, so instead of a fullscreen button we need different view controls:
+
+1. **Status Bar Management**: Use React Native's StatusBar component to control visibility:
+   ```javascript
+   import { StatusBar } from 'react-native';
+   
+   // Hide the status bar for more immersive experience
+   StatusBar.setHidden(true);
+   
+   // Or with component
+   <StatusBar hidden={true} />
+   ```
+
+2. **Immersive Mode** (Android): For completely hiding system UI:
+   ```javascript
+   // Using a library like react-native-immersive
+   import Immersive from 'react-native-immersive';
+   
+   // Full immersive mode
+   Immersive.setImmersive(true);
+   ```
+
+3. **Screen Orientation**: Control orientation with react-native-orientation or Expo's ScreenOrientation:
+   ```javascript
+   import * as ScreenOrientation from 'expo-screen-orientation';
+   
+   // Lock to landscape
+   await ScreenOrientation.lockAsync(
+     ScreenOrientation.OrientationLock.LANDSCAPE
+   );
+   ```
+
+4. **Platform-Specific Handling**:
+   ```javascript
+   import { Platform } from 'react-native';
+   
+   const configureViewMode = () => {
+     if (Platform.OS === 'android') {
+       // Android-specific immersive mode
+     } else {
+       // iOS-specific options
+     }
+   };
+   ```
+
+### Key Challenges to Address
+
+1. **Background Processing**: Replace Web Workers with Reanimated worklets for UI thread optimization
+2. **Canvas Rendering**: Implement with React Native Skia for high-performance rendering
+3. **Pixel Manipulation**: Use Skia's direct pixel manipulation via Uint8Array and notifyChange() as demonstrated in [issue #2199](https://github.com/Shopify/react-native-skia/issues/2199)
+4. **Performance Optimization**: Ensure attractor animations remain smooth on lower-end devices
+5. **Platform Testing**: Test on various device sizes and OS versions
 
 ---
 
@@ -101,4 +177,12 @@
 ---
 
 **Note:** shadcn/ui (chadcn) was installed and initialized in `apps/web` with Tailwind CSS. The Button component is available for use. See https://ui.shadcn.com/docs/installation/next for usage details.
+
+---
+
+## References and Resources
+
+1. [React Native Skia Issue #2199](https://github.com/Shopify/react-native-skia/issues/2199) - Discussion on pixel manipulation techniques for high-performance drawing with Skia and Reanimated
+2. [React Native Skia Documentation](https://shopify.github.io/react-native-skia/docs/getting-started/installation) - Official documentation for React Native Skia
+3. [Reanimated Documentation](https://docs.swmansion.com/react-native-reanimated/) - For implementing performant UI thread animations
 
