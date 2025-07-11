@@ -6,62 +6,69 @@ import { useUIStore } from "../store/ui-store";
 /**
  * Full Screen Button Component
  * 
- * Note on iOS/iPadOS Detection:
- * This component uses modern, non-deprecated browser APIs to detect iOS/iPadOS devices
- * where fullscreen functionality doesn't work properly. The detection combines:
- * 1. Standard userAgent checks
- * 2. Touch capabilities and maxTouchPoints
- * 3. Platform-specific patterns in userAgent strings
- * 4. iOS-specific features like standalone mode
+ * Features:
+ * 1. Cross-browser fullscreen API support (standard, webkit, moz, ms)
+ * 2. Pure feature detection without platform-specific detection
+ * 3. Animated corner indicators that rotate when entering/exiting fullscreen
+ * 4. Responsive sizing based on device pointer type (touch vs mouse)
  * 
- * This avoids using deprecated APIs like navigator.vendor or window.orientation.
+ * Note on Fullscreen Detection:
+ * This component uses proper feature detection to determine if fullscreen is supported:
+ * - Checks `document.fullscreenEnabled` (and vendor prefixed equivalents)
+ * - Verifies availability of `requestFullscreen` methods
+ * 
+ * This approach avoids:
+ * - Unreliable user-agent string parsing
+ * - Platform-specific detection logic
+ * - Deprecated APIs like navigator.vendor or window.orientation
+ * 
+ * If fullscreen functionality is unavailable or fails, the button's click handler
+ * will handle the error gracefully without breaking the UI.
  */
 
 const TRANSFORM_DURATION = '0.3s';
+
+// Define browser-specific document interface
+interface FullscreenDocument extends Document {
+  webkitFullscreenEnabled?: boolean;
+  mozFullScreenEnabled?: boolean;
+  msFullscreenEnabled?: boolean;
+}
+
+// Define browser-specific element interface
+interface FullscreenElement extends HTMLElement {
+  webkitRequestFullscreen?: () => Promise<void>;
+  mozRequestFullScreen?: () => Promise<void>;
+  msRequestFullscreen?: () => Promise<void>;
+}
 
 export function FullScreenButton() {
   const [showButton, setShowButton] = useState(false);
   const menuOpen = useUIStore((s) => s.menuOpen);
 
-  // Detect iOS and hide button if on iOS (where fullscreen API doesn't work properly)
+  // Detect if fullscreen is properly supported
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.navigator) {
-      const ua = window.navigator.userAgent;
+    if (typeof window !== 'undefined' && document) {
+      const doc = document as FullscreenDocument;
+      const docEl = document.documentElement as FullscreenElement;
       
-      // Standard iOS device detection - explicit mentions in UA
-      const isStandardIOS = /iPad|iPhone|iPod/.test(ua);
+      // Pure feature detection - check if fullscreen API is available
+      const fullscreenSupported = 
+        // Check for the fullscreen API being enabled
+        (doc.fullscreenEnabled || 
+         doc.webkitFullscreenEnabled ||
+         doc.mozFullScreenEnabled || 
+         doc.msFullscreenEnabled) 
+        && 
+        // Check for the actual methods
+        (docEl.requestFullscreen ||
+         docEl.webkitRequestFullscreen ||
+         docEl.mozRequestFullScreen ||
+         docEl.msRequestFullscreen);
       
-      // Modern iPad detection that won't mistake Mac laptops for iPads
-      const isIPadOS = 
-        // New iPads with iPadOS 13+ report as Macintosh
-        ua.includes('Macintosh') && 
-        // Must have touch capabilities
-        'ontouchend' in document && 
-        // iPads typically have many touch points (5+)
-        navigator.maxTouchPoints >= 5 &&
-        // Specifically check for "like Mac OS X" (iOS signature) but NOT regular "Mac OS X" (macOS)
-        // This avoids matching actual Macs that have touch capabilities
-        ua.includes('like Mac OS X') && 
-        // No Mac-specific version strings
-        !(/Mac OS X 10[._]\d+/.test(ua));
-
-      // Additional check for iOS-specific behaviors
-      // Instead of relying on deprecated APIs, check for screen size/orientation features
-      const hasIOSBehaviors = 
-        // Check for standalone mode capability (iOS home screen apps)
-        // Use proper type assertion for Safari/iOS specific property
-        ('standalone' in window.navigator) &&
-        // iOS Safari typically includes these terms in the UA
-        /AppleWebKit/.test(ua) &&
-        // Not Chrome browser (would indicate desktop Safari or other WebKit)
-        !(/Chrome/.test(ua) && /Google Inc/.test(ua));
-      
-      // We only need to hide the button on iOS devices
-      const isIOS = isStandardIOS || isIPadOS || hasIOSBehaviors;
-      
-      // Show the button if not on iOS, regardless of fullscreen API support
-      // This matches the test expectation that button appears even if fullscreen isn't supported
-      setShowButton(!isIOS);
+      // Only show button if fullscreen API is supported
+      // This matches the updated test expectations
+      setShowButton(!!fullscreenSupported);
     }
   }, []);
 
@@ -81,18 +88,51 @@ export function FullScreenButtonChild() {
     }
   }, []);
 
+  // Define fullscreen document interface for exit methods
+  interface FullscreenExitDocument extends Document {
+    webkitExitFullscreen?: () => Promise<void>;
+    mozCancelFullScreen?: () => Promise<void>;
+    msExitFullscreen?: () => Promise<void>;
+    webkitFullscreenElement?: Element;
+    mozFullScreenElement?: Element;
+    msFullscreenElement?: Element;
+  }
+  
   function handleFullScreen() {
-    const el = document.documentElement;
-    if (!document.fullscreenElement) {
+    const el = document.documentElement as FullscreenElement;
+    const doc = document as FullscreenExitDocument;
+    
+    // Check for fullscreen state across different browsers
+    const fullscreenElement = 
+      doc.fullscreenElement || 
+      doc.webkitFullscreenElement ||
+      doc.mozFullScreenElement || 
+      doc.msFullscreenElement;
+      
+    if (!fullscreenElement) {
+      // Request fullscreen using the appropriate method for the browser
       if (el.requestFullscreen) {
-        el.requestFullscreen();
-        setRotated(true);
+        el.requestFullscreen().catch(err => console.error("Error attempting to enable full-screen mode:", err));
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+      } else if (el.mozRequestFullScreen) {
+        el.mozRequestFullScreen();
+      } else if (el.msRequestFullscreen) {
+        el.msRequestFullscreen();
       }
+      setRotated(true);
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-        setRotated(false);
+      // Exit fullscreen using the appropriate method for the browser
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen().catch(err => console.error("Error attempting to exit full-screen mode:", err));
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen();
+      } else if (doc.mozCancelFullScreen) {
+        doc.mozCancelFullScreen();
+      } else if (doc.msExitFullscreen) {
+        doc.msExitFullscreen();
       }
+      setRotated(false);
     }
   }
 
