@@ -3,6 +3,20 @@ import React, { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
 import { useUIStore } from "../store/ui-store";
 
+/**
+ * Full Screen Button Component
+ * 
+ * Note on iOS/iPadOS Detection:
+ * This component uses modern, non-deprecated browser APIs to detect iOS/iPadOS devices
+ * where fullscreen functionality doesn't work properly. The detection combines:
+ * 1. Standard userAgent checks
+ * 2. Touch capabilities and maxTouchPoints
+ * 3. Platform-specific patterns in userAgent strings
+ * 4. iOS-specific features like standalone mode
+ * 
+ * This avoids using deprecated APIs like navigator.vendor or window.orientation.
+ */
+
 const TRANSFORM_DURATION = '0.3s';
 
 export function FullScreenButton() {
@@ -14,10 +28,10 @@ export function FullScreenButton() {
     if (typeof window !== 'undefined' && window.navigator) {
       const ua = window.navigator.userAgent;
       
-      // Standard iOS device detection
+      // Standard iOS device detection - explicit mentions in UA
       const isStandardIOS = /iPad|iPhone|iPod/.test(ua);
       
-      // More accurate iPad OS detection that won't mistake Mac laptops for iPads
+      // Modern iPad detection that won't mistake Mac laptops for iPads
       const isIPadOS = 
         // New iPads with iPadOS 13+ report as Macintosh
         ua.includes('Macintosh') && 
@@ -25,16 +39,25 @@ export function FullScreenButton() {
         'ontouchend' in document && 
         // iPads typically have many touch points (5+)
         navigator.maxTouchPoints >= 5 &&
-        // iPad-specific checks
-        (
-          // Check for webkit features more common on iOS
-          /Apple/.test(navigator.vendor) &&
-          // Check if it's NOT a Mac (which would have macOS version)
-          !(/Mac OS X/.test(ua) && !/like Mac OS X/.test(ua))
-        );
+        // Specifically check for "like Mac OS X" (iOS signature) but NOT regular "Mac OS X" (macOS)
+        // This avoids matching actual Macs that have touch capabilities
+        ua.includes('like Mac OS X') && 
+        // No Mac-specific version strings
+        !(/Mac OS X 10[._]\d+/.test(ua));
+
+      // Additional check for iOS-specific behaviors
+      // Instead of relying on deprecated APIs, check for screen size/orientation features
+      const hasIOSBehaviors = 
+        // Check for standalone mode capability (iOS home screen apps)
+        // Use proper type assertion for Safari/iOS specific property
+        ('standalone' in window.navigator) &&
+        // iOS Safari typically includes these terms in the UA
+        /AppleWebKit/.test(ua) &&
+        // Not Chrome browser (would indicate desktop Safari or other WebKit)
+        !(/Chrome/.test(ua) && /Google Inc/.test(ua));
       
       // We only need to hide the button on iOS devices
-      const isIOS = isStandardIOS || isIPadOS;
+      const isIOS = isStandardIOS || isIPadOS || hasIOSBehaviors;
       
       // Show the button if not on iOS, regardless of fullscreen API support
       // This matches the test expectation that button appears even if fullscreen isn't supported
