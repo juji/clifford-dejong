@@ -52,11 +52,10 @@
 - [x] **Dialog** components - Open/close, accessibility ✅
 
 #### 🎣 **HOOKS**
-- [ ] **useAttractorWorker** - Worker lifecycle, message handling, cleanup
-- [ ] **useBoppopSound** - Audio playback, loading states
-- [ ] **useDebouncedValue** - Debouncing logic, timing
-- [ ] **usePointerControl** - Mouse/touch interactions
-- [ ] **useTouchScale** - Gesture handling, scaling calculations
+- [x] **useAttractorWorker** - Worker lifecycle, message handling, cleanup
+- [x] **useBoppopSound** - Audio playback, loading states
+- [x] **useDebouncedValue** - Debouncing logic, timing
+- [x] **usePointerControl** - Mouse/touch interactions
 
 #### 🗃️ **STORES**
 - [ ] **AttractorStore** - Parameter updates, reset functionality, persistence
