@@ -146,6 +146,30 @@ describe('MenuSheetFooter', () => {
       // due to how Radix UI handles radio group interactions
       // This test verifies the options are rendered correctly
     })
+    
+    it('calls setMenuPosition when selecting a position option', async () => {
+      const user = userEvent.setup()
+      render(<MenuSheetFooter />)
+      
+      // Open dropdown
+      const dropdownButton = screen.getByRole('button', { name: /additional settings/i })
+      await user.click(dropdownButton)
+      
+      // Find and click on the Right position option
+      const rightOption = screen.getByText('Right')
+      await user.click(rightOption)
+      
+      // Verify setMenuPosition was called with the correct value
+      expect(mockSetMenuPosition).toHaveBeenCalledWith('right')
+      
+      // Test another position option
+      await user.click(dropdownButton) // Reopen the dropdown
+      const topOption = screen.getByText('Top')
+      await user.click(topOption)
+      
+      // Verify setMenuPosition was called with the new value
+      expect(mockSetMenuPosition).toHaveBeenCalledWith('top')
+    })
   })
 
   describe('State Integration', () => {
