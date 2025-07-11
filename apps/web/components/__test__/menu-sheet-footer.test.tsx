@@ -33,13 +33,13 @@ vi.mock('@/store/ui-store', () => ({
 
 // Mock dialog components
 vi.mock('@/components/config-selection-dialog', () => ({
-  ConfigSelectionDialog: ({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) => (
+  ConfigSelectionDialog: ({ open }: { open: boolean; onOpenChange: (open: boolean) => void }) => (
     <div data-testid="config-selection-dialog" data-open={open} />
   )
 }))
 
 vi.mock('@/components/config-save-dialog', () => ({
-  ConfigSaveDialog: ({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) => (
+  ConfigSaveDialog: ({ open }: { open: boolean; onOpenChange: (open: boolean) => void }) => (
     <div data-testid="config-save-dialog" data-open={open} />
   )
 }))

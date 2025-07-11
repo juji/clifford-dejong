@@ -33,7 +33,7 @@ vi.mock("../ui/input", () => ({
 }));
 
 vi.mock("../ui/slider", () => ({
-  Slider: ({ min, max, step, value, onValueChange, className }: any) => (
+  Slider: ({ min, max, value, onValueChange, className }: any) => (
     <div
       role="slider"
       aria-valuemin={min}

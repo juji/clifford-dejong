@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   Dialog,
   DialogContent,
@@ -190,7 +190,7 @@ describe("Dialog", () => {
 
   describe("Modal Behavior", () => {
     it("prevents interaction with background content", async () => {
-      const { container } = render(
+      render(
         <div>
           <button>Background Button</button>
           <Dialog>
