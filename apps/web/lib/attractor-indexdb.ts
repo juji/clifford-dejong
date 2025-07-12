@@ -6,6 +6,7 @@ export type AttractorRecord = {
   name: string;
   attractorParameters: AttractorParameters;
   createdAt: number;
+  image: string; // Base64 encoded image
 };
 
 const DB_NAME = "attractor-db";

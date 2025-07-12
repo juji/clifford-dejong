@@ -89,6 +89,7 @@ describe("ConfigSelectionDialog", () => {
         uuid: "1", 
         name: "First Record", 
         createdAt: Date.now(),
+        image: 'data:image/png;base64,testimagedlg1',
         attractorParameters: {
           attractor: "clifford" as const,
           a: 2,
@@ -108,6 +109,7 @@ describe("ConfigSelectionDialog", () => {
         uuid: "2", 
         name: "Second Record", 
         createdAt: Date.now(),
+        image: 'data:image/png;base64,testimagedlg2',
         attractorParameters: {
           attractor: "dejong" as const,
           a: 1,
@@ -154,6 +156,7 @@ describe("ConfigSelectionDialog", () => {
       uuid: "1",
       name: "Clickable Record",
       createdAt: Date.now(),
+      image: 'data:image/png;base64,testimagedlgclick',
       attractorParameters: {
         attractor: "clifford" as const,
         a: 1,

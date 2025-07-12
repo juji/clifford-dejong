@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { devtools } from 'zustand/middleware'
 
 export type UITab = 'attractor' | 'color' | 'position'
 export type QualityMode = 'high' | 'low'
@@ -27,25 +28,29 @@ interface UIState {
   setError: (error: string | null) => void
 }
 
-export const useUIStore = create<UIState>((set) => ({
-  menuOpen: false,
-  setMenuOpen: (open) => set({ menuOpen: open }),
-  openTab: 'attractor',
-  setOpenTab: (tab) => set({ openTab: tab }),
-  qualityMode: 'high',
-  setQualityMode: (mode) => set({ qualityMode: mode }),
-  menuPosition: 'left',
-  setMenuPosition: (pos) => set({ menuPosition: pos }),
-  showInfo: false,
-  toggleInfo: () => set((state) => ({ showInfo: !state.showInfo })),
-  showSettings: false,
-  toggleSettings: () => set((state) => ({ showSettings: !state.showSettings })),
-  fullscreen: false,
-  toggleFullscreen: () => set((state) => ({ fullscreen: !state.fullscreen })),
-  progress: 0,
-  setProgress: (progress) => set({ progress }),
-  imageUrl: null,
-  setImageUrl: (url) => set({ imageUrl: url }),
-  error: null,
-  setError: (error) => set({ error }),
-}))
+export const useUIStore = create<UIState>()(
+  devtools(
+    (set) => ({
+      menuOpen: false,
+      setMenuOpen: (open) => set({ menuOpen: open }),
+      openTab: 'attractor',
+      setOpenTab: (tab) => set({ openTab: tab }),
+      qualityMode: 'high',
+      setQualityMode: (mode) => set({ qualityMode: mode }),
+      menuPosition: 'left',
+      setMenuPosition: (pos) => set({ menuPosition: pos }),
+      showInfo: false,
+      toggleInfo: () => set((state) => ({ showInfo: !state.showInfo })),
+      showSettings: false,
+      toggleSettings: () => set((state) => ({ showSettings: !state.showSettings })),
+      fullscreen: false,
+      toggleFullscreen: () => set((state) => ({ fullscreen: !state.fullscreen })),
+      progress: 0,
+      setProgress: (progress) => set({ progress }),
+      imageUrl: null,
+      setImageUrl: (url) => set({ imageUrl: url }),
+      error: null,
+      setError: (error) => set({ error }),
+    })
+  )
+)

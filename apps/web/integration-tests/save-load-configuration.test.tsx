@@ -56,7 +56,8 @@ describe('Save and Load Configuration End-to-End', () => {
     // Save an attractor configuration directly to IndexedDB
     const savedRecord = await saveAttractor({
       name: testConfigName,
-      attractorParameters: testAttractorParams
+      attractorParameters: testAttractorParams,
+      image: 'data:image/png;base64,testimageintegration'
     });
     
     expect(savedRecord).toBeTruthy();
@@ -83,7 +84,8 @@ describe('Save and Load Configuration End-to-End', () => {
     // Save configuration to IndexedDB
     const savedRecord = await saveAttractor({
       name: testConfigName,
-      attractorParameters: testAttractorParams
+      attractorParameters: testAttractorParams,
+      image: 'data:image/png;base64,testimagestore'
     });
     
     expect(savedRecord).toBeTruthy();
@@ -124,7 +126,8 @@ describe('Save and Load Configuration End-to-End', () => {
       uuid: `test-uuid-${Date.now()}`,
       name: testConfigName,
       attractorParameters: testAttractorParams,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      image: 'data:image/png;base64,testimagetest'
     };
     
     // Add the record directly to the store's records array

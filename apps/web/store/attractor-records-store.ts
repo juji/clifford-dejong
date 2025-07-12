@@ -14,7 +14,7 @@ interface AttractorRecordsState {
   loading: boolean;
   error: unknown;
   fetchRecords: (pageToFetch: number) => Promise<void>;
-  addRecord: (record: { name: string; attractorParameters: AttractorParameters }) => Promise<void>;
+  addRecord: (record: { name: string; attractorParameters: AttractorParameters, image: string }) => Promise<void>;
   removeRecord: (uuid: string) => Promise<void>;
   loadMore: () => void;
   refresh: () => void;

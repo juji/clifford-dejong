@@ -34,12 +34,14 @@ const sampleRecords: AttractorRecord[] = [
     name: 'Test Attractor 1',
     attractorParameters: sampleAttractorParameters,
     createdAt: Date.now() - 10000,
+    image: 'data:image/png;base64,testimage123',
   },
   {
     uuid: 'test-uuid-2',
     name: 'Test Attractor 2',
     attractorParameters: sampleAttractorParameters,
     createdAt: Date.now(),
+    image: 'data:image/png;base64,testimage456',
   },
 ];
 
@@ -151,6 +153,7 @@ describe('useAttractorRecordsStore', () => {
       const newRecord = {
         name: 'New Test Attractor',
         attractorParameters: sampleAttractorParameters,
+        image: 'data:image/png;base64,testimage789',
       };
 
       // Call addRecord
@@ -175,6 +178,7 @@ describe('useAttractorRecordsStore', () => {
       await useAttractorRecordsStore.getState().addRecord({
         name: 'Failing Record',
         attractorParameters: sampleAttractorParameters,
+        image: 'data:image/png;base64,testimagefail',
       });
 
       // Check if the state was updated correctly

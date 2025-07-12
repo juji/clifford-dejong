@@ -41,8 +41,8 @@
   - [ ] Add CSS and JavaScript to discourage landscape orientation on mobile browsers
   - [ ] Create a "please rotate your device" overlay when in landscape on mobile
 - [ ] Improve mobile UX:
-  - [ ] Make menu opaque when any parameter slider is being changed (except for the slider itself)
-  - [ ] Ensure slider remains visible while adjusting
+  - [ ] Make menu for mobile
+- [ ] add image to saved parameters
 
 ### 5. Mobile App Setup (After Web is Stable)
 - [ ] Initialize a new React Native app in `apps/mobile` using pure React Native CLI (not Expo)
