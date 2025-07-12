@@ -10,10 +10,19 @@ import {
 import { useAttractorRecordsStore } from "../store/attractor-records-store";
 import { Button } from "./ui/button";
 import { useAttractorStore } from "@repo/state/attractor-store";
-import { useUIStore } from "@/store/ui-store";
-import { resizeBase64Image } from "@/lib/resize-base64-image";
+import { waitForImage } from "@/lib/wait-for-image";
 
-export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean; onOpenChange: (open: boolean) => void; onSave?: () => void }) {
+export function ConfigSaveDialog({ 
+  open, 
+  onOpenChange, 
+  waitForImageFn = waitForImage,
+  onSave,
+}: { 
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  waitForImageFn?: () => Promise<string> // Allow injecting a custom wait function for testing
+  onSave?: () => void
+}) {
   // Reset state when dialog visibility changes
   useEffect(() => {
     if (!open) {
@@ -32,34 +41,6 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
   const [error, setError] = useState<unknown>(null);
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
 
-  const waitForImage = async (maxWaitMs = 500000): Promise<string> => {
-
-    let currentImageUrl = useUIStore.getState().imageUrl;
-    if (currentImageUrl) {
-      // If imageUrl is already available, return it immediately
-      return currentImageUrl;
-    }
-
-    // Otherwise, wait for imageUrl to become available in the store
-    return new Promise((resolve, reject) => {
-      // Set a timeout to prevent infinite waiting
-      const timeout = setTimeout(() => {
-        reject(new Error("Timeout waiting for image URL to become available"));
-      }, maxWaitMs);
-
-      // Set up an interval to check for imageUrl
-      const checkInterval = setInterval(() => {
-        currentImageUrl = useUIStore.getState().imageUrl;
-        if (currentImageUrl) {
-          clearTimeout(timeout);
-          clearInterval(checkInterval);
-          resolve(currentImageUrl);
-        }
-      }, 500); // Check every 500ms
-    });
-  };
-  
-
   const handleSave = async () => {
     setSaving(true);
     setError(null);
@@ -67,8 +48,7 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
 
     try {
       setWaitingImage(true)
-      const img = await waitForImage()
-      const resizedImage = await resizeBase64Image(img);
+      const resizedImage = await waitForImageFn()
       setWaitingImage(false)
       await addRecord({ name, attractorParameters, image: resizedImage });
       setName("");
@@ -78,6 +58,7 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
       console.error("Error saving attractor config:", err);
       setError(err);
     } finally {
+      setWaitingImage(false)
       setSaving(false);
     }
   };

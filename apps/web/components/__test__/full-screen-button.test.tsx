@@ -17,9 +17,18 @@ vi.mock("../../store/ui-store", () => ({
 
 describe("FullScreenButton", () => {
   const user = userEvent.setup();
+  
+  // Store original console error function to restore later
+  const originalConsoleError = console.error;
+
+  afterEach(() => {
+    console.error = originalConsoleError
+  })
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Suppress expected console errors
+    console.error = vi.fn();
     
     // Mock fullscreen API using Object.defineProperty
     // This properly adds the fullscreen API to the document object

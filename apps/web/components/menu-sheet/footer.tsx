@@ -4,6 +4,7 @@ import { Bolt } from "lucide-react"
 import { useAttractorStore } from "@repo/state/attractor-store"
 import { ConfigSelectionDialog } from "../config-selection-dialog"
 import { ConfigSaveDialog } from "../config-save-dialog"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,7 +67,10 @@ export function MenuSheetFooter() {
         reset
       </Button>
       <ConfigSelectionDialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen} />
-      <ConfigSaveDialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen} />
+      <ConfigSaveDialog 
+        open={saveDialogOpen} 
+        onOpenChange={setSaveDialogOpen} 
+      />
     </div>
   )
 }
