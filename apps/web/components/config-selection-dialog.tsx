@@ -10,6 +10,7 @@ import {
 } from "./ui/dialog";
 import type { AttractorRecord } from "../lib/attractor-indexdb";
 import { useAttractorStore } from "@repo/state/attractor-store";
+import touchStyles from "./touch-styles.module.css";
 
 export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const records = useAttractorRecordsStore((s) => s.records);
@@ -116,7 +117,7 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
           <li
             key={rec.uuid}
             data-record-uuid={rec.uuid}
-            className="flex justify-between items-center p-2 bg-background rounded shadow-sm group hover:bg-muted/20 transition-colors"
+            className={`flex justify-between items-center p-2 bg-background rounded shadow-sm group hover:bg-muted/20 transition-colors ${touchStyles.container}`}
             ref={isLastElement && hasMore ? detectionElmRef : undefined}
           >
             <div
@@ -144,7 +145,7 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
             </div>
             <button
               onClick={() => removeRecord(rec.uuid)}
-              className="text-destructive text-xs p-2 touch:opacity-70 can-hover:opacity-0 can-hover:group-hover:opacity-100 transition-opacity"
+              className={`text-destructive text-xs p-2 transition-opacity ${touchStyles.touchVisible} ${touchStyles.touchHidden}`}
               aria-label="Delete configuration"
             >
               Delete

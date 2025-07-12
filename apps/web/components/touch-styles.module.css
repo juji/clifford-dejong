@@ -1,0 +1,17 @@
+/* Touch device detection using standard CSS media queries */
+@media (hover: none) {
+  .touchVisible {
+    opacity: 0.7;
+  }
+}
+
+@media (hover: hover) {
+  .touchHidden {
+    opacity: 0;
+  }
+
+  .touchHidden:hover,
+  .container:hover .touchHidden {
+    opacity: 1;
+  }
+}
