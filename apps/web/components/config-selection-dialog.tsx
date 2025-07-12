@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAttractorRecordsStore } from "../store/attractor-records-store";
 import {
   Dialog,
@@ -68,6 +68,8 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const detectionElmRef = useRef<HTMLLIElement | null>(null);
   const setAttractorParams = useAttractorStore((s) => s.setAttractorParams);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const confirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Clean up any existing observer
@@ -109,6 +111,43 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
     }
   }, [records.length, loadMore, loading, hasMore]);
 
+  // Handler for delete button click
+  const handleDeleteClick = (uuid: string) => {
+    if (confirmDeleteId === uuid) {
+      // If already in confirm state, actually delete
+      removeRecord(uuid);
+      setConfirmDeleteId(null);
+      
+      // Clear any existing timeout
+      if (confirmTimeoutRef.current) {
+        clearTimeout(confirmTimeoutRef.current);
+        confirmTimeoutRef.current = null;
+      }
+    } else {
+      // Set confirm state for this record
+      setConfirmDeleteId(uuid);
+      
+      // Clear any existing timeout
+      if (confirmTimeoutRef.current) {
+        clearTimeout(confirmTimeoutRef.current);
+      }
+      
+      // Set timeout to clear confirm state after 5 seconds
+      confirmTimeoutRef.current = setTimeout(() => {
+        setConfirmDeleteId(null);
+      }, 5000);
+    }
+  };
+  
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (confirmTimeoutRef.current) {
+        clearTimeout(confirmTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <ul className="space-y-2 h-full overflow-y-auto">
       {records.map((rec, idx) => {
@@ -144,11 +183,13 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
               </div>
             </div>
             <button
-              onClick={() => removeRecord(rec.uuid)}
-              className={`text-destructive text-xs p-2 transition-opacity ${touchStyles.touchVisible} ${touchStyles.touchHidden}`}
-              aria-label="Delete configuration"
+              onClick={() => handleDeleteClick(rec.uuid)}
+              className={`text-xs p-2 transition-opacity ${touchStyles.touchVisible} ${touchStyles.touchHidden} ${
+                confirmDeleteId === rec.uuid ? 'text-red-500 font-medium animate-pulse' : 'text-destructive'
+              }`}
+              aria-label={confirmDeleteId === rec.uuid ? "Confirm deletion" : "Delete configuration"}
             >
-              Delete
+              {confirmDeleteId === rec.uuid ? "Confirm Deletion?" : "Delete"}
             </button>
           </li>
         );
