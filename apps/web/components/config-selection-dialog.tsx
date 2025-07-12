@@ -184,7 +184,7 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
             </div>
             <button
               onClick={() => handleDeleteClick(rec.uuid)}
-              className={`text-xs p-2 transition-opacity ${touchStyles.touchVisible} ${touchStyles.touchHidden} ${
+              className={`text-xs py-2 transition-opacity min-w-[110px] text-center ${touchStyles.touchVisible} ${touchStyles.touchHidden} ${
                 confirmDeleteId === rec.uuid ? 'text-red-500 font-medium animate-pulse' : 'text-destructive'
               }`}
               aria-label={confirmDeleteId === rec.uuid ? "Confirm deletion" : "Delete configuration"}
