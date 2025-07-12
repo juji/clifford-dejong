@@ -32,7 +32,7 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
             Browse and select from your saved attractor configurations.
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-4 h-64 border rounded bg-muted/30 p-2 flex flex-col">
+        <div className="mt-4 h-80 border rounded bg-muted/30 p-2 flex flex-col">
           {error ? (
             <div className="flex h-full items-center justify-center text-center text-destructive">{String(error)}</div>
           ) : records.length === 0 ? (
@@ -66,7 +66,7 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
   const hasMore = useAttractorRecordsStore((s) => s.records.length < s.total);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const detectionElmRef = useRef<HTMLLIElement | null>(null);
-    const setAttractorParams = useAttractorStore((s) => s.setAttractorParams);
+  const setAttractorParams = useAttractorStore((s) => s.setAttractorParams);
 
   useEffect(() => {
     // Clean up any existing observer
@@ -116,18 +116,31 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
           <li
             key={rec.uuid}
             data-record-uuid={rec.uuid}
-            className="flex justify-between items-center p-2 bg-background rounded shadow-sm group"
+            className="flex justify-between items-center p-2 bg-background rounded shadow-sm group hover:bg-muted/20 transition-colors"
             ref={isLastElement && hasMore ? detectionElmRef : undefined}
           >
             <div
-              className="flex-grow cursor-pointer"
+              className="flex items-center gap-3 flex-grow cursor-pointer"
               onClick={() => {
                 setAttractorParams(rec.attractorParameters);
                 onSelect();
               }}
             >
-              <span className="font-medium">{rec.name}</span>
-              <span className="text-xs text-muted-foreground block">{new Date(rec.createdAt).toLocaleString()}</span>
+              {rec.image && (
+                <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                  {/* Using data URL directly with img since Next/Image doesn't support base64 data URLs efficiently */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img 
+                    src={rec.image} 
+                    alt={rec.name} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <div>
+                <span className="font-medium">{rec.name}</span>
+                <span className="text-xs text-muted-foreground block">{new Date(rec.createdAt).toLocaleString()}</span>
+              </div>
             </div>
             <button
               onClick={() => removeRecord(rec.uuid)}
