@@ -27,6 +27,7 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
   const [name, setName] = useState("");
   const addRecord = useAttractorRecordsStore((s) => s.addRecord);
   const [saving, setSaving] = useState(false);
+  const [waitingImage, setWaitingImage] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
@@ -65,12 +66,10 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
     setSuccess(false);
 
     try {
-      console.log("Saving attractor config:", name, attractorParameters);
+      setWaitingImage(true)
       const img = await waitForImage()
-      console.log('image', img)
       const resizedImage = await resizeBase64Image(img);
-      console.log("resizedImage", resizedImage);
-      
+      setWaitingImage(false)
       await addRecord({ name, attractorParameters, image: resizedImage });
       setName("");
       setSuccess(true);
@@ -134,10 +133,10 @@ export function ConfigSaveDialog({ open, onOpenChange, onSave }: { open: boolean
           <Button
             onClick={success ? handleClose : handleSave}
             disabled={saving || (!name.trim() && !success)}
-            aria-label={success ? "Close" : saving ? "Saving..." : "Save"}
+            aria-label={success ? "Close" : waitingImage ? 'Waiting Image...' : saving ? "Saving..." : "Save"}
             aria-busy={saving}
           >
-            {success ? "Close" : saving ? "Saving..." : "Save"}
+            {success ? "Close" : waitingImage ? 'Waiting Image...' : saving ? "Saving..." : "Save"}
           </Button>
           {error ? (
             <div className="text-destructive text-center" role="alert">
