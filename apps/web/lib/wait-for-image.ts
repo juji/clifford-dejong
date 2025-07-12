@@ -1,5 +1,5 @@
 import { useUIStore } from "@/store/ui-store";
-import { resizeBase64Image } from "@/lib/resize-base64-image";
+import { resizeBase64Image } from "@/lib/resize-base64-image-native";
 
 export async function waitForImage(): Promise<string> {
   let currentImageUrl = useUIStore.getState().imageUrl;
