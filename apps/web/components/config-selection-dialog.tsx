@@ -144,7 +144,8 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
             </div>
             <button
               onClick={() => removeRecord(rec.uuid)}
-              className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+              className="text-destructive text-xs p-2 touch:opacity-70 can-hover:opacity-0 can-hover:group-hover:opacity-100 transition-opacity"
+              aria-label="Delete configuration"
             >
               Delete
             </button>

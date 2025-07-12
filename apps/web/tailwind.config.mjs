@@ -1,3 +1,5 @@
+import plugin from 'tailwindcss/plugin';
+
 export default {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -8,5 +10,12 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    plugin(function({ addVariant }) {
+      // Add a `touch` variant for targeting touch devices
+      addVariant('touch', '@media (hover: none)');
+      // Add a `can-hover` variant for targeting devices with hover capability
+      addVariant('can-hover', '@media (hover: hover)');
+    })
+  ],
 };
