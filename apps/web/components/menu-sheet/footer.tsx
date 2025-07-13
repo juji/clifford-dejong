@@ -40,8 +40,8 @@ export function MenuSheetFooter() {
           >
             <DropdownMenuRadioItem value="left">Left</DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="right">Right</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="top">Top</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="bottom">Bottom</DropdownMenuRadioItem>
+            {/* <DropdownMenuRadioItem value="top">Top</DropdownMenuRadioItem> */}
+            {/* <DropdownMenuRadioItem value="bottom">Bottom</DropdownMenuRadioItem> */}
           </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
