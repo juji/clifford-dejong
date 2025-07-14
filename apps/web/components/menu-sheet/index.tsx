@@ -2,12 +2,12 @@
 
 import { BigMenu } from "./big-menu"
 import { SmallMenu } from "./small-menu"
-import styles from './menu-sheet.module.css'
+import { useDynamicMenuLayout } from "@/hooks/use-dynamic-menu-layout"
 
 export function MenuSheet() {
 
-  return <>
-    <SmallMenu className={styles.smallMenu} />
-    <BigMenu className={styles.bigMenu} />
-  </>
+  const [menuType] = useDynamicMenuLayout();
+  return menuType === 'small' ? (<SmallMenu />) : (<BigMenu />)
+  
 }
+

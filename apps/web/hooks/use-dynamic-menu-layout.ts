@@ -5,19 +5,15 @@ import { useMediaQuery } from 'usehooks-ts'
 export function useDynamicMenuLayout() {
   
   const big = useMediaQuery('(min-width: 1024px)');
-  const smallHorizontal = useMediaQuery('(orientation: landscape) and (max-width: 1023px)');
-
-  const [ menuType, setMenuType ] = useState<'normal' | 'bottom' | 'left'>('bottom');
+  const [ menuType, setMenuType ] = useState<'normal' | 'small'>('small');
 
   useEffect(() => {
     if (big) {
       setMenuType('normal');
-    } else if (smallHorizontal) {
-      setMenuType('left');
     } else {
-      setMenuType('bottom');
+      setMenuType('small');
     }
-  }, [big, smallHorizontal]);
+  }, [big]);
 
   return [menuType] as const;
 }
