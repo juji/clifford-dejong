@@ -2,7 +2,8 @@ import { Button } from "../../ui/button"
 import { Slider } from "../../ui/slider"
 import { Input } from "../../ui/input"
 import { ChevronLeft } from "lucide-react"
-import { TabProps, paramRanges } from "./utils"
+import { paramRanges } from "@repo/state/attractor-store"
+import { TabProps } from "./utils"
 
 const ColorTab = ({ 
   attractorParameters, 
