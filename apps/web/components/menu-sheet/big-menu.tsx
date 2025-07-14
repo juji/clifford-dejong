@@ -1,7 +1,7 @@
 "use client"
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet"
-import { useUIStore } from "../../store/ui-store"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { useUIStore } from "@/store/ui-store"
 import { MenuSheetFooter } from "./footer"
 import { AttractorMenu } from "./attractor-menu"
 import { Menu } from "./menu"

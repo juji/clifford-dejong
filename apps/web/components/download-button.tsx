@@ -1,8 +1,8 @@
 'use client';
 
 import { Download } from "lucide-react";
-import { Button } from "./ui/button";
-import { useUIStore } from "../store/ui-store";
+import { Button } from "@/components/ui/button";
+import { useUIStore } from "@/store/ui-store";
 import React, { useState, useEffect } from "react";
 import styles from "./download-button.module.css";
 import { cn } from '@/lib/utils';

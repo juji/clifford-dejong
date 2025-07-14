@@ -5,7 +5,7 @@ import {
   getPaginatedAttractors,
   deleteAttractor,
   AttractorRecord,
-} from '../lib/attractor-indexdb';
+} from '@/lib/attractor-indexdb';
 
 interface AttractorRecordsState {
   records: AttractorRecord[];

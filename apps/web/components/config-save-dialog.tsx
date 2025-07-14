@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "./ui/dialog";
-import { useAttractorRecordsStore } from "../store/attractor-records-store";
+import { useAttractorRecordsStore } from "@/store/attractor-records-store";
 import { Button } from "./ui/button";
 import { useAttractorStore } from "@repo/state/attractor-store";
 import { waitForImage } from "@/lib/wait-for-image";

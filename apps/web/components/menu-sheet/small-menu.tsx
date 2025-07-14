@@ -1,11 +1,10 @@
-import { useUIStore } from "@/store/ui-store"
+import { useUIStore, type UITab } from "@/store/ui-store"
 import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { useAttractorStore } from "@repo/state/attractor-store"
-import { Button } from "../ui/button"
-import { type UITab } from "@/store/ui-store"
-import { ConfigSelectionDialog } from "../config-selection-dialog"
-import { ConfigSaveDialog } from "../config-save-dialog"
+import { Button } from "@/components/ui/button"
+import { ConfigSelectionDialog } from "@/components/config-selection-dialog"
+import { ConfigSaveDialog } from "@/components/config-save-dialog"
 import { SmallMenuSub } from "./small-menu-sub"
 
 export function SmallMenu({ className }: { className?: string }) {

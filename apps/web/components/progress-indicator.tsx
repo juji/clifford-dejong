@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useUIStore } from "../store/ui-store";
+import { useUIStore } from "@/store/ui-store";
 
 export function ProgressIndicator() {
   const progress = useUIStore(s => s.progress);

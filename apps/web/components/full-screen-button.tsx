@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from "react";
-import { cn } from "../lib/utils";
-import { useUIStore } from "../store/ui-store";
+import { cn } from "@/lib/utils";
+import { useUIStore } from "@/store/ui-store";
 
 /**
  * Full Screen Button Component

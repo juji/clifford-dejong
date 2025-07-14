@@ -1,6 +1,6 @@
 "use client"
 
-import { useUIStore } from "../store/ui-store"
+import { useUIStore } from "@/store/ui-store"
 import { cn } from "@/lib/utils"
 import { MenuIcon } from "lucide-react"
 import React, { useState, useEffect } from "react"

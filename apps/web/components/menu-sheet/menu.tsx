@@ -1,10 +1,10 @@
-import { useUIStore } from "../../store/ui-store";
+import { useUIStore } from "@/store/ui-store";
 import { useAttractorStore, paramRanges } from "@repo/state/attractor-store";
 import type { AttractorParameters } from "@repo/core/types";
-import { Slider } from "../ui/slider";
-import { Input } from "../ui/input";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
-import { ColorWithOpacityPicker } from "../color-with-opacity-picker";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { ColorWithOpacityPicker } from "@/components/color-with-opacity-picker";
 import { useRef } from "react";
 
 // --- Extracted Components ---
