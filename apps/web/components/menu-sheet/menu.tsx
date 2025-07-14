@@ -1,5 +1,5 @@
 import { useUIStore } from "../../store/ui-store";
-import { useAttractorStore } from "@repo/state/attractor-store";
+import { useAttractorStore, paramRanges } from "@repo/state/attractor-store";
 import type { AttractorParameters } from "@repo/core/types";
 import { Slider } from "../ui/slider";
 import { Input } from "../ui/input";
@@ -15,6 +15,9 @@ type AttractorParamControlProps = {
   onChange: (value: number) => void;
 };
 function AttractorParamControl({ label, value, onChange }: AttractorParamControlProps) {
+  // Get min/max from paramRanges for this parameter
+  const [min, max] = paramRanges.attractor[label as keyof typeof paramRanges.attractor] || [-5, 5];
+  
   return (
     <div className="mb-4 w-full menu-item">
       <div className="flex items-center gap-2 w-full mb-5">
@@ -23,8 +26,8 @@ function AttractorParamControl({ label, value, onChange }: AttractorParamControl
           <Input
             type="number"
             step="0.01"
-            min={-5}
-            max={5}
+            min={min}
+            max={max}
             value={value}
             onChange={e => onChange(parseFloat(e.target.value))}
             className="w-20 text-right flex-shrink-0"
@@ -32,8 +35,8 @@ function AttractorParamControl({ label, value, onChange }: AttractorParamControl
         </div>
       </div>
       <Slider
-        min={-5}
-        max={5}
+        min={min}
+        max={max}
         step={0.01}
         value={[value]}
         onValueChange={([v]) => onChange(parseFloat((v ?? 0).toFixed(2)))}
@@ -165,9 +168,30 @@ export function Menu() {
       {openTab === "color" && (
         <div className="rounded p-3">
           <div className="mb-4 font-semibold">Color Options</div>
-          <ColorControl label="Hue" min={0} max={360} step={1} value={attractorParameters.hue} onChange={v => updateAttractorParams({ hue: v })} />
-          <ColorControl label="Saturation" min={0} max={100} step={1} value={attractorParameters.saturation} onChange={v => updateAttractorParams({ saturation: v })} />
-          <ColorControl label="Brightness" min={0} max={100} step={1} value={attractorParameters.brightness} onChange={v => updateAttractorParams({ brightness: v })} />
+          <ColorControl 
+            label="Hue" 
+            min={paramRanges.color.hue[0] as number} 
+            max={paramRanges.color.hue[1] as number} 
+            step={1} 
+            value={attractorParameters.hue} 
+            onChange={v => updateAttractorParams({ hue: v })} 
+          />
+          <ColorControl 
+            label="Saturation" 
+            min={paramRanges.color.saturation[0] as number} 
+            max={paramRanges.color.saturation[1] as number} 
+            step={1} 
+            value={attractorParameters.saturation} 
+            onChange={v => updateAttractorParams({ saturation: v })} 
+          />
+          <ColorControl 
+            label="Brightness" 
+            min={paramRanges.color.brightness[0] as number} 
+            max={paramRanges.color.brightness[1] as number} 
+            step={1} 
+            value={attractorParameters.brightness} 
+            onChange={v => updateAttractorParams({ brightness: v })} 
+          />
           <ColorWithOpacityPicker
             label="Background"
             color={`#${attractorParameters.background.slice(0,3).map(x=>x.toString(16).padStart(2,"0")).join("")}`}
@@ -200,9 +224,30 @@ export function Menu() {
       {openTab === "position" && (
         <div className="rounded p-3">
           <div className="mb-4 font-semibold">Position Options</div>
-          <PositionControl label="Top" min={-1} max={1} step={0.001} value={attractorParameters.top} onChange={v => updateAttractorParams({ top: v })} />
-          <PositionControl label="Left" min={-1} max={1} step={0.001} value={attractorParameters.left} onChange={v => updateAttractorParams({ left: v })} />
-          <PositionControl label="Scale" min={0.001} max={5} step={0.001} value={attractorParameters.scale} onChange={v => updateAttractorParams({ scale: v })} />
+          <PositionControl 
+            label="Top" 
+            min={paramRanges.position.top[0] as number} 
+            max={paramRanges.position.top[1] as number} 
+            step={0.001} 
+            value={attractorParameters.top} 
+            onChange={v => updateAttractorParams({ top: v })} 
+          />
+          <PositionControl 
+            label="Left" 
+            min={paramRanges.position.left[0] as number} 
+            max={paramRanges.position.left[1] as number} 
+            step={0.001} 
+            value={attractorParameters.left} 
+            onChange={v => updateAttractorParams({ left: v })} 
+          />
+          <PositionControl 
+            label="Scale" 
+            min={paramRanges.position.scale[0] as number} 
+            max={paramRanges.position.scale[1] as number} 
+            step={0.001} 
+            value={attractorParameters.scale} 
+            onChange={v => updateAttractorParams({ scale: v })} 
+          />
         </div>
       )}
     </div>
