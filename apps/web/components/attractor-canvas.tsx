@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { runAttractorBenchmark } from "../lib/attractor-benchmark";
+import { runAttractorBenchmark } from "@/lib/attractor-benchmark";
 import { useAttractorStore } from "@repo/state/attractor-store";
-import { useAttractorWorker } from "../hooks/use-attractor-worker";
-import { mainThreadDrawing } from "../lib/main-thread-drawing";
-import { useUIStore } from "../store/ui-store";
-import { usePointerControl } from "../hooks/use-pointer-control";
-import { DEFAULT_POINTS, DEFAULT_SCALE, LOW_QUALITY_POINTS, LOW_QUALITY_INTERVAL } from "../lib/constants";
+import { useAttractorWorker } from "@/hooks/use-attractor-worker";
+import { mainThreadDrawing } from "@/lib/main-thread-drawing";
+import { useUIStore } from "@/store/ui-store";
+import { usePointerControl } from "@/hooks/use-pointer-control";
+import { DEFAULT_POINTS, DEFAULT_SCALE, LOW_QUALITY_POINTS, LOW_QUALITY_INTERVAL } from "@/lib/constants";
 import debounce from "debounce";
 
 export function AttractorCanvas() {

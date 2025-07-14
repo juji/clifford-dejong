@@ -17,6 +17,8 @@ vi.mock('@repo/state/attractor-store', () => ({
 }))
 
 vi.mock('@/store/ui-store', () => ({
+  // Mock only includes 'left' and 'right' as valid MenuPosition values
+  // to match what's currently implemented in the component
   useUIStore: vi.fn((selector) => {
     if (selector) {
       return selector({ 
@@ -132,15 +134,13 @@ describe('MenuSheetFooter', () => {
       const dropdownButton = screen.getByRole('button', { name: /additional settings/i })
       await user.click(dropdownButton)
       
-      // Open position submenu
-      const positionTrigger = screen.getByText('Position')
-      await user.click(positionTrigger)
-      
       // Should show all position options
       expect(screen.getByText('Left')).toBeInTheDocument()
       expect(screen.getByText('Right')).toBeInTheDocument()
-      expect(screen.getByText('Top')).toBeInTheDocument()
-      expect(screen.getByText('Bottom')).toBeInTheDocument()
+      
+      // Note: Top and Bottom options are currently commented out in the component
+      // expect(screen.getByText('Top')).toBeInTheDocument()
+      // expect(screen.getByText('Bottom')).toBeInTheDocument()
       
       // Note: Testing the actual selection in dropdown menus is complex
       // due to how Radix UI handles radio group interactions
@@ -162,13 +162,13 @@ describe('MenuSheetFooter', () => {
       // Verify setMenuPosition was called with the correct value
       expect(mockSetMenuPosition).toHaveBeenCalledWith('right')
       
-      // Test another position option
+      // Test another position option (going back to left)
       await user.click(dropdownButton) // Reopen the dropdown
-      const topOption = screen.getByText('Top')
-      await user.click(topOption)
+      const leftOption = screen.getByText('Left')
+      await user.click(leftOption)
       
       // Verify setMenuPosition was called with the new value
-      expect(mockSetMenuPosition).toHaveBeenCalledWith('top')
+      expect(mockSetMenuPosition).toHaveBeenCalledWith('left')
     })
   })
 

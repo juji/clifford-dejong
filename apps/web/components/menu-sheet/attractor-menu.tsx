@@ -1,6 +1,6 @@
-import { Tabs, TabsList, TabsTrigger } from "../ui/tabs"
-import { useUIStore } from "../../store/ui-store"
-import type { UITab } from "../../store/ui-store"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useUIStore } from "@/store/ui-store"
+import type { UITab } from "@/store/ui-store"
 
 export function AttractorMenu() {
   const openTab = useUIStore((s) => s.openTab)

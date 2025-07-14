@@ -1,6 +1,6 @@
 import { useEffect, useRef, RefObject } from "react";
 import { useAttractorStore } from "@repo/state/attractor-store";
-import { useUIStore } from "../store/ui-store";
+import { useUIStore } from "@/store/ui-store";
 
 function clamp(val: number, min: number, max: number) {
   return Math.max(min, Math.min(max, val));

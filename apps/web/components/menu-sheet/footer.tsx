@@ -1,9 +1,9 @@
 import { useState } from "react"
-import { Button } from "../ui/button"
+import { Button } from "@/components/ui/button"
 import { Bolt } from "lucide-react"
 import { useAttractorStore } from "@repo/state/attractor-store"
-import { ConfigSelectionDialog } from "../config-selection-dialog"
-import { ConfigSaveDialog } from "../config-save-dialog"
+import { ConfigSelectionDialog } from "@/components/config-selection-dialog"
+import { ConfigSaveDialog } from "@/components/config-save-dialog"
 
 import {
   DropdownMenu,
@@ -40,8 +40,8 @@ export function MenuSheetFooter() {
           >
             <DropdownMenuRadioItem value="left">Left</DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="right">Right</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="top">Top</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="bottom">Bottom</DropdownMenuRadioItem>
+            {/* <DropdownMenuRadioItem value="top">Top</DropdownMenuRadioItem> */}
+            {/* <DropdownMenuRadioItem value="bottom">Bottom</DropdownMenuRadioItem> */}
           </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>

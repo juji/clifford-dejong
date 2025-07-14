@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { ConfigSelectionDialog } from "../config-selection-dialog";
-import { useAttractorRecordsStore } from "../../store/attractor-records-store";
+import { useAttractorRecordsStore } from "@/store/attractor-records-store";
 import { useAttractorStore } from "@repo/state/attractor-store";
 
 // Mock the stores

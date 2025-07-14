@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useAttractorRecordsStore } from "../store/attractor-records-store";
+import { useAttractorRecordsStore } from "@/store/attractor-records-store";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import type { AttractorRecord } from "../lib/attractor-indexdb";
+import type { AttractorRecord } from "@/lib/attractor-indexdb";
 import { useAttractorStore } from "@repo/state/attractor-store";
 import touchStyles from "./touch-styles.module.css";
 

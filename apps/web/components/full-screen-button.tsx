@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from "react";
-import { cn } from "../lib/utils";
-import { useUIStore } from "../store/ui-store";
+import { cn } from "@/lib/utils";
+import { useUIStore } from "@/store/ui-store";
 
 /**
  * Full Screen Button Component
@@ -79,6 +79,7 @@ export function FullScreenButton() {
 export function FullScreenButtonChild() {
   const [rotated, setRotated] = useState(false);
   const [scaleClass, setScaleClass] = useState('scale-60');
+  const menuPosition = useUIStore((s) => s.menuPosition)
 
   // Detect coarse or none pointer (touch device)
   useEffect(() => {
@@ -258,8 +259,10 @@ export function FullScreenButtonChild() {
       type="button"
       aria-label="Toggle fullscreen"
       className={cn(`
-        fs-button fixed bottom-15 right-6 z-[200] rounded-full
-        w-16 h-16
+        fs-button fixed 
+        bottom-15 
+        ${menuPosition === 'left' ? 'right-6' : 'left-6'}
+        z-[200] rounded-full w-16 h-16
         bg-background text-foreground shadow-lg border-2 border-foreground
         focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer
         hover:scale-75 transition-transform duration-200
