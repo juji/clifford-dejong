@@ -43,7 +43,7 @@ jobs:
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           projectName: clifford-dejong  # Replace with your preferred Cloudflare Pages project name
           directory: apps/web/out        # The output directory from Next.js static export
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
