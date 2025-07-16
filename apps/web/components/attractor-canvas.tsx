@@ -6,6 +6,7 @@ import { useAttractorWorker } from "@/hooks/use-attractor-worker";
 import { mainThreadDrawing } from "@/lib/main-thread-drawing";
 import { useUIStore } from "@/store/ui-store";
 import { usePointerControl } from "@/hooks/use-pointer-control";
+import { useParamsBackgroundColor } from "@/hooks/use-background-color-changer";
 import {
   DEFAULT_POINTS,
   DEFAULT_SCALE,
@@ -17,6 +18,9 @@ import debounce from "debounce";
 export function AttractorCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   usePointerControl(canvasRef);
+  
+  // Use the hook to update the CSS variable when attractor background changes
+  useParamsBackgroundColor();
 
   // Zustand selectors for attractor state
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
@@ -300,7 +304,12 @@ export function AttractorCanvas() {
   }, [canvasSize, workerReady]);
 
   return (
-    <div className="flex items-center justify-center w-full h-full fixed top-0 left-0">
+    <div 
+      className="flex items-center justify-center w-full h-full fixed top-0 left-0" 
+      style={{ 
+        backgroundColor: 'var(--cda-bg-canvas)'
+      } as React.CSSProperties}
+    >
       <canvas
         ref={canvasRef}
         style={{ touchAction: "none" }}

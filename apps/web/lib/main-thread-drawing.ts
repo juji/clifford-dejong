@@ -47,6 +47,7 @@ export function mainThreadDrawing(
           attractorParameters.saturation ?? 100,
           attractorParameters.brightness ?? 100,
           progress > 0 ? progress / 100 : 1,
+          bgArr, // Pass the background color array
         );
       } else {
         data[i] = bgColor;

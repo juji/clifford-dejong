@@ -72,7 +72,7 @@ export const saturationBezier = BezierEasing(0.79, -0.34, 0.54, 1.18);
 export const lightnessBezier = BezierEasing(0.75, 0.38, 0.24, 1.33);
 export const opacityBezier = BezierEasing(0.69, -0.01, 0.48, 0.94);
 
-// Maps density to color using HSV and Bezier curves
+// Maps density to color using HSV and Bezier curves with background blending
 export function getColorData(
   density: number,
   maxDensity: number,
@@ -80,6 +80,7 @@ export function getColorData(
   s: number,
   v: number,
   progress: number = 1, // Default to full opacity
+  background: number[] = [0, 0, 0, 255] // Default background is black
 ): number {
   const mdens = Math.log(maxDensity);
   const pdens = Math.log(density);
@@ -90,5 +91,20 @@ export function getColorData(
     lightnessBezier(pdens / mdens) * v,
   );
 
-  return ((opacityBezier(progress) * 255) << 24) | (b << 16) | (g << 8) | r;
+  // Extract background color components with default values
+  const bgR = background?.[0] ?? 0;
+  const bgG = background?.[1] ?? 0;
+  const bgB = background?.[2] ?? 0;
+  
+  // Calculate a blend factor based on density
+  const blendFactor = Math.min(1, pdens / mdens);
+  
+  // Blend the color with background
+  const blendedR = Math.round(r * blendFactor + bgR * (1 - blendFactor));
+  const blendedG = Math.round(g * blendFactor + bgG * (1 - blendFactor));
+  const blendedB = Math.round(b * blendFactor + bgB * (1 - blendFactor));
+  
+  // Keep the original opacity calculation exactly as it was
+  return ((opacityBezier(progress) * 255) << 24) | (blendedB << 16) | (blendedG << 8) | blendedR;
+  // return ((1 * 255) << 24) | (blendedB << 16) | (blendedG << 8) | blendedR;
 }

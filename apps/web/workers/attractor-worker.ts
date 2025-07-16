@@ -220,7 +220,8 @@ function runAttractorOffscreen({
     return num + (Math.random() < 0.5 ? -0.2 : 0.2) * (1 / scale);
   }
 
-  function drawPixels() {
+  function drawPixels( progress: number ) {
+    console.log("Drawing pixels at progress:", progress);
     if (!offscreenCtx) return;
     const imageData = offscreenCtx.createImageData(width, height);
     const data = new Uint32Array(imageData.data.buffer);
@@ -249,7 +250,8 @@ function runAttractorOffscreen({
             hue,
             saturation,
             brightness,
-            1,
+            progress,
+            background, // Pass the background color array
           );
         } else {
           data[i] = bgColor;
@@ -278,8 +280,9 @@ function runAttractorOffscreen({
         if (pixels[idx] > maxDensity) maxDensity = pixels[idx];
       }
       if ((i > 0 && i % interval === 0) || i === points - 1) {
-        drawPixels();
-        const progressVal = Math.round((i / points) * 100);
+        const progress = i / (points-1)
+        drawPixels( progress );
+        const progressVal = Math.round(progress * 100);
         const typeVal = i === points - 1 ? "done" : "preview";
         self.postMessage({
           type: typeVal,
@@ -347,7 +350,7 @@ function runAttractor({
           type: i === points - 1 ? "done" : "preview",
           pixels: pixels.slice(0),
           maxDensity,
-          progress: Math.round((i / points) * 100),
+          progress: Math.round((i / (points - 1)) * 100),
           batch: i,
           qualityMode,
           attractorParameters: parameters?.params,
