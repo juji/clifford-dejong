@@ -8,19 +8,19 @@ import * as React from "react";
 export function DarkModeToggle() {
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
-  const [ loaded, setLoaded ] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   // wait for the theme to be set correctly on initial load
   // prevent hydration mismatch
   useEffect(() => {
     setLoaded(true);
-  },[])
+  }, []);
 
   return loaded ? (
     <div
       className={
         `absolute top-4 right-4 z-[200] rounded-lg p-1 transition-colors ` +
-        (isDark ?  "bg-black/10" : "bg-white/90")
+        (isDark ? "bg-black/10" : "bg-white/90")
       }
     >
       <Button
@@ -28,7 +28,11 @@ export function DarkModeToggle() {
         aria-label="Toggle dark mode"
         onClick={() => setTheme(isDark ? "light" : "dark")}
       >
-        {isDark ? <Sun className="h-5 w-5" data-testid="sun-icon" /> : <Moon className="h-5 w-5" data-testid="moon-icon" />}
+        {isDark ? (
+          <Sun className="h-5 w-5" data-testid="sun-icon" />
+        ) : (
+          <Moon className="h-5 w-5" data-testid="moon-icon" />
+        )}
         <span className="sr-only">Toggle dark mode</span>
       </Button>
     </div>

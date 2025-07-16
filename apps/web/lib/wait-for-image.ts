@@ -8,10 +8,8 @@ export async function waitForImage(): Promise<string> {
     return await resizeBase64Image(currentImageUrl);
   }
 
-  
   // Otherwise, wait for imageUrl to become available in the store
   return new Promise((resolve) => {
-
     // Set up an interval to check for imageUrl
     const checkInterval = setInterval(async () => {
       currentImageUrl = useUIStore.getState().imageUrl;

@@ -6,7 +6,12 @@ import { useAttractorWorker } from "@/hooks/use-attractor-worker";
 import { mainThreadDrawing } from "@/lib/main-thread-drawing";
 import { useUIStore } from "@/store/ui-store";
 import { usePointerControl } from "@/hooks/use-pointer-control";
-import { DEFAULT_POINTS, DEFAULT_SCALE, LOW_QUALITY_POINTS, LOW_QUALITY_INTERVAL } from "@/lib/constants";
+import {
+  DEFAULT_POINTS,
+  DEFAULT_SCALE,
+  LOW_QUALITY_POINTS,
+  LOW_QUALITY_INTERVAL,
+} from "@/lib/constants";
 import debounce from "debounce";
 
 export function AttractorCanvas() {
@@ -20,10 +25,16 @@ export function AttractorCanvas() {
   const setError = useUIStore((s) => s.setError);
 
   // State for rendering
-  const [canvasSize, setCanvasSize] = useState<{ width: number; height: number } | null>(null);
+  const [canvasSize, setCanvasSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
   const [canvasVisible, setCanvasVisible] = useState(true);
   const [initialized, setInitialized] = useState(false);
-  const offscreenSupported = useRef(typeof window !== 'undefined' && typeof window.OffscreenCanvas !== 'undefined');
+  const offscreenSupported = useRef(
+    typeof window !== "undefined" &&
+      typeof window.OffscreenCanvas !== "undefined",
+  );
   const offscreenTransferredRef = useRef(false);
   const dynamicProgressIntervalRef = useRef<number | null>(null);
   const [workerReady, setWorkerReady] = useState(false);
@@ -34,12 +45,10 @@ export function AttractorCanvas() {
       // run benchmark on first render
       const result = await runAttractorBenchmark();
       let interval;
-      if (result.msPer100k < 10)
-        interval = 0.5;
-      else if (result.msPer100k < 30)
-        interval = 1;
+      if (result.msPer100k < 10) interval = 0.5;
+      else if (result.msPer100k < 30) interval = 1;
       else interval = 2.5;
-      dynamicProgressIntervalRef.current = interval
+      dynamicProgressIntervalRef.current = interval;
 
       // this waits for benchmark to finish
       // before setting initial state
@@ -55,9 +64,7 @@ export function AttractorCanvas() {
           setCanvasSize({ width, height });
         }
       }
-
     })();
-
   }, []);
 
   // Use custom worker hook
@@ -71,31 +78,32 @@ export function AttractorCanvas() {
     onPreview: (progress, e) => {
       if (progress === 0) setImageUrl(null);
       setProgress(progress);
-      if(e.data.pixels && e.data.pixels.length > 0) {
+      if (e.data.pixels && e.data.pixels.length > 0) {
         mainThreadDrawing(
           canvasRef.current,
-          e.data.pixels, 
-          e.data.maxDensity, 
+          e.data.pixels,
+          e.data.maxDensity,
           progress,
           e.data.qualityMode,
-          e.data.attractorParameters
+          e.data.attractorParameters,
         );
       }
     },
-    onDone: ( progress, e ) => {
+    onDone: (progress, e) => {
       setProgress(progress);
-      if(e.data.pixels && e.data.pixels.length > 0) {
+      if (e.data.pixels && e.data.pixels.length > 0) {
         mainThreadDrawing(
           canvasRef.current,
-          e.data.pixels, 
-          e.data.maxDensity, 
+          e.data.pixels,
+          e.data.maxDensity,
           progress,
           e.data.qualityMode,
-          e.data.attractorParameters
+          e.data.attractorParameters,
         );
       }
       const canvas = canvasRef.current;
-      if (canvas && e.data.qualityMode === 'high') setImageUrl(canvas.toDataURL("image/png"));
+      if (canvas && e.data.qualityMode === "high")
+        setImageUrl(canvas.toDataURL("image/png"));
     },
     onError: (error: string) => {
       setError(error || "Unknown error in worker");
@@ -120,20 +128,20 @@ export function AttractorCanvas() {
     if (!workerRef.current) return;
     workerRef.current.postMessage({ type: "stop" });
     // on low quality mode change
-    if (qualityMode === 'low') {
+    if (qualityMode === "low") {
       workerRef.current?.postMessage({
-        type: 'update',
+        type: "update",
         progressInterval: LOW_QUALITY_INTERVAL,
         points: LOW_QUALITY_POINTS,
         qualityMode: qualityMode,
-      })
-    }else{
+      });
+    } else {
       workerRef.current?.postMessage({
-        type: 'update',
+        type: "update",
         progressInterval: dynamicProgressIntervalRef.current,
         points: DEFAULT_POINTS,
         qualityMode: qualityMode,
-      })
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qualityMode]);
@@ -142,13 +150,16 @@ export function AttractorCanvas() {
   const canvasVisibleRef = useRef(canvasVisible);
   useEffect(() => {
     // Debounced function for expensive resize logic
-    const debouncedResize = debounce((newSize: { width: number; height: number }) => {
-      setCanvasSize(newSize);
-      setTimeout(() => {
-        setCanvasVisible(true);
-        canvasVisibleRef.current = true;
-      }, 100);
-    }, 500);
+    const debouncedResize = debounce(
+      (newSize: { width: number; height: number }) => {
+        setCanvasSize(newSize);
+        setTimeout(() => {
+          setCanvasVisible(true);
+          canvasVisibleRef.current = true;
+        }, 100);
+      },
+      500,
+    );
 
     function updateSize() {
       const canvas = canvasRef.current;
@@ -164,7 +175,11 @@ export function AttractorCanvas() {
         if (workerRef.current) workerRef.current.postMessage({ type: "stop" });
       }
       // Only update if size changed
-      if (!canvasSize || newSize.width !== canvasSize.width || newSize.height !== canvasSize.height) {
+      if (
+        !canvasSize ||
+        newSize.width !== canvasSize.width ||
+        newSize.height !== canvasSize.height
+      ) {
         debouncedResize(newSize);
       }
     }
@@ -172,7 +187,7 @@ export function AttractorCanvas() {
     window.addEventListener("resize", updateSize);
     return () => {
       window.removeEventListener("resize", updateSize);
-      if (typeof debouncedResize.clear === 'function') {
+      if (typeof debouncedResize.clear === "function") {
         debouncedResize.clear();
       }
     };
@@ -181,7 +196,6 @@ export function AttractorCanvas() {
 
   const workerInitiated = useRef(false);
   function initiateWorker() {
-
     // initiate everything
     setImageUrl(null);
     setError(null);
@@ -192,38 +206,38 @@ export function AttractorCanvas() {
     if (!canvas) return;
     const parent = canvas.parentElement;
     if (!parent) return;
-    if(!canvasSize) return;
-    if(!workerRef.current) return;
+    if (!canvasSize) return;
+    if (!workerRef.current) return;
 
     const width = canvasSize.width;
     const height = canvasSize.height;
 
     // setup canvas size
     // before OffscreenCanvas transfer
-    if(!offscreenTransferredRef.current) {
+    if (!offscreenTransferredRef.current) {
       canvas.width = width;
       canvas.height = height;
     }
 
     // initialize offscreen canvas
     if (offscreenSupported && !offscreenTransferredRef.current) {
-      
       const offscreen = canvas.transferControlToOffscreen();
-      workerRef.current.postMessage({
-        type: "init",
-        canvas: offscreen,
-        width,
-        height,
-        params: attractorParameters,
-        progressInterval: dynamicProgressIntervalRef.current,
-        points: DEFAULT_POINTS,
-        defaultScale: DEFAULT_SCALE,
-        qualityMode: qualityMode,
-      }, [offscreen]);
+      workerRef.current.postMessage(
+        {
+          type: "init",
+          canvas: offscreen,
+          width,
+          height,
+          params: attractorParameters,
+          progressInterval: dynamicProgressIntervalRef.current,
+          points: DEFAULT_POINTS,
+          defaultScale: DEFAULT_SCALE,
+          qualityMode: qualityMode,
+        },
+        [offscreen],
+      );
       offscreenTransferredRef.current = true;
-
-    }else{
-
+    } else {
       workerRef.current.postMessage({
         type: "init",
         width,
@@ -234,30 +248,28 @@ export function AttractorCanvas() {
         defaultScale: DEFAULT_SCALE,
         qualityMode: qualityMode,
       });
-
     }
-
   }
 
   // when canvas size changes
   useEffect(() => {
-    if(!workerInitiated.current) return;
-    if(!canvasSize) return;
+    if (!workerInitiated.current) return;
+    if (!canvasSize) return;
     workerRef.current?.postMessage({
-      type: 'resize',
+      type: "resize",
       width: canvasSize?.width,
       height: canvasSize?.height,
-    })
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasSize]);
 
   // canvas visibility change
   useEffect(() => {
-    if(!workerInitiated.current) return;
+    if (!workerInitiated.current) return;
     if (canvasVisible) {
       workerRef.current?.postMessage({
-        type: 'start',
-      })
+        type: "start",
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasVisible]);
@@ -265,28 +277,24 @@ export function AttractorCanvas() {
   // after initialized
   // or attractor parameters change
   useEffect(() => {
-    
-    if(!initialized) return;
-    else if(!workerInitiated.current) {
-      initiateWorker()
-      workerInitiated.current = true
-    }
-    else workerRef.current?.postMessage({
-      type: 'update',
-      params: attractorParameters
-    })
-    
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ initialized, attractorParameters ]);
+    if (!initialized) return;
+    else if (!workerInitiated.current) {
+      initiateWorker();
+      workerInitiated.current = true;
+    } else
+      workerRef.current?.postMessage({
+        type: "update",
+        params: attractorParameters,
+      });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialized, attractorParameters]);
 
   // set initialized state
   // when canvasSize is available
   // and worker is ready
   useEffect(() => {
-    if (
-      canvasSize &&
-      workerReady
-    ) {
+    if (canvasSize && workerReady) {
       setInitialized(true);
     }
   }, [canvasSize, workerReady]);
@@ -295,8 +303,8 @@ export function AttractorCanvas() {
     <div className="flex items-center justify-center w-full h-full fixed top-0 left-0">
       <canvas
         ref={canvasRef}
-        style={{ touchAction: 'none' }}
-        className={`block w-full h-full transition-opacity ${canvasVisible ? 'opacity-100' : 'opacity-0'}`}
+        style={{ touchAction: "none" }}
+        className={`block w-full h-full transition-opacity ${canvasVisible ? "opacity-100" : "opacity-0"}`}
       />
     </div>
   );

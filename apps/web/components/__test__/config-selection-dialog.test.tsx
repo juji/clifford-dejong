@@ -69,7 +69,9 @@ describe("ConfigSelectionDialog", () => {
 
     // Assert
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Attractor Gallery" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Attractor Gallery" }),
+    ).toBeInTheDocument();
   });
 
   // Test 2: Empty state
@@ -85,11 +87,11 @@ describe("ConfigSelectionDialog", () => {
   it("should display a list of records when data is provided", () => {
     // Arrange
     const mockRecords = [
-      { 
-        uuid: "1", 
-        name: "First Record", 
+      {
+        uuid: "1",
+        name: "First Record",
         createdAt: Date.now(),
-        image: 'data:image/png;base64,testimagedlg1',
+        image: "data:image/png;base64,testimagedlg1",
         attractorParameters: {
           attractor: "clifford" as const,
           a: 2,
@@ -103,13 +105,13 @@ describe("ConfigSelectionDialog", () => {
           scale: 1,
           left: 0,
           top: 0,
-        }
+        },
       },
-      { 
-        uuid: "2", 
-        name: "Second Record", 
+      {
+        uuid: "2",
+        name: "Second Record",
         createdAt: Date.now(),
-        image: 'data:image/png;base64,testimagedlg2',
+        image: "data:image/png;base64,testimagedlg2",
         attractorParameters: {
           attractor: "dejong" as const,
           a: 1,
@@ -123,22 +125,24 @@ describe("ConfigSelectionDialog", () => {
           scale: 1,
           left: 0,
           top: 0,
-        }
+        },
       },
     ];
 
-    vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => selector({ 
-      records: mockRecords, 
-      error: null, 
-      loading: false, 
-      refresh: mockRefresh,
-      removeRecord: mockRemoveRecord,
-      total: mockRecords.length,
-      loadMore: vi.fn(),
-      page: 0,
-      fetchRecords: vi.fn(),
-      addRecord: vi.fn(),
-    }));
+    vi.mocked(useAttractorRecordsStore).mockImplementation((selector) =>
+      selector({
+        records: mockRecords,
+        error: null,
+        loading: false,
+        refresh: mockRefresh,
+        removeRecord: mockRemoveRecord,
+        total: mockRecords.length,
+        loadMore: vi.fn(),
+        page: 0,
+        fetchRecords: vi.fn(),
+        addRecord: vi.fn(),
+      }),
+    );
 
     render(<ConfigSelectionDialog open={true} onOpenChange={() => {}} />);
 
@@ -156,7 +160,7 @@ describe("ConfigSelectionDialog", () => {
       uuid: "1",
       name: "Clickable Record",
       createdAt: Date.now(),
-      image: 'data:image/png;base64,testimagedlgclick',
+      image: "data:image/png;base64,testimagedlgclick",
       attractorParameters: {
         attractor: "clifford" as const,
         a: 1,
@@ -173,27 +177,33 @@ describe("ConfigSelectionDialog", () => {
       },
     };
 
-    vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => selector({ 
-      records: [mockRecord], 
-      error: null, 
-      loading: false, 
-      refresh: mockRefresh,
-      removeRecord: mockRemoveRecord,
-      total: 1,
-      loadMore: vi.fn(),
-      page: 0,
-      fetchRecords: vi.fn(),
-      addRecord: vi.fn(),
-    }));
+    vi.mocked(useAttractorRecordsStore).mockImplementation((selector) =>
+      selector({
+        records: [mockRecord],
+        error: null,
+        loading: false,
+        refresh: mockRefresh,
+        removeRecord: mockRemoveRecord,
+        total: 1,
+        loadMore: vi.fn(),
+        page: 0,
+        fetchRecords: vi.fn(),
+        addRecord: vi.fn(),
+      }),
+    );
 
-    render(<ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />);
+    render(
+      <ConfigSelectionDialog open={true} onOpenChange={mockOnOpenChange} />,
+    );
 
     // Act
     const recordElement = screen.getByText("Clickable Record");
     await user.click(recordElement);
 
     // Assert
-    expect(mockSetAttractorParams).toHaveBeenCalledWith(mockRecord.attractorParameters);
+    expect(mockSetAttractorParams).toHaveBeenCalledWith(
+      mockRecord.attractorParameters,
+    );
     expect(mockOnOpenChange).toHaveBeenCalledWith(false);
   });
 });

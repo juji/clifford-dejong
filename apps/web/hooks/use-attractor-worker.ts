@@ -15,14 +15,28 @@ export function useAttractorWorker({
   onDone,
   onError,
   onLoadError,
-  onReady
+  onReady,
 }: AttractorWorkerOptions) {
   // Gunakan ref untuk menyimpan callback terbaru. Ini menyelesaikan masalah stale closure
   // di mana onmessage handler milik worker hanya akan melihat versi awal
   // dari properti callback.
-  const optionsRef = useRef({ onStop, onPreview, onDone, onError, onLoadError, onReady });
+  const optionsRef = useRef({
+    onStop,
+    onPreview,
+    onDone,
+    onError,
+    onLoadError,
+    onReady,
+  });
   useLayoutEffect(() => {
-    optionsRef.current = { onStop, onPreview, onDone, onError, onLoadError, onReady };
+    optionsRef.current = {
+      onStop,
+      onPreview,
+      onDone,
+      onError,
+      onLoadError,
+      onReady,
+    };
   });
 
   const workerRef = useRef<Worker | null>(null);
@@ -30,7 +44,9 @@ export function useAttractorWorker({
   useEffect(() => {
     // Atur timeout untuk menangani kasus di mana skrip worker gagal dimuat atau diinisialisasi.
     const loadTimeout = setTimeout(() => {
-      optionsRef.current.onLoadError("Worker failed to initialize in a timely manner.");
+      optionsRef.current.onLoadError(
+        "Worker failed to initialize in a timely manner.",
+      );
     }, 2000);
 
     // Inisialisasi worker.
@@ -43,7 +59,8 @@ export function useAttractorWorker({
     // Message handler terpusat untuk semua event dari worker.
     worker.onmessage = (e: MessageEvent) => {
       // Selalu gunakan callback terbaru dari ref.
-      const { onReady, onStop, onPreview, onDone, onError } = optionsRef.current;
+      const { onReady, onStop, onPreview, onDone, onError } =
+        optionsRef.current;
       switch (e.data.type) {
         case "ready":
           // Worker siap, hapus timeout pemuatan.

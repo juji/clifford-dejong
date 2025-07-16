@@ -4,7 +4,7 @@ import { useHowl } from "./use-howl";
 const FADE_DURATION = 1000; // 1 second
 
 export function useWaitingSound(
-  url: string = "https://clifford-dejong.vercel.app/waiting.mp3"
+  url: string = "https://clifford-dejong.vercel.app/waiting.mp3",
 ) {
   const sound = useHowl({
     src: [url],

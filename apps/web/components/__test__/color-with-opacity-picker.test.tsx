@@ -6,7 +6,7 @@ import { ThemeProvider } from "next-themes";
 // Mock matchMedia for theme provider
 Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -63,7 +63,7 @@ const renderWithTheme = (ui: React.ReactElement, { theme = "light" } = {}) => {
       themes={["light", "dark"]}
     >
       {ui}
-    </ThemeProvider>
+    </ThemeProvider>,
   );
 };
 
@@ -74,7 +74,7 @@ describe("ColorWithOpacityPicker", () => {
 
   it("renders basic component elements", () => {
     renderWithTheme(<ColorWithOpacityPicker {...defaultProps} />);
-    
+
     expect(screen.getByText("Test Color")).toBeInTheDocument();
     expect(screen.getByTestId("color-input")).toHaveAttribute("type", "color");
     expect(screen.getByTestId("opacity-slider")).toBeInTheDocument();
@@ -84,25 +84,27 @@ describe("ColorWithOpacityPicker", () => {
 
   it("handles color input changes", () => {
     renderWithTheme(<ColorWithOpacityPicker {...defaultProps} />);
-    
+
     const input = screen.getByTestId("color-input");
     fireEvent.change(input, { target: { value: "#00ff00" } });
-    
+
     expect(defaultProps.onColorChange).toHaveBeenCalledWith("#00ff00");
   });
 
   it("handles opacity slider changes", () => {
     renderWithTheme(<ColorWithOpacityPicker {...defaultProps} />);
-    
+
     const slider = screen.getByTestId("opacity-slider");
     fireEvent.click(slider); // Will trigger change to 50% based on our mock
-    
+
     expect(defaultProps.onOpacityChange).toHaveBeenCalledWith(0.5);
   });
 
   it("applies custom className", () => {
-    renderWithTheme(<ColorWithOpacityPicker {...defaultProps} className="custom-class" />);
-    
+    renderWithTheme(
+      <ColorWithOpacityPicker {...defaultProps} className="custom-class" />,
+    );
+
     const container = screen.getByText("Test Color").parentElement;
     expect(container).toHaveClass("custom-class");
   });
@@ -114,27 +116,32 @@ describe("ColorWithOpacityPicker", () => {
       label: "",
       color: "rgba(255, 0, 0, 0.5)",
     };
-    
+
     renderWithTheme(<ColorWithOpacityPicker {...props} />);
-    
+
     expect(screen.getByText("0%")).toBeInTheDocument();
-    expect(screen.getByTestId("opacity-slider")).toHaveAttribute("aria-valuenow", "0");
+    expect(screen.getByTestId("opacity-slider")).toHaveAttribute(
+      "aria-valuenow",
+      "0",
+    );
     expect(screen.getByText(props.color)).toBeInTheDocument();
   });
 
   it("has selectable combined value display", () => {
     renderWithTheme(<ColorWithOpacityPicker {...defaultProps} />);
-    
+
     const combinedDisplay = screen.getByText("#ff0000 / 75%");
     expect(combinedDisplay).toHaveClass("select-all");
   });
 
   it("renders correctly in dark mode", () => {
-    renderWithTheme(<ColorWithOpacityPicker {...defaultProps} />, { theme: "dark" });
-    
+    renderWithTheme(<ColorWithOpacityPicker {...defaultProps} />, {
+      theme: "dark",
+    });
+
     const label = screen.getByText("Test Color");
     expect(label).toHaveClass("text-foreground", "dark:text-foreground");
-    
+
     const colorValue = screen.getByText("#ff0000");
     expect(colorValue).toHaveClass("text-muted-foreground");
   });

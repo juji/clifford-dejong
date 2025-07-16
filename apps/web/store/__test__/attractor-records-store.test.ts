@@ -1,16 +1,20 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { useAttractorRecordsStore } from '../attractor-records-store';
-import { AttractorRecord } from '../../lib/attractor-indexdb';
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { useAttractorRecordsStore } from "../attractor-records-store";
+import { AttractorRecord } from "../../lib/attractor-indexdb";
 
 // Mock the indexedDB functions
-vi.mock('../../lib/attractor-indexdb', () => ({
+vi.mock("../../lib/attractor-indexdb", () => ({
   getPaginatedAttractors: vi.fn(),
   saveAttractor: vi.fn(),
   deleteAttractor: vi.fn(),
 }));
 
 // Import mocks after mocking
-import { getPaginatedAttractors, saveAttractor, deleteAttractor } from '../../lib/attractor-indexdb';
+import {
+  getPaginatedAttractors,
+  saveAttractor,
+  deleteAttractor,
+} from "../../lib/attractor-indexdb";
 
 // Sample data for tests
 const sampleAttractorParameters = {
@@ -30,18 +34,18 @@ const sampleAttractorParameters = {
 
 const sampleRecords: AttractorRecord[] = [
   {
-    uuid: 'test-uuid-1',
-    name: 'Test Attractor 1',
+    uuid: "test-uuid-1",
+    name: "Test Attractor 1",
     attractorParameters: sampleAttractorParameters,
     createdAt: Date.now() - 10000,
-    image: 'data:image/png;base64,testimage123',
+    image: "data:image/png;base64,testimage123",
   },
   {
-    uuid: 'test-uuid-2',
-    name: 'Test Attractor 2',
+    uuid: "test-uuid-2",
+    name: "Test Attractor 2",
     attractorParameters: sampleAttractorParameters,
     createdAt: Date.now(),
-    image: 'data:image/png;base64,testimage456',
+    image: "data:image/png;base64,testimage456",
   },
 ];
 
@@ -54,18 +58,18 @@ const getInitialState = () => ({
   error: null,
 });
 
-describe('useAttractorRecordsStore', () => {
+describe("useAttractorRecordsStore", () => {
   beforeEach(() => {
     // Reset mocks
     vi.resetAllMocks();
-    
+
     // Reset the store to initial state
     const store = useAttractorRecordsStore.getState();
     useAttractorRecordsStore.setState(getInitialState());
   });
 
-  describe('Initial State', () => {
-    it('should initialize with default values', () => {
+  describe("Initial State", () => {
+    it("should initialize with default values", () => {
       const state = useAttractorRecordsStore.getState();
       expect(state.records).toEqual([]);
       expect(state.total).toBe(0);
@@ -75,11 +79,16 @@ describe('useAttractorRecordsStore', () => {
     });
   });
 
-  describe('fetchRecords', () => {
-    it('should fetch records from the first page', async () => {
+  describe("fetchRecords", () => {
+    it("should fetch records from the first page", async () => {
       // Mock the getPaginatedAttractors function
-      const mockResponse = { records: sampleRecords, total: sampleRecords.length };
-      (getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
+      const mockResponse = {
+        records: sampleRecords,
+        total: sampleRecords.length,
+      };
+      (
+        getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(mockResponse);
 
       // Call fetchRecords
       await useAttractorRecordsStore.getState().fetchRecords(0);
@@ -96,7 +105,7 @@ describe('useAttractorRecordsStore', () => {
       expect(state.error).toBeNull();
     });
 
-    it('should append records when fetching subsequent pages', async () => {
+    it("should append records when fetching subsequent pages", async () => {
       // Set initial state with some records
       // Make sure we're working with non-undefined values
       const initialRecords = [sampleRecords[0]!];
@@ -110,7 +119,9 @@ describe('useAttractorRecordsStore', () => {
       // Mock the getPaginatedAttractors function
       const page1Records = [sampleRecords[1]!];
       const mockResponse = { records: page1Records, total: 2 };
-      (getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
+      (
+        getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(mockResponse);
 
       // Call fetchRecords for page 1
       await useAttractorRecordsStore.getState().fetchRecords(1);
@@ -125,10 +136,12 @@ describe('useAttractorRecordsStore', () => {
       expect(state.page).toBe(1);
     });
 
-    it('should handle errors during fetch', async () => {
+    it("should handle errors during fetch", async () => {
       // Mock the getPaginatedAttractors function to throw an error
-      const testError = new Error('Test fetch error');
-      (getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(testError);
+      const testError = new Error("Test fetch error");
+      (
+        getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>
+      ).mockRejectedValue(testError);
 
       // Call fetchRecords
       await useAttractorRecordsStore.getState().fetchRecords(0);
@@ -140,20 +153,24 @@ describe('useAttractorRecordsStore', () => {
     });
   });
 
-  describe('addRecord', () => {
-    it('should add a new record', async () => {
+  describe("addRecord", () => {
+    it("should add a new record", async () => {
       // Setup mock responses
-      (saveAttractor as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
-      (getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (saveAttractor as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+        undefined,
+      );
+      (
+        getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         records: sampleRecords,
         total: sampleRecords.length,
       });
 
       // New record to add
       const newRecord = {
-        name: 'New Test Attractor',
+        name: "New Test Attractor",
         attractorParameters: sampleAttractorParameters,
-        image: 'data:image/png;base64,testimage789',
+        image: "data:image/png;base64,testimage789",
       };
 
       // Call addRecord
@@ -169,16 +186,18 @@ describe('useAttractorRecordsStore', () => {
       expect(state.loading).toBe(false);
     });
 
-    it('should handle errors when adding a record', async () => {
+    it("should handle errors when adding a record", async () => {
       // Setup mock to throw an error
-      const testError = new Error('Test add error');
-      (saveAttractor as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(testError);
+      const testError = new Error("Test add error");
+      (saveAttractor as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
+        testError,
+      );
 
       // Call addRecord
       await useAttractorRecordsStore.getState().addRecord({
-        name: 'Failing Record',
+        name: "Failing Record",
         attractorParameters: sampleAttractorParameters,
-        image: 'data:image/png;base64,testimagefail',
+        image: "data:image/png;base64,testimagefail",
       });
 
       // Check if the state was updated correctly
@@ -190,20 +209,24 @@ describe('useAttractorRecordsStore', () => {
     });
   });
 
-  describe('removeRecord', () => {
-    it('should remove a record', async () => {
+  describe("removeRecord", () => {
+    it("should remove a record", async () => {
       // Setup mock responses
-      (deleteAttractor as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
-      (getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        deleteAttractor as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(undefined);
+      (
+        getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         records: [sampleRecords[0]!], // One record removed
         total: 1,
       });
 
       // Call removeRecord
-      await useAttractorRecordsStore.getState().removeRecord('test-uuid-2');
+      await useAttractorRecordsStore.getState().removeRecord("test-uuid-2");
 
       // Check if the functions were called correctly
-      expect(deleteAttractor).toHaveBeenCalledWith('test-uuid-2');
+      expect(deleteAttractor).toHaveBeenCalledWith("test-uuid-2");
       expect(getPaginatedAttractors).toHaveBeenCalledWith(0);
 
       // Check if the state was updated correctly
@@ -213,13 +236,15 @@ describe('useAttractorRecordsStore', () => {
       expect(state.loading).toBe(false);
     });
 
-    it('should handle errors when removing a record', async () => {
+    it("should handle errors when removing a record", async () => {
       // Setup mock to throw an error
-      const testError = new Error('Test remove error');
-      (deleteAttractor as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(testError);
+      const testError = new Error("Test remove error");
+      (
+        deleteAttractor as unknown as ReturnType<typeof vi.fn>
+      ).mockRejectedValue(testError);
 
       // Call removeRecord
-      await useAttractorRecordsStore.getState().removeRecord('test-uuid-1');
+      await useAttractorRecordsStore.getState().removeRecord("test-uuid-1");
 
       // Check if the state was updated correctly
       const state = useAttractorRecordsStore.getState();
@@ -230,8 +255,8 @@ describe('useAttractorRecordsStore', () => {
     });
   });
 
-  describe('loadMore', () => {
-    it('should load the next page of records when available', async () => {
+  describe("loadMore", () => {
+    it("should load the next page of records when available", async () => {
       // Setup initial state with some records
       useAttractorRecordsStore.setState({
         ...getInitialState(),
@@ -241,7 +266,9 @@ describe('useAttractorRecordsStore', () => {
       });
 
       // Setup mock response for next page
-      (getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         records: [sampleRecords[1]],
         total: 2,
       });
@@ -258,7 +285,7 @@ describe('useAttractorRecordsStore', () => {
       expect(state.page).toBe(1);
     });
 
-    it('should not load more when all records are already loaded', async () => {
+    it("should not load more when all records are already loaded", async () => {
       // Setup state where all records are loaded
       useAttractorRecordsStore.setState({
         ...getInitialState(),
@@ -274,7 +301,7 @@ describe('useAttractorRecordsStore', () => {
       expect(getPaginatedAttractors).not.toHaveBeenCalled();
     });
 
-    it('should not load more when already loading', async () => {
+    it("should not load more when already loading", async () => {
       // Setup state where loading is in progress
       useAttractorRecordsStore.setState({
         ...getInitialState(),
@@ -292,10 +319,12 @@ describe('useAttractorRecordsStore', () => {
     });
   });
 
-  describe('refresh', () => {
-    it('should fetch records from the first page', async () => {
+  describe("refresh", () => {
+    it("should fetch records from the first page", async () => {
       // Setup mock
-      (getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        getPaginatedAttractors as unknown as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         records: sampleRecords,
         total: sampleRecords.length,
       });

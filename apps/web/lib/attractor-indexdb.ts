@@ -34,7 +34,7 @@ function openDB(): Promise<IDBDatabase> {
 }
 
 export async function saveAttractor(
-  record: Omit<AttractorRecord, "uuid" | "createdAt">
+  record: Omit<AttractorRecord, "uuid" | "createdAt">,
 ): Promise<AttractorRecord> {
   const uuid = uuidv4();
   const createdAt = Date.now();
@@ -51,7 +51,7 @@ export async function saveAttractor(
 
 export async function getPaginatedAttractors(
   page: number,
-  pageSize: number = 33
+  pageSize: number = 33,
 ): Promise<{ records: AttractorRecord[]; total: number }> {
   const db = await openDB();
   return new Promise((resolve, reject) => {

@@ -70,7 +70,7 @@ export function hsv2rgb(
 // Bezier curves for color mapping
 export const saturationBezier = BezierEasing(0.79, -0.34, 0.54, 1.18);
 export const lightnessBezier = BezierEasing(0.75, 0.38, 0.24, 1.33);
-export const opacityBezier = BezierEasing(.69,-0.01,.48,.94);
+export const opacityBezier = BezierEasing(0.69, -0.01, 0.48, 0.94);
 
 // Maps density to color using HSV and Bezier curves
 export function getColorData(
@@ -90,5 +90,5 @@ export function getColorData(
     lightnessBezier(pdens / mdens) * v,
   );
 
-  return ( (opacityBezier(progress) * 255) << 24) | (b << 16) | (g << 8) | r;
+  return ((opacityBezier(progress) * 255) << 24) | (b << 16) | (g << 8) | r;
 }

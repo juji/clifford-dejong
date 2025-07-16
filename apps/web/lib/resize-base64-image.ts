@@ -8,9 +8,8 @@ import Pica from "pica";
  */
 export const resizeBase64Image = async (
   base64: string,
-  targetWidth: number = 500
+  targetWidth: number = 500,
 ): Promise<string> => {
-  
   // Create pica instance with default settings
   const pica = new Pica();
 
@@ -22,24 +21,24 @@ export const resizeBase64Image = async (
       img.onerror = reject;
       img.src = base64;
     });
-    
+
     // Calculate height to maintain aspect ratio
     const aspectRatio = img.height / img.width;
     const targetHeight = Math.round(targetWidth * aspectRatio);
-    
+
     // Create destination canvas with the exact target dimensions
     const destCanvas = document.createElement("canvas");
     destCanvas.width = targetWidth;
     destCanvas.height = targetHeight;
-    
-    // Use pica to resize - this guarantees the exact output dimensions 
+
+    // Use pica to resize - this guarantees the exact output dimensions
     // because we've preset the destination canvas size
     const result = await pica.resize(img, destCanvas, {
       unsharpAmount: 80,
       unsharpRadius: 0.6,
-      unsharpThreshold: 2
+      unsharpThreshold: 2,
     });
-    
+
     // Convert result to base64
     const resizedBase64 = result.toDataURL("image/png");
     return resizedBase64;

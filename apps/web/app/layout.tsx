@@ -16,7 +16,11 @@ export const metadata: Metadata = {
   icons: [
     { rel: "icon", url: "/icons/icon-192x192.png", sizes: "192x192" },
     { rel: "icon", url: "/icons/icon-512x512.png", sizes: "512x512" },
-    { rel: "apple-touch-icon", url: "/icons/apple-touch-icon.png", sizes: "180x180" },
+    {
+      rel: "apple-touch-icon",
+      url: "/icons/apple-touch-icon.png",
+      sizes: "180x180",
+    },
     { rel: "mask-icon", url: "/icons/safari-pinned-tab.svg", color: "#18181b" },
   ],
   formatDetection: {
@@ -51,9 +55,7 @@ export const metadata: Metadata = {
     title: "Clifford-de Jong Attractor Wallpaper Creator",
     description:
       "A cross-platform app for generating beautiful mathematical art wallpapers using Clifford and de Jong attractors.",
-    images: [
-      "/og-image.png"
-    ],
+    images: ["/og-image.png"],
     creator: "@your_twitter_handle", // Update as needed
   },
 };
@@ -74,9 +76,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} ${robotoMono.variable}`}>
-        <ThemeProvider attribute="class" 
-          defaultTheme="system" 
-          enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           {children}
         </ThemeProvider>
       </body>

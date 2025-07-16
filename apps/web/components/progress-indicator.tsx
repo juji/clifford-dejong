@@ -3,7 +3,7 @@ import React from "react";
 import { useUIStore } from "@/store/ui-store";
 
 export function ProgressIndicator() {
-  const progress = useUIStore(s => s.progress);
+  const progress = useUIStore((s) => s.progress);
   const roundedProgress = Math.round(progress);
   return (
     <div

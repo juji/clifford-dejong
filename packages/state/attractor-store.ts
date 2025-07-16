@@ -56,7 +56,8 @@ export const useAttractorStore = create<AttractorState & AttractorActions>()(
   persist(
     (set, get) => ({
       ...defaultState,
-      setAttractorParams: (params) => set((state) => ({ ...state, attractorParameters: params })),
+      setAttractorParams: (params) =>
+        set((state) => ({ ...state, attractorParameters: params })),
       reset: () => set({ ...defaultState }),
     }),
     {

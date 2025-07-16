@@ -2,7 +2,12 @@ import { render } from "@testing-library/react";
 import { AttractorCanvas } from "@/components/attractor-canvas";
 import React from "react";
 import { act } from "react";
-import { DEFAULT_POINTS, DEFAULT_SCALE, LOW_QUALITY_POINTS, LOW_QUALITY_INTERVAL } from "@/lib/constants";
+import {
+  DEFAULT_POINTS,
+  DEFAULT_SCALE,
+  LOW_QUALITY_POINTS,
+  LOW_QUALITY_INTERVAL,
+} from "@/lib/constants";
 
 // Create mock functions for Zustand actions
 const mockSetProgress = vi.fn();
@@ -29,7 +34,7 @@ vi.mock("@repo/state/attractor-store", () => {
           left: 0,
           top: 0,
         },
-      })
+      }),
     ),
   };
 });
@@ -57,7 +62,7 @@ vi.mock("../../store/ui-store", () => ({
       DEFAULT_SCALE,
       LOW_QUALITY_POINTS,
       LOW_QUALITY_INTERVAL,
-    })
+    }),
   ),
 }));
 
@@ -76,12 +81,16 @@ beforeAll(() => {
   // Mock getContext to avoid jsdom errors
   HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
     putImageData: vi.fn(),
-    createImageData: (...args: any[]) => ({ data: new Uint8ClampedArray(args[0] * args[1] * 4), width: args[0], height: args[1] }),
+    createImageData: (...args: any[]) => ({
+      data: new Uint8ClampedArray(args[0] * args[1] * 4),
+      width: args[0],
+      height: args[1],
+    }),
   })) as any;
 
   // Mock toDataURL to avoid jsdom errors
-  Object.defineProperty(window.HTMLCanvasElement.prototype, 'toDataURL', {
-    value: () => 'data:image/png;base64,mocked',
+  Object.defineProperty(window.HTMLCanvasElement.prototype, "toDataURL", {
+    value: () => "data:image/png;base64,mocked",
     configurable: true,
   });
 });
@@ -115,11 +124,17 @@ describe("AttractorCanvas (detailed)", () => {
 
   it("renders and interacts with mocked Zustand store and Worker", async () => {
     // Create a container div with explicit size for flex centering
-    const wrapper = document.createElement('div');
-    Object.defineProperty(wrapper, 'clientWidth', { value: 800, configurable: true });
-    Object.defineProperty(wrapper, 'clientHeight', { value: 600, configurable: true });
-    wrapper.style.width = '800px';
-    wrapper.style.height = '600px';
+    const wrapper = document.createElement("div");
+    Object.defineProperty(wrapper, "clientWidth", {
+      value: 800,
+      configurable: true,
+    });
+    Object.defineProperty(wrapper, "clientHeight", {
+      value: 600,
+      configurable: true,
+    });
+    wrapper.style.width = "800px";
+    wrapper.style.height = "600px";
     document.body.appendChild(wrapper);
 
     let renderResult: ReturnType<typeof render>;
@@ -133,20 +148,29 @@ describe("AttractorCanvas (detailed)", () => {
     // Mock parentElement.clientWidth/clientHeight with getters
     const parent = canvas?.parentElement;
     if (parent) {
-      Object.defineProperty(parent, 'clientWidth', { get: () => 800, configurable: true });
-      Object.defineProperty(parent, 'clientHeight', { get: () => 600, configurable: true });
+      Object.defineProperty(parent, "clientWidth", {
+        get: () => 800,
+        configurable: true,
+      });
+      Object.defineProperty(parent, "clientHeight", {
+        get: () => 600,
+        configurable: true,
+      });
     }
 
     // Trigger a manual resize event after render and flush timers/state
     await act(async () => {
-      window.dispatchEvent(new Event('resize'));
+      window.dispatchEvent(new Event("resize"));
       vi.runOnlyPendingTimers();
     });
     await act(async () => {});
 
     // Simulate worker progress message BEFORE asserting mockSetProgress
     await act(async () => {
-      if (lastWorkerInstance && typeof lastWorkerInstance.onmessage === "function") {
+      if (
+        lastWorkerInstance &&
+        typeof lastWorkerInstance.onmessage === "function"
+      ) {
         lastWorkerInstance.onmessage({
           data: {
             type: "preview",
@@ -166,7 +190,9 @@ describe("AttractorCanvas (detailed)", () => {
     });
 
     expect(mockSetProgress).toHaveBeenCalled();
-    expect(lastWorkerInstance && typeof lastWorkerInstance.onmessage === "function").toBe(true);
+    expect(
+      lastWorkerInstance && typeof lastWorkerInstance.onmessage === "function",
+    ).toBe(true);
 
     // Assert both progress reset and worker progress were called
     const calls = mockSetProgress.mock.calls.flat();
@@ -228,9 +254,15 @@ describe("AttractorCanvas - Enhanced Coverage", () => {
 
   describe("Rendering", () => {
     it("renders canvas with correct dimensions", async () => {
-      const wrapper = document.createElement('div');
-      Object.defineProperty(wrapper, 'clientWidth', { value: 800, configurable: true });
-      Object.defineProperty(wrapper, 'clientHeight', { value: 600, configurable: true });
+      const wrapper = document.createElement("div");
+      Object.defineProperty(wrapper, "clientWidth", {
+        value: 800,
+        configurable: true,
+      });
+      Object.defineProperty(wrapper, "clientHeight", {
+        value: 600,
+        configurable: true,
+      });
       document.body.appendChild(wrapper);
 
       let renderResult: ReturnType<typeof render>;
@@ -240,11 +272,11 @@ describe("AttractorCanvas - Enhanced Coverage", () => {
 
       const { container } = renderResult!;
       const canvas = container.querySelector("canvas");
-      
+
       expect(canvas).toBeInTheDocument();
       expect(canvas?.tagName).toBe("CANVAS");
-      expect(canvas).toHaveAttribute('width');
-      expect(canvas).toHaveAttribute('height');
+      expect(canvas).toHaveAttribute("width");
+      expect(canvas).toHaveAttribute("height");
     });
 
     it("renders canvas without parent dimensions gracefully", async () => {
@@ -264,9 +296,9 @@ describe("AttractorCanvas - Enhanced Coverage", () => {
       const canvas = document.querySelector("canvas");
       expect(canvas).toBeInTheDocument();
       // Test that canvas has the correct tag and is properly rendered
-      expect(canvas?.tagName).toBe('CANVAS');
-      expect(canvas).toHaveProperty('width');
-      expect(canvas).toHaveProperty('height');
+      expect(canvas?.tagName).toBe("CANVAS");
+      expect(canvas).toHaveProperty("width");
+      expect(canvas).toHaveProperty("height");
     });
   });
 
@@ -274,10 +306,10 @@ describe("AttractorCanvas - Enhanced Coverage", () => {
     it("sets up canvas context correctly", async () => {
       const mockGetContext = vi.fn(() => ({
         putImageData: vi.fn(),
-        createImageData: vi.fn(() => ({ 
-          data: new Uint8ClampedArray(800 * 600 * 4), 
-          width: 800, 
-          height: 600 
+        createImageData: vi.fn(() => ({
+          data: new Uint8ClampedArray(800 * 600 * 4),
+          width: 800,
+          height: 600,
         })),
       }));
 
@@ -293,9 +325,15 @@ describe("AttractorCanvas - Enhanced Coverage", () => {
     });
 
     it("handles resize events", async () => {
-      const wrapper = document.createElement('div');
-      Object.defineProperty(wrapper, 'clientWidth', { value: 1200, configurable: true });
-      Object.defineProperty(wrapper, 'clientHeight', { value: 800, configurable: true });
+      const wrapper = document.createElement("div");
+      Object.defineProperty(wrapper, "clientWidth", {
+        value: 1200,
+        configurable: true,
+      });
+      Object.defineProperty(wrapper, "clientHeight", {
+        value: 800,
+        configurable: true,
+      });
       document.body.appendChild(wrapper);
 
       await act(async () => {
@@ -307,7 +345,7 @@ describe("AttractorCanvas - Enhanced Coverage", () => {
 
       // Simulate window resize
       await act(async () => {
-        window.dispatchEvent(new Event('resize'));
+        window.dispatchEvent(new Event("resize"));
       });
 
       // Canvas should still be functional after resize
@@ -322,8 +360,8 @@ describe("AttractorCanvas - Enhanced Coverage", () => {
       });
 
       expect(lastWorkerInstance).toBeTruthy();
-      expect(typeof lastWorkerInstance.postMessage).toBe('function');
-      expect(typeof lastWorkerInstance.terminate).toBe('function');
+      expect(typeof lastWorkerInstance.postMessage).toBe("function");
+      expect(typeof lastWorkerInstance.terminate).toBe("function");
     });
 
     it("handles worker message types correctly", async () => {
@@ -409,7 +447,7 @@ describe("AttractorCanvas - Enhanced Coverage", () => {
       const mockCreateImageData = vi.fn(() => ({
         data: new Uint8ClampedArray(800 * 600 * 4),
         width: 800,
-        height: 600
+        height: 600,
       }));
 
       HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
@@ -446,8 +484,8 @@ describe("AttractorCanvas - Enhanced Coverage", () => {
     });
 
     it("generates canvas data URL on completion", async () => {
-      const mockToDataURL = vi.fn(() => 'data:image/png;base64,test123');
-      Object.defineProperty(HTMLCanvasElement.prototype, 'toDataURL', {
+      const mockToDataURL = vi.fn(() => "data:image/png;base64,test123");
+      Object.defineProperty(HTMLCanvasElement.prototype, "toDataURL", {
         value: mockToDataURL,
         configurable: true,
       });
@@ -589,9 +627,9 @@ describe("AttractorCanvas - Enhanced Coverage", () => {
 
       const canvas = container.querySelector("canvas");
       expect(canvas).toBeInTheDocument();
-      
+
       // Canvas should be present and accessible
-      expect(canvas?.tagName).toBe('CANVAS');
+      expect(canvas?.tagName).toBe("CANVAS");
     });
 
     it("provides meaningful content for screen readers", async () => {
@@ -601,9 +639,9 @@ describe("AttractorCanvas - Enhanced Coverage", () => {
 
       const canvas = container.querySelector("canvas");
       expect(canvas).toBeInTheDocument();
-      
+
       // Canvas element should be accessible
-      expect(canvas?.tagName).toBe('CANVAS');
+      expect(canvas?.tagName).toBe("CANVAS");
     });
   });
 });

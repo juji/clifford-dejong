@@ -3,7 +3,7 @@ import { useHowl } from "./use-howl";
 
 export function useBopPopSound(
   url: string = "https://clifford-dejong.vercel.app/bop-pop.mp3",
-  volume: number = 1
+  volume: number = 1,
 ) {
   const sound = useHowl({
     src: [url],
@@ -27,7 +27,7 @@ export function useBopPopSound(
     (newVolume: number) => {
       sound?.volume(newVolume);
     },
-    [sound]
+    [sound],
   );
 
   return { playBop, playPop, setVolume };

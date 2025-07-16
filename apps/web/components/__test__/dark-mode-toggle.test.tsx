@@ -35,7 +35,7 @@ describe("DarkModeToggle", () => {
       });
       render(<DarkModeToggle />);
       // Advance timers to trigger useEffect
-      vi.advanceTimersByTime(0); 
+      vi.advanceTimersByTime(0);
       expect(screen.getByLabelText("Toggle dark mode")).toBeInTheDocument();
       expect(screen.getByTestId("moon-icon")).toBeInTheDocument();
       expect(screen.queryByTestId("sun-icon")).not.toBeInTheDocument();
@@ -48,7 +48,7 @@ describe("DarkModeToggle", () => {
       });
       render(<DarkModeToggle />);
       // Advance timers to trigger useEffect
-      vi.advanceTimersByTime(0); 
+      vi.advanceTimersByTime(0);
       expect(screen.getByLabelText("Toggle dark mode")).toBeInTheDocument();
       expect(screen.getByTestId("sun-icon")).toBeInTheDocument();
       expect(screen.queryByTestId("moon-icon")).not.toBeInTheDocument();
@@ -63,7 +63,7 @@ describe("DarkModeToggle", () => {
         setTheme: mockSetTheme,
       });
       render(<DarkModeToggle />);
-      vi.advanceTimersByTime(0); 
+      vi.advanceTimersByTime(0);
 
       const toggleButton = screen.getByLabelText("Toggle dark mode");
       fireEvent.click(toggleButton);
@@ -77,7 +77,7 @@ describe("DarkModeToggle", () => {
         setTheme: mockSetTheme,
       });
       render(<DarkModeToggle />);
-      vi.advanceTimersByTime(0); 
+      vi.advanceTimersByTime(0);
 
       const toggleButton = screen.getByLabelText("Toggle dark mode");
       fireEvent.click(toggleButton);
@@ -85,8 +85,6 @@ describe("DarkModeToggle", () => {
       expect(mockSetTheme).toHaveBeenCalledWith("light");
     });
   });
-
-  
 
   // Test Case 4: Accessibility
   describe("Accessibility", () => {
@@ -96,8 +94,10 @@ describe("DarkModeToggle", () => {
         setTheme: mockSetTheme,
       });
       render(<DarkModeToggle />);
-      vi.advanceTimersByTime(0); 
-      expect(screen.getByRole("button", { name: "Toggle dark mode" })).toBeInTheDocument();
+      vi.advanceTimersByTime(0);
+      expect(
+        screen.getByRole("button", { name: "Toggle dark mode" }),
+      ).toBeInTheDocument();
     });
 
     it("has sr-only span for screen readers", () => {
@@ -106,8 +106,10 @@ describe("DarkModeToggle", () => {
         setTheme: mockSetTheme,
       });
       render(<DarkModeToggle />);
-      vi.advanceTimersByTime(0); 
-      expect(screen.getByText("Toggle dark mode", { selector: "span.sr-only" })).toBeInTheDocument();
+      vi.advanceTimersByTime(0);
+      expect(
+        screen.getByText("Toggle dark mode", { selector: "span.sr-only" }),
+      ).toBeInTheDocument();
     });
   });
 });

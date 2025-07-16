@@ -7,7 +7,7 @@ export function mainThreadDrawing(
   maxDensity: number,
   progress: number,
   qualityMode: string,
-  attractorParameters: AttractorParameters
+  attractorParameters: AttractorParameters,
 ) {
   if (!canvas) return;
 
@@ -24,7 +24,7 @@ export function mainThreadDrawing(
   const bgColor =
     (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
 
-  if (qualityMode === 'low') {
+  if (qualityMode === "low") {
     const hue = attractorParameters.hue ?? 120;
     const saturation = attractorParameters.saturation ?? 100;
     const brightness = attractorParameters.brightness ?? 100;

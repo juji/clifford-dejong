@@ -12,7 +12,13 @@ import type { AttractorRecord } from "@/lib/attractor-indexdb";
 import { useAttractorStore } from "@repo/state/attractor-store";
 import touchStyles from "./touch-styles.module.css";
 
-export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function ConfigSelectionDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const records = useAttractorRecordsStore((s) => s.records);
   const error = useAttractorRecordsStore((s) => s.error);
   const total = useAttractorRecordsStore((s) => s.total);
@@ -35,7 +41,9 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
         </DialogHeader>
         <div className="mt-4 h-80 border rounded bg-muted/30 p-2 flex flex-col">
           {error ? (
-            <div className="flex h-full items-center justify-center text-center text-destructive">{String(error)}</div>
+            <div className="flex h-full items-center justify-center text-center text-destructive">
+              {String(error)}
+            </div>
           ) : records.length === 0 ? (
             <div className="flex h-full items-center justify-center text-center text-muted-foreground">
               <div>
@@ -60,7 +68,9 @@ export function ConfigSelectionDialog({ open, onOpenChange }: { open: boolean; o
 }
 
 function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
-  const records = useAttractorRecordsStore((s) => s.records) as AttractorRecord[];
+  const records = useAttractorRecordsStore(
+    (s) => s.records,
+  ) as AttractorRecord[];
   const loading = useAttractorRecordsStore((s) => s.loading);
   const loadMore = useAttractorRecordsStore((s) => s.loadMore);
   const removeRecord = useAttractorRecordsStore((s) => s.removeRecord);
@@ -77,13 +87,13 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
       observerRef.current.disconnect();
       observerRef.current = null;
     }
-    
+
     // If there's no element to observe or we don't need more data, don't set up the observer
     if (!detectionElmRef.current || !hasMore) return;
-    
+
     // Create a local variable to avoid issues with closures
     const currentElement = detectionElmRef.current;
-    
+
     try {
       // Create new observer
       const observer = new window.IntersectionObserver(
@@ -92,13 +102,13 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
             loadMore();
           }
         },
-        { root: currentElement.parentElement, threshold: 0.1 }
+        { root: currentElement.parentElement, threshold: 0.1 },
       );
-      
+
       // Start observing
       observer.observe(currentElement);
       observerRef.current = observer;
-      
+
       // Return cleanup function
       return () => {
         observer.disconnect();
@@ -117,7 +127,7 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
       // If already in confirm state, actually delete
       removeRecord(uuid);
       setConfirmDeleteId(null);
-      
+
       // Clear any existing timeout
       if (confirmTimeoutRef.current) {
         clearTimeout(confirmTimeoutRef.current);
@@ -126,19 +136,19 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
     } else {
       // Set confirm state for this record
       setConfirmDeleteId(uuid);
-      
+
       // Clear any existing timeout
       if (confirmTimeoutRef.current) {
         clearTimeout(confirmTimeoutRef.current);
       }
-      
+
       // Set timeout to clear confirm state after 5 seconds
       confirmTimeoutRef.current = setTimeout(() => {
         setConfirmDeleteId(null);
       }, 5000);
     }
   };
-  
+
   // Clean up timeout on unmount
   useEffect(() => {
     return () => {
@@ -170,31 +180,39 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
                 <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
                   {/* Using data URL directly with img since Next/Image doesn't support base64 data URLs efficiently */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={rec.image} 
-                    alt={rec.name} 
+                  <img
+                    src={rec.image}
+                    alt={rec.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
               )}
               <div>
                 <span className="font-medium">{rec.name}</span>
-                <span className="text-xs text-muted-foreground block">{new Date(rec.createdAt).toLocaleString()}</span>
+                <span className="text-xs text-muted-foreground block">
+                  {new Date(rec.createdAt).toLocaleString()}
+                </span>
               </div>
             </div>
             <button
               onClick={() => handleDeleteClick(rec.uuid)}
               className={`text-xs py-2 transition-opacity min-w-[110px] text-center ${touchStyles.touchVisible} ${touchStyles.touchHidden} ${
-                confirmDeleteId === rec.uuid ? 'text-red-500 font-medium animate-pulse' : 'text-destructive'
+                confirmDeleteId === rec.uuid
+                  ? "text-red-500 font-medium animate-pulse"
+                  : "text-destructive"
               }`}
-              aria-label={confirmDeleteId === rec.uuid ? "Confirm deletion" : "Delete configuration"}
+              aria-label={
+                confirmDeleteId === rec.uuid
+                  ? "Confirm deletion"
+                  : "Delete configuration"
+              }
             >
               {confirmDeleteId === rec.uuid ? "Confirm Deletion?" : "Delete"}
             </button>
           </li>
         );
       })}
-      { loading ? (
+      {loading ? (
         <li className="flex items-center justify-center p-2 text-muted-foreground">
           <span>Loading...</span>
         </li>

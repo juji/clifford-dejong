@@ -12,16 +12,16 @@ import { Button } from "./ui/button";
 import { useAttractorStore } from "@repo/state/attractor-store";
 import { waitForImage } from "@/lib/wait-for-image";
 
-export function ConfigSaveDialog({ 
-  open, 
-  onOpenChange, 
+export function ConfigSaveDialog({
+  open,
+  onOpenChange,
   waitForImageFn = waitForImage,
   onSave,
-}: { 
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  waitForImageFn?: () => Promise<string> // Allow injecting a custom wait function for testing
-  onSave?: () => void
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  waitForImageFn?: () => Promise<string>; // Allow injecting a custom wait function for testing
+  onSave?: () => void;
 }) {
   // Reset state when dialog visibility changes
   useEffect(() => {
@@ -47,9 +47,9 @@ export function ConfigSaveDialog({
     setSuccess(false);
 
     try {
-      setWaitingImage(true)
-      const resizedImage = await waitForImageFn()
-      setWaitingImage(false)
+      setWaitingImage(true);
+      const resizedImage = await waitForImageFn();
+      setWaitingImage(false);
       await addRecord({ name, attractorParameters, image: resizedImage });
       setName("");
       setSuccess(true);
@@ -58,7 +58,7 @@ export function ConfigSaveDialog({
       console.error("Error saving attractor config:", err);
       setError(err);
     } finally {
-      setWaitingImage(false)
+      setWaitingImage(false);
       setSaving(false);
     }
   };
@@ -75,13 +75,13 @@ export function ConfigSaveDialog({
   const timerTo = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (success) {
-      if(timerTo.current) clearTimeout(timerTo.current);
+      if (timerTo.current) clearTimeout(timerTo.current);
       timerTo.current = setTimeout(() => {
         handleClose();
       }, 2000); // Close after 2 seconds
       return () => {
-        if(timerTo.current) clearTimeout(timerTo.current); // Cleanup on unmount or success change
-      }
+        if (timerTo.current) clearTimeout(timerTo.current); // Cleanup on unmount or success change
+      };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success]);
@@ -97,7 +97,9 @@ export function ConfigSaveDialog({
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div>
-            <label htmlFor="config-name" className="sr-only">Config name</label>
+            <label htmlFor="config-name" className="sr-only">
+              Config name
+            </label>
             <input
               id="config-name"
               key={open ? "dialog-open" : "dialog-closed"}
@@ -106,7 +108,7 @@ export function ConfigSaveDialog({
               placeholder="Config name"
               value={name}
               autoFocus
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               role="textbox"
               aria-label="Config name"
             />
@@ -114,10 +116,24 @@ export function ConfigSaveDialog({
           <Button
             onClick={success ? handleClose : handleSave}
             disabled={saving || (!name.trim() && !success)}
-            aria-label={success ? "Close" : waitingImage ? 'Waiting Image...' : saving ? "Saving..." : "Save"}
+            aria-label={
+              success
+                ? "Close"
+                : waitingImage
+                  ? "Waiting Image..."
+                  : saving
+                    ? "Saving..."
+                    : "Save"
+            }
             aria-busy={saving}
           >
-            {success ? "Close" : waitingImage ? 'Waiting Image...' : saving ? "Saving..." : "Save"}
+            {success
+              ? "Close"
+              : waitingImage
+                ? "Waiting Image..."
+                : saving
+                  ? "Saving..."
+                  : "Save"}
           </Button>
           {error ? (
             <div className="text-destructive text-center" role="alert">

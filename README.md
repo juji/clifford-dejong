@@ -9,6 +9,7 @@ Deployed on [Cloudflare](https://cloudflare.com/)
 ## Features
 
 ### Mathematical Visualization
+
 - **Clifford Attractor**: Generates chaotic attractors using the Clifford equations
 - **de Jong Attractor**: Creates beautiful patterns using Peter de Jong's attractor formulas
 - **Real-time Parameter Control**: Adjust mathematical coefficients (a, b, c, d) in real-time
@@ -16,6 +17,7 @@ Deployed on [Cloudflare](https://cloudflare.com/)
 - **Positioning & Scaling**: Fine-tune scale, top, and left positioning
 
 ### User Interface
+
 - **Interactive Parameter Panel**: Powered by lil-gui for intuitive control
 - **Download Functionality**: High-quality wallpaper export with animated download button
 - **Full-Screen Mode**: Optimized viewing experience
@@ -23,6 +25,7 @@ Deployed on [Cloudflare](https://cloudflare.com/)
 - **Responsive Design**: Works seamlessly on desktop and mobile
 
 ### Progressive Web App (PWA)
+
 - **Service Worker**: Offline functionality and caching
 - **Web Manifest**: Full PWA capabilities
 
@@ -37,6 +40,7 @@ Deployed on [Cloudflare](https://cloudflare.com/)
 - **Package Manager**: pnpm
 
 ### Architecture
+
 - **Modular Design**: Organized into renderer, state, and UI modules
 - **Reactive State**: `optionStore` with subscription-based updates
 - **Color Management**: HSV to RGB conversion utilities
@@ -45,6 +49,7 @@ Deployed on [Cloudflare](https://cloudflare.com/)
 ## Development
 
 ### Prerequisites
+
 - Node.js (16+ recommended)
 - pnpm package manager
 
@@ -88,25 +93,36 @@ The application uses a sophisticated state management system:
 
 ```typescript
 type Options = {
-  attractor: string;           // 'clifford' or 'dejong'
-  a, b, c, d: number;         // Mathematical coefficients
-  hue, saturation, brightness: number; // Color controls
-  scale, top, left: number;   // Positioning
-  background: [r, g, b];      // Background color
-}
+  attractor: string; // 'clifford' or 'dejong'
+  a;
+  b;
+  c;
+  d: number; // Mathematical coefficients
+  hue;
+  saturation;
+  brightness: number; // Color controls
+  scale;
+  top;
+  left: number; // Positioning
+  background: [r, g, b]; // Background color
+};
 ```
 
 ## Mathematical Background
 
 ### Clifford Attractors
+
 Clifford attractors are generated using the equations:
+
 ```
 x(n+1) = sin(a*y(n)) + c*cos(a*x(n))
 y(n+1) = sin(b*x(n)) + d*cos(b*y(n))
 ```
 
-### de Jong Attractors  
+### de Jong Attractors
+
 de Jong attractors use:
+
 ```
 x(n+1) = sin(a*y(n)) - cos(b*x(n))
 y(n+1) = sin(c*x(n)) - cos(d*y(n))
@@ -117,17 +133,20 @@ These mathematical systems create beautiful, chaotic patterns that are perfect f
 ## Features in Detail
 
 ### Real-time Parameter Control
+
 - **Mathematical Coefficients**: Adjust a, b, c, d parameters with immediate visual feedback
 - **Color System**: HSV color space for intuitive color manipulation
 - **Positioning Controls**: Fine-tune scale and positioning for perfect composition
 - **Background Customization**: Dynamic background color adjustment
 
 ### Advanced UI
+
 - **Elastic Animations**: Sophisticated CSS keyframe animations for smooth interactions
 - **Responsive Design**: Optimized for both desktop and mobile experiences
 - **Full-screen Support**: Native browser fullscreen with PWA compatibility
 
 ### Performance Optimizations
+
 - **WebGL Detection**: Automatic fallback to Canvas 2D when needed
 - **Efficient Rendering**: Optimized drawing loops for smooth real-time updates
 - **Memory Management**: Careful resource management for long-running sessions
@@ -145,6 +164,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 **Copyright (c) 2025 Tri Rahmat Gunadi**
 
 The MIT License allows you to:
+
 - ✅ **Use** the software for any purpose
 - ✅ **Modify** and create derivative works
 - ✅ **Distribute** original and modified versions
@@ -162,6 +182,7 @@ The MIT License allows you to:
 ---
 
 ## Documentation
+
 - See `doc/migration-plan.md` for the migration plan.
 - See `doc/dev-log.md` for the migration & development log.
 

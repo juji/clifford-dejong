@@ -3,20 +3,24 @@
 ## Attainable Steps
 
 ### 1. Preparation
+
 - [x] Preserve the current working example in the `current/` directory
 - [x] Clean up the root directory for migration
 - [x] Document migration plan and update README
 
 ### 2. Monorepo & Tooling Setup
+
 - [x] Choose and set up a monorepo tool (Turborepo)
 - [x] Create `apps/web` for the new React web app
 - [x] Decide on a structure for shared code (e.g., `packages/`)
 
 ### 3. Core Logic Extraction
+
 - [x] Identify and extract all core mathematical calculations (Clifford, de Jong, etc.) into the shared code directory
 - [x] Write tests for core logic to ensure correctness
 
 ### 4. Web App Migration (First Priority)
+
 - [x] Initialize a new React app in `apps/web`
 - [x] Migrate UI and logic from the current app to React components (in progress/partial)
 - [x] Implement a basic canvas, to ensure correctness. The canvas, should by default draw the attractor with default params
@@ -45,6 +49,7 @@
 - [ ] add image to saved parameters
 
 ### 5. Mobile App Setup (After Web is Stable)
+
 - [ ] Initialize a new React Native app in `apps/mobile` using pure React Native CLI (not Expo)
 - [ ] Set up TypeScript configuration similar to web app
 - [ ] Integrate NativeWind for styling (consistent with web Tailwind approach)
@@ -60,6 +65,7 @@
 - [ ] on web ios, create a popup that recommends the user to download from appstore
 
 ### 6. Platform-Specific Feature Implementation
+
 - [ ] Implement canvas rendering with React Native Skia:
   - [ ] Set up React Native Skia for high-performance drawing
   - [ ] Implement pixel manipulation via Skia's Uint8Array and Image API (see reference [issue #2199](https://github.com/Shopify/react-native-skia/issues/2199))
@@ -114,7 +120,7 @@ Based on the current state of the web application and the complexity of features
 
 With the recent improvements in the web version, particularly the pure feature detection approach in components like the fullscreen button, we can potentially speed up the React Native conversion:
 
-1. **Leveraging Existing Architecture**: 
+1. **Leveraging Existing Architecture**:
    - The clean separation of logic in hooks and state management will transfer easily
    - Existing tests can be adapted for cross-platform validation
 
@@ -134,47 +140,49 @@ With a focused effort on the minimal viable product features, an initial React N
 React Native apps run fullscreen by default, so instead of a fullscreen button we need different view controls:
 
 1. **Status Bar Management**: Use React Native's StatusBar component to control visibility:
+
    ```javascript
-   import { StatusBar } from 'react-native';
-   
+   import { StatusBar } from "react-native";
+
    // Hide the status bar for more immersive experience
    StatusBar.setHidden(true);
-   
+
    // Or with component
-   <StatusBar hidden={true} />
+   <StatusBar hidden={true} />;
    ```
 
 2. **Immersive Mode** (Android): For completely hiding system UI:
+
    ```javascript
    // Using a library like react-native-immersive
-   import Immersive from 'react-native-immersive';
-   
+   import Immersive from "react-native-immersive";
+
    // Full immersive mode
    Immersive.setImmersive(true);
    ```
 
 3. **Screen Orientation**: Control orientation with react-native-orientation:
+
    ```javascript
-   import Orientation from 'react-native-orientation-locker';
-   
+   import Orientation from "react-native-orientation-locker";
+
    // Lock to portrait mode
    Orientation.lockToPortrait();
    ```
 
 4. **Platform-Specific Handling**:
+
    ```javascript
-   import { Platform } from 'react-native';
-   
+   import { Platform } from "react-native";
+
    const configureViewMode = () => {
-     if (Platform.OS === 'android') {
+     if (Platform.OS === "android") {
        // Android-specific immersive mode
      } else {
        // iOS-specific options
      }
    };
    ```
-
-
 
 ### Key Challenges to Address
 
@@ -186,7 +194,7 @@ React Native apps run fullscreen by default, so instead of a fullscreen button w
 
 ---
 
-*Last updated: 2025-06-27*
+_Last updated: 2025-06-27_
 
 ---
 
@@ -202,5 +210,3 @@ React Native apps run fullscreen by default, so instead of a fullscreen button w
 4. [Reanimated Documentation](https://docs.swmansion.com/react-native-reanimated/) - For implementing performant UI thread animations
 5. [Fastlane Documentation](https://docs.fastlane.tools) - For automating build and release workflows for iOS and Android apps
 6. [React Native Orientation Locker](https://github.com/wonday/react-native-orientation-locker) - For controlling screen orientation in React Native apps
-
-

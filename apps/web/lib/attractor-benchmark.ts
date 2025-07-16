@@ -14,8 +14,10 @@ export async function runAttractorBenchmark(points = 100000, runs = 5) {
     const start = performance.now();
     for (let i = 0; i < points; i++) {
       const result = clifford(x, y, a, b, c, d);
-      x = Array.isArray(result) && typeof result[0] === "number" ? result[0] : 0;
-      y = Array.isArray(result) && typeof result[1] === "number" ? result[1] : 0;
+      x =
+        Array.isArray(result) && typeof result[0] === "number" ? result[0] : 0;
+      y =
+        Array.isArray(result) && typeof result[1] === "number" ? result[1] : 0;
     }
     const end = performance.now();
     totalMs += end - start;

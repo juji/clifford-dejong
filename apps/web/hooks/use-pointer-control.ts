@@ -6,22 +6,25 @@ function clamp(val: number, min: number, max: number) {
   return Math.max(min, Math.min(max, val));
 }
 
-// translate 
+// translate
 function getNewTopLeftPosition(
   deltaMouse: { x: number; y: number },
   screen: { width: number; height: number },
-  currentValues: { top: number, left: number } // these should be -1 to 1
-){
-
+  currentValues: { top: number; left: number }, // these should be -1 to 1
+) {
   return {
-    top: clamp(currentValues.top + (deltaMouse.y/screen.height), -1, 1),
-    left:  clamp(currentValues.left + (deltaMouse.x/screen.width), -1, 1),
-  }
-
+    top: clamp(currentValues.top + deltaMouse.y / screen.height, -1, 1),
+    left: clamp(currentValues.left + deltaMouse.x / screen.width, -1, 1),
+  };
 }
 
 export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
-  const last = useRef<{ x: number; y: number; top: number; left: number } | null>(null);
+  const last = useRef<{
+    x: number;
+    y: number;
+    top: number;
+    left: number;
+  } | null>(null);
   const lastDistance = useRef<number | null>(null);
   const dragging = useRef(false);
 
@@ -49,7 +52,11 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
       };
       const rect = el.getBoundingClientRect();
       const screen = { width: rect.width, height: rect.height };
-      const { top: newTop, left: newLeft } = getNewTopLeftPosition(deltaMouse, screen, { top: last.current.top, left: last.current.left });
+      const { top: newTop, left: newLeft } = getNewTopLeftPosition(
+        deltaMouse,
+        screen,
+        { top: last.current.top, left: last.current.left },
+      );
       setAttractorParams({
         ...attractorParameters,
         left: newLeft,
@@ -86,7 +93,10 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
         const t1 = e.touches[0];
         const t2 = e.touches[1];
         if (t1 && t2) {
-          lastDistance.current = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+          lastDistance.current = Math.hypot(
+            t1.clientX - t2.clientX,
+            t1.clientY - t2.clientY,
+          );
         }
       }
     };
@@ -101,7 +111,11 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
           };
           const rect = el.getBoundingClientRect();
           const screen = { width: rect.width, height: rect.height };
-          const { top: newTop, left: newLeft } = getNewTopLeftPosition(deltaMouse, screen, { top: last.current.top, left: last.current.left });
+          const { top: newTop, left: newLeft } = getNewTopLeftPosition(
+            deltaMouse,
+            screen,
+            { top: last.current.top, left: last.current.left },
+          );
           setAttractorParams({
             ...attractorParameters,
             left: newLeft,
@@ -112,7 +126,10 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
         const t1 = e.touches[0];
         const t2 = e.touches[1];
         if (t1 && t2) {
-          const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+          const dist = Math.hypot(
+            t1.clientX - t2.clientX,
+            t1.clientY - t2.clientY,
+          );
           const scaleChange = dist / lastDistance.current;
           setAttractorParams({
             ...attractorParameters,
@@ -148,5 +165,13 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
     };
-  }, [targetRef, attractorParameters, setAttractorParams, top, left, scale, setQualityMode]);
+  }, [
+    targetRef,
+    attractorParameters,
+    setAttractorParams,
+    top,
+    left,
+    scale,
+    setQualityMode,
+  ]);
 }

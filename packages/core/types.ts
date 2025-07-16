@@ -1,5 +1,3 @@
-
-
 export type AttractorParameters = {
   attractor: "clifford" | "dejong";
   a: number;
@@ -12,5 +10,5 @@ export type AttractorParameters = {
   background: [number, number, number, number];
   scale: number;
   left: number;
-  top: number
-}
+  top: number;
+};

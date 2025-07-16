@@ -12,7 +12,7 @@ export default defineConfig({
     hookTimeout: 20000, // Added hook timeout
     include: [
       "**/__test__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
-      "**/integration-tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}" // Added integration tests
+      "**/integration-tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}", // Added integration tests
     ],
   },
 });

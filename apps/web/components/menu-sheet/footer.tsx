@@ -1,9 +1,9 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Bolt } from "lucide-react"
-import { useAttractorStore } from "@repo/state/attractor-store"
-import { ConfigSelectionDialog } from "@/components/config-selection-dialog"
-import { ConfigSaveDialog } from "@/components/config-save-dialog"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Bolt } from "lucide-react";
+import { useAttractorStore } from "@repo/state/attractor-store";
+import { ConfigSelectionDialog } from "@/components/config-selection-dialog";
+import { ConfigSaveDialog } from "@/components/config-save-dialog";
 
 import {
   DropdownMenu,
@@ -13,15 +13,15 @@ import {
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-} from "@/components/ui/dropdown-menu"
-import { useUIStore, MenuPosition } from "@/store/ui-store"
+} from "@/components/ui/dropdown-menu";
+import { useUIStore, MenuPosition } from "@/store/ui-store";
 
 export function MenuSheetFooter() {
-  const reset = useAttractorStore((s) => s.reset)
-  const [loadDialogOpen, setLoadDialogOpen] = useState(false)
-  const [saveDialogOpen, setSaveDialogOpen] = useState(false)
-  const menuPosition = useUIStore((s) => s.menuPosition)
-  const setMenuPosition = useUIStore((s) => s.setMenuPosition)
+  const reset = useAttractorStore((s) => s.reset);
+  const [loadDialogOpen, setLoadDialogOpen] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const menuPosition = useUIStore((s) => s.menuPosition);
+  const setMenuPosition = useUIStore((s) => s.setMenuPosition);
 
   return (
     <div className="p-4 py-3 border-t border-border text-muted-foreground flex justify-center items-center gap-2">
@@ -63,14 +63,23 @@ export function MenuSheetFooter() {
       >
         load
       </Button>
-      <Button variant="outline" size="sm" aria-label="Reset Settings" className="flex-1" onClick={reset}>
+      <Button
+        variant="outline"
+        size="sm"
+        aria-label="Reset Settings"
+        className="flex-1"
+        onClick={reset}
+      >
         reset
       </Button>
-      <ConfigSelectionDialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen} />
-      <ConfigSaveDialog 
-        open={saveDialogOpen} 
-        onOpenChange={setSaveDialogOpen} 
+      <ConfigSelectionDialog
+        open={loadDialogOpen}
+        onOpenChange={setLoadDialogOpen}
+      />
+      <ConfigSaveDialog
+        open={saveDialogOpen}
+        onOpenChange={setSaveDialogOpen}
       />
     </div>
-  )
+  );
 }

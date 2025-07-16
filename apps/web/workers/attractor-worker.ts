@@ -12,14 +12,14 @@ import { getColorData, hsv2rgb } from "@repo/core/color";
 import type { AttractorParameters } from "@repo/core/types";
 
 type Params = {
-  params: AttractorParameters,
-  width: number,
-  height: number,
-  points: number,
-  progressInterval : number,
-  qualityMode: string,
-  defaultScale: number,
-}
+  params: AttractorParameters;
+  width: number;
+  height: number;
+  points: number;
+  progressInterval: number;
+  qualityMode: string;
+  defaultScale: number;
+};
 
 let shouldStop = false;
 let rafHandle: number | null = null;
@@ -33,50 +33,53 @@ let parameters: Params | null = null;
 self.postMessage({ type: "ready" });
 
 self.onmessage = function (e) {
-
   if (e.data && e.data.type === "stop") {
     handleStop();
     return;
   }
 
   if (e.data && e.data.type === "init") {
-    initialize(e.data)
+    initialize(e.data);
     return;
   }
 
   if (e.data && e.data.type === "update") {
-    if(!parameters?.params) return;
+    if (!parameters?.params) return;
 
     handleStop();
 
     const { type, ...data } = e.data;
     parameters = { ...parameters, ...data };
 
-    handleStart()
+    handleStart();
     return;
   }
 
   // Handle resize for OffscreenCanvas
   if (e.data && e.data.type === "resize" && offscreenCanvas) {
-    if(parameters){
+    if (parameters) {
       parameters.width = e.data.width;
       parameters.height = e.data.height;
     }
     offscreenCanvas.width = e.data.width;
     offscreenCanvas.height = e.data.height;
     if (offscreenCtx) {
-      offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      offscreenCtx.clearRect(
+        0,
+        0,
+        offscreenCanvas.width,
+        offscreenCanvas.height,
+      );
     }
     return;
   }
 
   if (e.data && e.data.type === "start") {
-    handleStart()
+    handleStart();
   }
-
 };
 
-function initialize( data: any ){
+function initialize(data: any) {
   const { canvas } = data;
 
   if (rafHandle !== null) {
@@ -87,42 +90,44 @@ function initialize( data: any ){
   shouldStop = false;
   offscreenCanvas = null;
   offscreenCtx = null;
-  parameters = data
+  parameters = data;
 
-  if(canvas){
+  if (canvas) {
     offscreenCanvas = canvas;
     if (offscreenCanvas) {
       offscreenCtx = offscreenCanvas.getContext("2d");
     }
   } else {
-    offscreenCanvas = null
+    offscreenCanvas = null;
     offscreenCtx = null;
   }
 
-  handleStart()
-
-
+  handleStart();
 }
 
-function handleStart(){
-  if(!parameters?.params) return;
-  
+function handleStart() {
+  if (!parameters?.params) return;
+
   // Send initial progress=0 preview before any points are processed
   self.postMessage({
     type: "preview",
     progress: 0,
   });
 
-  if(offscreenCanvas && offscreenCtx) {
+  if (offscreenCanvas && offscreenCtx) {
     const { width, height } = parameters;
     offscreenCanvas.width = width;
     offscreenCanvas.height = height;
     if (offscreenCtx) {
-      offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      offscreenCtx.clearRect(
+        0,
+        0,
+        offscreenCanvas.width,
+        offscreenCanvas.height,
+      );
     }
     runAttractorOffscreen(parseParams(parameters));
-  }
-  else {
+  } else {
     runAttractor(parseParams(parameters));
   }
 }
@@ -137,9 +142,8 @@ function handleStop() {
 }
 
 function parseParams(data: any) {
-
   const {
-    params : {
+    params: {
       attractor,
       a,
       b,
@@ -151,39 +155,64 @@ function parseParams(data: any) {
       hue = 120,
       saturation = 100,
       brightness = 100,
-      background = [0,0,0,255],
+      background = [0, 0, 0, 255],
     },
     width,
     height,
     points,
     progressInterval = 1,
-    qualityMode = 'high',
+    qualityMode = "high",
     defaultScale,
   } = data;
   return {
     attractorFn: attractor === "clifford" ? clifford : dejong,
-    a, b, c, d, points, width, height, 
-    scale: defaultScale * scale, 
-    left, top, progressInterval, qualityMode, hue, saturation, brightness, background
+    a,
+    b,
+    c,
+    d,
+    points,
+    width,
+    height,
+    scale: defaultScale * scale,
+    left,
+    top,
+    progressInterval,
+    qualityMode,
+    hue,
+    saturation,
+    brightness,
+    background,
   };
 }
 
 function runAttractorOffscreen({
   attractorFn,
-  a, b, c, d,
-  points, width, height, scale, left, top,
+  a,
+  b,
+  c,
+  d,
+  points,
+  width,
+  height,
+  scale,
+  left,
+  top,
   progressInterval,
-  qualityMode = 'high',
-  hue, saturation, brightness, background
+  qualityMode = "high",
+  hue,
+  saturation,
+  brightness,
+  background,
 }: any) {
-
-  let x = 0, y = 0;
+  let x = 0,
+    y = 0;
   const pixels = new Uint32Array(width * height);
   let maxDensity = 0;
   const interval = Math.max(1, Math.floor(points * (progressInterval / 100)));
-  const batchSize = qualityMode === 'low'
-    ? Math.max(10000, Math.floor(points / 10))
-    : Math.max(1000, Math.floor(points / 1000));
+  const batchSize =
+    qualityMode === "low"
+      ? Math.max(10000, Math.floor(points / 10))
+      : Math.max(1000, Math.floor(points / 1000));
   let i = 0;
   shouldStop = false;
 
@@ -196,10 +225,10 @@ function runAttractorOffscreen({
     const imageData = offscreenCtx.createImageData(width, height);
     const data = new Uint32Array(imageData.data.buffer);
     const bgArr = background;
-    const bgColor = (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
+    const bgColor =
+      (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
 
-    if (qualityMode === 'low') {
-      
+    if (qualityMode === "low") {
       for (let i = 0; i < pixels.length; i++) {
         const val = Number(pixels[i]) || 0;
         if (val > 0) {
@@ -210,7 +239,6 @@ function runAttractorOffscreen({
           data[i] = bgColor;
         }
       }
-
     } else {
       for (let i = 0; i < pixels.length; i++) {
         const density = Number(pixels[i]) || 0;
@@ -221,7 +249,7 @@ function runAttractorOffscreen({
             hue,
             saturation,
             brightness,
-            1
+            1,
           );
         } else {
           data[i] = bgColor;
@@ -269,18 +297,28 @@ function runAttractorOffscreen({
 
 function runAttractor({
   attractorFn,
-  a, b, c, d,
-  points, width, height, scale, left, top,
+  a,
+  b,
+  c,
+  d,
+  points,
+  width,
+  height,
+  scale,
+  left,
+  top,
   progressInterval,
-  qualityMode = 'high',
+  qualityMode = "high",
 }: any) {
-  let x = 0, y = 0;
+  let x = 0,
+    y = 0;
   const pixels = new Uint32Array(width * height);
   let maxDensity = 0;
   const interval = Math.max(1, Math.floor(points * (progressInterval / 100)));
-  const batchSize = qualityMode === 'low'
-    ? Math.max(10000, Math.floor(points / 10))
-    : Math.max(1000, Math.floor(points / 1000));
+  const batchSize =
+    qualityMode === "low"
+      ? Math.max(10000, Math.floor(points / 10))
+      : Math.max(1000, Math.floor(points / 1000));
   let i = 0;
   shouldStop = false;
   function smoothing(num: number, scale: number) {
@@ -312,7 +350,7 @@ function runAttractor({
           progress: Math.round((i / points) * 100),
           batch: i,
           qualityMode,
-          attractorParameters: parameters?.params
+          attractorParameters: parameters?.params,
         });
       }
     }

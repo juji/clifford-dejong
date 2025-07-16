@@ -1,10 +1,11 @@
 import React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 export function Footer() {
   return (
-     <footer className={cn(`
+    <footer
+      className={cn(`
         fixed inset-x-0 bottom-0 w-full 
         glass
         text-black/70 dark:text-white/70
@@ -16,7 +17,8 @@ export function Footer() {
         before:left-0 before:right-0
         before:bg-gradient-to-r
         before:from-[#343434cf] before:to-[#ffffff63]
-      `)}>
+      `)}
+    >
       <span>Clifford-de Jong Attractor &copy; {new Date().getFullYear()}</span>
     </footer>
   );

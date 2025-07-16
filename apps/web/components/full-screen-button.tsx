@@ -1,32 +1,32 @@
-'use client'
+"use client";
 import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 
 /**
  * Full Screen Button Component
- * 
+ *
  * Features:
  * 1. Cross-browser fullscreen API support (standard, webkit, moz, ms)
  * 2. Pure feature detection without platform-specific detection
  * 3. Animated corner indicators that rotate when entering/exiting fullscreen
  * 4. Responsive sizing based on device pointer type (touch vs mouse)
- * 
+ *
  * Note on Fullscreen Detection:
  * This component uses proper feature detection to determine if fullscreen is supported:
  * - Checks `document.fullscreenEnabled` (and vendor prefixed equivalents)
  * - Verifies availability of `requestFullscreen` methods
- * 
+ *
  * This approach avoids:
  * - Unreliable user-agent string parsing
  * - Platform-specific detection logic
  * - Deprecated APIs like navigator.vendor or window.orientation
- * 
+ *
  * If fullscreen functionality is unavailable or fails, the button's click handler
  * will handle the error gracefully without breaking the UI.
  */
 
-const TRANSFORM_DURATION = '0.3s';
+const TRANSFORM_DURATION = "0.3s";
 
 // Define browser-specific document interface
 interface FullscreenDocument extends Document {
@@ -48,24 +48,23 @@ export function FullScreenButton() {
 
   // Detect if fullscreen is properly supported
   useEffect(() => {
-    if (typeof window !== 'undefined' && document) {
+    if (typeof window !== "undefined" && document) {
       const doc = document as FullscreenDocument;
       const docEl = document.documentElement as FullscreenElement;
-      
+
       // Pure feature detection - check if fullscreen API is available
-      const fullscreenSupported = 
+      const fullscreenSupported =
         // Check for the fullscreen API being enabled
-        (doc.fullscreenEnabled || 
-         doc.webkitFullscreenEnabled ||
-         doc.mozFullScreenEnabled || 
-         doc.msFullscreenEnabled) 
-        && 
+        (doc.fullscreenEnabled ||
+          doc.webkitFullscreenEnabled ||
+          doc.mozFullScreenEnabled ||
+          doc.msFullscreenEnabled) &&
         // Check for the actual methods
         (docEl.requestFullscreen ||
-         docEl.webkitRequestFullscreen ||
-         docEl.mozRequestFullScreen ||
-         docEl.msRequestFullscreen);
-      
+          docEl.webkitRequestFullscreen ||
+          docEl.mozRequestFullScreen ||
+          docEl.msRequestFullscreen);
+
       // Only show button if fullscreen API is supported
       // This matches the updated test expectations
       setShowButton(!!fullscreenSupported);
@@ -78,14 +77,16 @@ export function FullScreenButton() {
 
 export function FullScreenButtonChild() {
   const [rotated, setRotated] = useState(false);
-  const [scaleClass, setScaleClass] = useState('scale-60');
-  const menuPosition = useUIStore((s) => s.menuPosition)
+  const [scaleClass, setScaleClass] = useState("scale-60");
+  const menuPosition = useUIStore((s) => s.menuPosition);
 
   // Detect coarse or none pointer (touch device)
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      const isTouch = window.matchMedia('(pointer: coarse), (pointer: none)').matches;
-      setScaleClass(isTouch ? 'scale-75' : 'scale-60');
+    if (typeof window !== "undefined" && window.matchMedia) {
+      const isTouch = window.matchMedia(
+        "(pointer: coarse), (pointer: none)",
+      ).matches;
+      setScaleClass(isTouch ? "scale-75" : "scale-60");
     }
   }, []);
 
@@ -98,23 +99,23 @@ export function FullScreenButtonChild() {
     mozFullScreenElement?: Element;
     msFullscreenElement?: Element;
   }
-  
+
   function handleFullScreen() {
     const el = document.documentElement as FullscreenElement;
     const doc = document as FullscreenExitDocument;
-    
+
     // Check for fullscreen state across different browsers
-    const fullscreenElement = 
-      doc.fullscreenElement || 
+    const fullscreenElement =
+      doc.fullscreenElement ||
       doc.webkitFullscreenElement ||
-      doc.mozFullScreenElement || 
+      doc.mozFullScreenElement ||
       doc.msFullscreenElement;
-      
+
     if (!fullscreenElement) {
       // Request fullscreen using the appropriate method for the browser
       try {
         if (el.requestFullscreen) {
-          el.requestFullscreen().catch(err => {
+          el.requestFullscreen().catch((err) => {
             console.error("Error attempting to enable full-screen mode:", err);
             return; // Prevent rotation if fullscreen fails
           });
@@ -122,8 +123,11 @@ export function FullScreenButtonChild() {
           // Webkit doesn't always return a promise, so wrap in try-catch
           const promise = el.webkitRequestFullscreen();
           if (promise && promise.catch) {
-            promise.catch(err => {
-              console.error("Error attempting to enable webkit full-screen mode:", err);
+            promise.catch((err) => {
+              console.error(
+                "Error attempting to enable webkit full-screen mode:",
+                err,
+              );
               return; // Prevent rotation if fullscreen fails
             });
           }
@@ -131,8 +135,11 @@ export function FullScreenButtonChild() {
           // Moz doesn't always return a promise, so wrap in try-catch
           const promise = el.mozRequestFullScreen();
           if (promise && promise.catch) {
-            promise.catch(err => {
-              console.error("Error attempting to enable moz full-screen mode:", err);
+            promise.catch((err) => {
+              console.error(
+                "Error attempting to enable moz full-screen mode:",
+                err,
+              );
               return; // Prevent rotation if fullscreen fails
             });
           }
@@ -140,8 +147,11 @@ export function FullScreenButtonChild() {
           // MS doesn't always return a promise, so wrap in try-catch
           const promise = el.msRequestFullscreen();
           if (promise && promise.catch) {
-            promise.catch(err => {
-              console.error("Error attempting to enable ms full-screen mode:", err);
+            promise.catch((err) => {
+              console.error(
+                "Error attempting to enable ms full-screen mode:",
+                err,
+              );
               return; // Prevent rotation if fullscreen fails
             });
           }
@@ -155,7 +165,7 @@ export function FullScreenButtonChild() {
       // Exit fullscreen using the appropriate method for the browser
       try {
         if (doc.exitFullscreen) {
-          doc.exitFullscreen().catch(err => {
+          doc.exitFullscreen().catch((err) => {
             console.error("Error attempting to exit full-screen mode:", err);
             return; // Prevent rotation change if exit fails
           });
@@ -163,8 +173,11 @@ export function FullScreenButtonChild() {
           // Webkit doesn't always return a promise, so wrap in try-catch
           const promise = doc.webkitExitFullscreen();
           if (promise && promise.catch) {
-            promise.catch(err => {
-              console.error("Error attempting to exit webkit full-screen mode:", err);
+            promise.catch((err) => {
+              console.error(
+                "Error attempting to exit webkit full-screen mode:",
+                err,
+              );
               return; // Prevent rotation if fullscreen exit fails
             });
           }
@@ -172,8 +185,11 @@ export function FullScreenButtonChild() {
           // Moz doesn't always return a promise, so wrap in try-catch
           const promise = doc.mozCancelFullScreen();
           if (promise && promise.catch) {
-            promise.catch(err => {
-              console.error("Error attempting to exit moz full-screen mode:", err);
+            promise.catch((err) => {
+              console.error(
+                "Error attempting to exit moz full-screen mode:",
+                err,
+              );
               return; // Prevent rotation if fullscreen exit fails
             });
           }
@@ -181,8 +197,11 @@ export function FullScreenButtonChild() {
           // MS doesn't always return a promise, so wrap in try-catch
           const promise = doc.msExitFullscreen();
           if (promise && promise.catch) {
-            promise.catch(err => {
-              console.error("Error attempting to exit ms full-screen mode:", err);
+            promise.catch((err) => {
+              console.error(
+                "Error attempting to exit ms full-screen mode:",
+                err,
+              );
               return; // Prevent rotation if fullscreen exit fails
             });
           }
@@ -199,8 +218,7 @@ export function FullScreenButtonChild() {
   // const cornerSize = 48; // px, bigger for fs-corner (unused)
   const cornerOffset = 0; // px, flush with fs-child edge
   // Use even smaller Tailwind sizing classes for fs-corner
-  const cornerBase =
-    `fs-corner block absolute w-3 h-3 border-3 border-current bg-transparent transition-transform`;
+  const cornerBase = `fs-corner block absolute w-3 h-3 border-3 border-current bg-transparent transition-transform`;
   // w-4 and h-4 are 1rem = 16px in Tailwind
   const corners = [
     // top-left
@@ -246,12 +264,12 @@ export function FullScreenButtonChild() {
   ];
 
   function handleTouchStart(e: React.TouchEvent<HTMLButtonElement>) {
-    e.currentTarget.classList.remove('scale-75');
-    e.currentTarget.classList.add('scale-60');
+    e.currentTarget.classList.remove("scale-75");
+    e.currentTarget.classList.add("scale-60");
   }
   function handleTouchEnd(e: React.TouchEvent<HTMLButtonElement>) {
-    e.currentTarget.classList.remove('scale-60');
-    e.currentTarget.classList.add('scale-75');
+    e.currentTarget.classList.remove("scale-60");
+    e.currentTarget.classList.add("scale-75");
   }
 
   return (
@@ -261,7 +279,7 @@ export function FullScreenButtonChild() {
       className={cn(`
         fs-button fixed 
         bottom-15 
-        ${menuPosition === 'left' ? 'right-6' : 'left-6'}
+        ${menuPosition === "left" ? "right-6" : "left-6"}
         z-[200] rounded-full w-16 h-16
         bg-background text-foreground shadow-lg border-2 border-foreground
         focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer
@@ -274,10 +292,13 @@ export function FullScreenButtonChild() {
     >
       <span className="fs-child block relative w-8 h-8 mx-auto my-auto">
         {corners.map((corner, i) => (
-          <span key={i} className={`fs-corner block ${corner.className}`} style={corner.style} />
+          <span
+            key={i}
+            className={`fs-corner block ${corner.className}`}
+            style={corner.style}
+          />
         ))}
       </span>
     </button>
   );
 }
-
