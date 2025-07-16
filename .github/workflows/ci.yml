@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: ["dev"]
+    branches: [main, dev]
   pull_request:
-    branches: ["dev"]
+    branches: [main]
   schedule:
     - cron: '21 17 * * 2'
 
@@ -97,35 +97,44 @@ jobs:
       - name: Test
         run: CI=1 npm run test
 
-  deploy:
-    name: Deploy to Vercel
-    needs: [test, lint, type-check]
+  deploy-cf:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
-    env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    needs: [lint, type-check, test]
+    permissions:
+      contents: read
+      deployments: write
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.14.0'
+          node-version: 22.14.0
           cache: 'npm'
-          
+      
+      # Set up the entire workspace with Turborepo
       - name: Install dependencies
-        run: CI=1 npm ci
-
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: npm ci --ignore-scripts
+        
+      # Build the entire monorepo with turbo
+      - name: Build web app with monorepo dependencies
+        env:
+          HUSKY: 0
+          HUSKY_SKIP_INSTALL: 1
+        run: npm run build -- --filter=web
+      
+      # List output directory to verify it exists
+      - name: List build outputs
+        run: ls -la apps/web/out/
+      
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: clifford-dejong  # Replace with your preferred Cloudflare Pages project name
+          directory: apps/web/out        # The output directory from Next.js static export
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
