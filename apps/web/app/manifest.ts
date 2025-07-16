@@ -1,5 +1,8 @@
 import type { MetadataRoute } from "next";
 
+// This is required for static export
+export const dynamic = "force-static";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Clifford & de Jong Attractor",

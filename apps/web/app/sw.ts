@@ -2,6 +2,9 @@ import { defaultCache } from "@serwist/next/worker";
 import { Serwist } from "serwist";
 import type { PrecacheEntry } from "serwist";
 
+// This is required for static export
+export const dynamic = "force-static";
+
 // TypeScript declarations for Serwist manifest injection
 declare global {
   interface WorkerGlobalScope {
