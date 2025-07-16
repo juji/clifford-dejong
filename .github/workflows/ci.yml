@@ -101,7 +101,7 @@ jobs:
     name: Deploy to Vercel
     needs: [test, lint, type-check]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/native' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
