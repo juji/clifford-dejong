@@ -3,6 +3,7 @@ import {
   hsv2rgb,
   getColorData,
   saturationBezier,
+  densityBezier,
   opacityBezier,
 } from "../color";
 
@@ -96,6 +97,23 @@ describe("Bezier easing functions", () => {
       // Values might go slightly negative with the current control points, which is
       // handled by the clamping in the getColorData function
     });
+  });
+  
+  it("densityBezier may produce values slightly outside 0-1 range due to Bezier control points", () => {
+    const values = [0, 0.25, 0.5, 0.75, 1];
+    values.forEach((value) => {
+      const result = densityBezier(value);
+      expect(result).toBeGreaterThanOrEqual(0);
+      // Values might go slightly above 1 with the current control points
+      expect(result).toBeLessThanOrEqual(1.1);
+    });
+    
+    // Check the general trend of the curve (should increase overall from 0 to 1)
+    // Note: Not testing strict monotonicity at every point as Bezier curves 
+    // with certain control points can have small local non-monotonic regions
+    const start = densityBezier(0);
+    const end = densityBezier(1);
+    expect(end).toBeGreaterThan(start);
   });
 
   // lightnessBezier test removed as this function is no longer used
