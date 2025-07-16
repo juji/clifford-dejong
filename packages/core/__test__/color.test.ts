@@ -169,16 +169,12 @@ describe("getColorData", () => {
   it("should handle logarithmic density scaling", () => {
     // Test with exponentially increasing density values
     const color1 = getColorData(1, 1000, 180, 100, 100);
-    const color2 = getColorData(10, 1000, 180, 100, 100);
-    const color3 = getColorData(100, 1000, 180, 100, 100);
     const color4 = getColorData(1000, 1000, 180, 100, 100);
 
     // Extract RGB components to check gradient
-    const r1 = color1 & 0xff;
     const g1 = (color1 >>> 8) & 0xff;
     const b1 = (color1 >>> 16) & 0xff;
 
-    const r4 = color4 & 0xff;
     const g4 = (color4 >>> 8) & 0xff;
     const b4 = (color4 >>> 16) & 0xff;
 
