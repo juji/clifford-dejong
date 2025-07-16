@@ -114,6 +114,9 @@ jobs:
         with:
           node-version: '22.14.0'
           cache: 'npm'
+          
+      - name: Install dependencies
+        run: CI=1 npm ci
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
