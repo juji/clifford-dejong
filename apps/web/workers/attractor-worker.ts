@@ -220,7 +220,7 @@ function runAttractorOffscreen({
     return num + (Math.random() < 0.5 ? -0.2 : 0.2) * (1 / scale);
   }
 
-  function drawPixels( progress: number ) {
+  function drawPixels(progress: number) {
     if (!offscreenCtx) return;
     const imageData = offscreenCtx.createImageData(width, height);
     const data = new Uint32Array(imageData.data.buffer);
@@ -279,8 +279,8 @@ function runAttractorOffscreen({
         if (pixels[idx] > maxDensity) maxDensity = pixels[idx];
       }
       if ((i > 0 && i % interval === 0) || i === points - 1) {
-        const progress = i / (points-1)
-        drawPixels( progress );
+        const progress = i / (points - 1);
+        drawPixels(progress);
         const progressVal = Math.round(progress * 100);
         const typeVal = i === points - 1 ? "done" : "preview";
         self.postMessage({

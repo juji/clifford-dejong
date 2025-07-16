@@ -18,7 +18,7 @@ import debounce from "debounce";
 export function AttractorCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   usePointerControl(canvasRef);
-  
+
   // Use the hook to update the CSS variable when attractor background changes
   useParamsBackgroundColor();
 
@@ -304,11 +304,13 @@ export function AttractorCanvas() {
   }, [canvasSize, workerReady]);
 
   return (
-    <div 
-      className="flex items-center justify-center w-full h-full fixed top-0 left-0" 
-      style={{ 
-        backgroundColor: 'var(--cda-bg-canvas)'
-      } as React.CSSProperties}
+    <div
+      className="flex items-center justify-center w-full h-full fixed top-0 left-0"
+      style={
+        {
+          backgroundColor: "var(--cda-bg-canvas)",
+        } as React.CSSProperties
+      }
     >
       <canvas
         ref={canvasRef}
