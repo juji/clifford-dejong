@@ -137,4 +137,5 @@ jobs:
           projectName: clifford-dejong  # Replace with your preferred Cloudflare Pages project name
           directory: apps/web/out        # The output directory from Next.js static export
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
+          # When branch is 'main', deploy to production; otherwise, deploy as a preview with branch name
+          branch: ${{ github.ref_name }}
