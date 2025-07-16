@@ -69,8 +69,8 @@ export function hsv2rgb(
 
 // Bezier curves for color mapping
 export const saturationBezier = BezierEasing(0.79, -0.34, 0.54, 1.18);
-export const lightnessBezier = BezierEasing(0.75, 0.38, 0.24, 1.33);
-export const opacityBezier = BezierEasing(0.69, -0.01, 0.48, 0.94);
+export const densityBezier = BezierEasing(0.75, 0.38, 0.24, 1.33);
+export const opacityBezier = BezierEasing(.24,.27,.13,.89);
 
 // Maps density to color using HSV and Bezier curves with background blending
 export function getColorData(
@@ -88,23 +88,25 @@ export function getColorData(
   const [r, g, b] = hsv2rgb(
     h,
     s - saturationBezier(pdens / mdens) * s,
-    lightnessBezier(pdens / mdens) * v,
+    v, 
   );
 
-  // Extract background color components with default values
-  const bgR = background?.[0] ?? 0;
-  const bgG = background?.[1] ?? 0;
-  const bgB = background?.[2] ?? 0;
+  // Calculate alpha for point density
+  const density_alpha = Math.max(0,Math.min(1,densityBezier(pdens / mdens)));
   
-  // Calculate a blend factor based on density
-  const blendFactor = Math.min(1, pdens / mdens);
+  // Get background color components
+  const bgR = background[0] || 0;
+  const bgG = background[1] || 0;
+  const bgB = background[2] || 0;
   
-  // Blend the color with background
-  const blendedR = Math.round(r * blendFactor + bgR * (1 - blendFactor));
-  const blendedG = Math.round(g * blendFactor + bgG * (1 - blendFactor));
-  const blendedB = Math.round(b * blendFactor + bgB * (1 - blendFactor));
+  // Blend RGB with background based on density
+  const blendedR = Math.round((r * density_alpha) + (bgR * (1 - density_alpha)));
+  const blendedG = Math.round((g * density_alpha) + (bgG * (1 - density_alpha)));
+  const blendedB = Math.round((b * density_alpha) + (bgB * (1 - density_alpha)));
   
-  // Keep the original opacity calculation exactly as it was
+  // Keep the original opacity calculation for alpha channel
   return ((opacityBezier(progress) * 255) << 24) | (blendedB << 16) | (blendedG << 8) | blendedR;
-  // return ((1 * 255) << 24) | (blendedB << 16) | (blendedG << 8) | blendedR;
+
+
+
 }

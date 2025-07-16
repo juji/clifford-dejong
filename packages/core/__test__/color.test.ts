@@ -3,7 +3,6 @@ import {
   hsv2rgb,
   getColorData,
   saturationBezier,
-  lightnessBezier,
   opacityBezier,
 } from "../color";
 
@@ -99,16 +98,7 @@ describe("Bezier easing functions", () => {
     });
   });
 
-  it("lightnessBezier may produce values slightly outside 0-1 range due to Bezier control points", () => {
-    const values = [0, 0.25, 0.5, 0.75, 1];
-    values.forEach((value) => {
-      const result = lightnessBezier(value);
-      expect(result).toBeGreaterThanOrEqual(0);
-      // The control points may cause values slightly above 1, which is acceptable
-      // for visualization purposes and handled by hsv2rgb clamping
-      expect(result).toBeLessThanOrEqual(1.1);
-    });
-  });
+  // lightnessBezier test removed as this function is no longer used
 
   it("opacityBezier should produce values between 0 and 1", () => {
     const values = [0, 0.25, 0.5, 0.75, 1];

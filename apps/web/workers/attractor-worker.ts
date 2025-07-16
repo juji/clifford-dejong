@@ -221,7 +221,6 @@ function runAttractorOffscreen({
   }
 
   function drawPixels( progress: number ) {
-    console.log("Drawing pixels at progress:", progress);
     if (!offscreenCtx) return;
     const imageData = offscreenCtx.createImageData(width, height);
     const data = new Uint32Array(imageData.data.buffer);
