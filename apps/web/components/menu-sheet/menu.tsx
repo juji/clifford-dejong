@@ -80,7 +80,7 @@ function ColorControl({
     <div className="mb-4 w-full menu-item">
       <div className="flex items-center gap-2 w-full mb-5">
         <label className="font-semibold text-lg w-24 flex-shrink-0">
-          {label}
+          {label}s
         </label>
         <div className="flex-1 flex justify-end">
           <Input
