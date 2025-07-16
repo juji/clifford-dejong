@@ -2,6 +2,7 @@ import withSerwistInit from "@serwist/next";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
   // Add any custom Next.js config here if needed
   devIndicators: false
 };
