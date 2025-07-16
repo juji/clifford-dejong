@@ -23,18 +23,21 @@ jobs:
         with:
           node-version: 20
       
-      - name: Install dependencies
+      - name: Install dependencies (root)
         run: npm ci
       
-      - name: Build Next.js site
-        run: npm run build
+      - name: Install dependencies (web app)
+        run: cd apps/web && npm ci
       
-      # - name: Deploy to Cloudflare Pages
-      #   uses: cloudflare/pages-action@v1
-      #   with:
-      #     apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      #     accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      #     projectName: clifford-dejong  # Replace with your preferred Cloudflare Pages project name
-      #     directory: apps/web/out        # The output directory from Next.js static export
-      #     gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-      #     branch: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
+      - name: Build only the web app
+        run: cd apps/web && npm run build
+      
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: clifford-dejong  # Replace with your preferred Cloudflare Pages project name
+          directory: apps/web/out        # The output directory from Next.js static export
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
