@@ -87,7 +87,7 @@ export function getColorData(
 
   const [r, g, b] = hsv2rgb(
     h,
-    s - saturationBezier(pdens / mdens) * s,
+    s - Math.max(0,Math.min(1,saturationBezier(pdens / mdens))) * s,
     v, 
   );
 
