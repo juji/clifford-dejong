@@ -1,4 +1,4 @@
-// Script to generate a 48x48 favicon from basic.png and place it in the app directory
+// Script to generate a 180x180 favicon from basic.png and place it in the app directory
 // Usage: node generate-favicon.js
 
 import sharp from 'sharp';
@@ -20,7 +20,7 @@ const outputPath = path.join(appDir, 'favicon.ico');
 // Function to generate favicon
 async function generateFavicon() {
   try {
-    console.log(`Generating 48x48 favicon from ${sourceImage}...`);
+    console.log(`Generating 180x180 favicon from ${sourceImage}...`);
     
     // Check if source image exists
     if (!fs.existsSync(sourceImage)) {
@@ -30,7 +30,7 @@ async function generateFavicon() {
     
     // Create favicon
     await sharp(sourceImage)
-      .resize(48, 48)
+      .resize(180, 180)
       .toFile(outputPath);
       
     console.log(`✅ Successfully generated favicon: ${outputPath}`);
