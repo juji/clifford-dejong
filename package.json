@@ -23,13 +23,9 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@radix-ui/react-visually-hidden": "^1.2.3",
     "@react-native-async-storage/async-storage": "^2.2.0",
-    "@tamagui/core": "^1.129.4",
-    "@tamagui/polyfill-dev": "^1.129.4",
     "bezier-easing": "^2.1.0",
     "glob": "^11.0.3",
-    "react-native-web": "^0.20.0",
     "rimraf": "^6.0.1",
     "uuid": "^11.1.0",
     "zustand": "^5.0.6"
