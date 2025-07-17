@@ -9,7 +9,7 @@
       "@repo/state/*": ["../../packages/state/*"],
       "@repo/state": ["../../packages/state"]
     },
-    "types": ["vitest", "vitest/globals", "react-native-web"],
+    "types": ["vitest", "vitest/globals"],
     "plugins": [
       {
         "name": "next"
