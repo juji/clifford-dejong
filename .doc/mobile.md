@@ -109,9 +109,13 @@ cd /Users/juji/play/clifford-dejong/apps/mobile && npx react-native run-ios
 >    - Allows us to gradually introduce more sophisticated tests as the app matures
 > 3. **Future Test Enhancement Plan**: As development progresses, we'll incrementally add more sophisticated tests using proper mocks for React Native components and eventually introduce E2E testing with tools like Detox.
 
-- [ ] Run on Android
+- [x] Run on Android
 
 ```bash
+# First, create a symlink to the Gradle plugin (required in monorepos)
+mkdir -p /Users/juji/play/clifford-dejong/apps/mobile/node_modules/@react-native
+ln -s /Users/juji/play/clifford-dejong/node_modules/@react-native/gradle-plugin /Users/juji/play/clifford-dejong/apps/mobile/node_modules/@react-native/
+
 # Start the React Native development server
 cd /Users/juji/play/clifford-dejong/apps/mobile
 npx react-native start
@@ -120,6 +124,8 @@ npx react-native start
 cd /Users/juji/play/clifford-dejong/apps/mobile
 npx react-native run-android
 ```
+
+> **Implementation Note**: When running React Native Android apps in a monorepo, the Android build system expects the Gradle plugin in `../node_modules/@react-native/gradle-plugin` relative to the app's directory. In our monorepo setup, it's actually in the root node_modules folder, so we created a symlink to make it work without modifying the build configurations. This is a common pattern for React Native apps in monorepos.
 
 - [ ] Update package.json with necessary dependencies
 
