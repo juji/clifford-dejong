@@ -6,14 +6,94 @@ This document provides a step-by-step guide for implementing the mobile version 
 
 ### 1.1 Project Initialization
 
-- [ ] Create the React Native app
+- [x] Create the React Native app
 
 ```bash
 # Navigate to the repository root
 cd /Users/juji/play/clifford-dejong/apps
 
-# Initialize the new React Native app directly in the apps directory
-npx react-native init mobile --template react-native-template-typescript
+# Actual command used to initialize the React Native app:
+npx @react-native-community/cli init mobile
+```
+
+- [x] Configure Metro bundler for monorepo
+
+> **Why?** Metro bundler needs to be configured for monorepo setups because:
+> 1. By default, Metro only watches and resolves modules from the app's immediate directory
+> 2. In a monorepo, shared packages are located outside the app directory
+> 3. Without proper configuration, imports from workspace packages will fail
+> 4. Metro needs to know both the app root and workspace root to resolve dependencies correctly
+
+```javascript
+// metro.config.js
+const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+const path = require('path');
+
+// Find the workspace root
+const workspaceRoot = path.resolve(__dirname, '../..');
+const projectRoot = __dirname;
+
+const config = {
+  // 1. Watch all files within the monorepo
+  watchFolders: [workspaceRoot],
+  // 2. Let Metro know where to resolve packages, and in what order
+  resolver: {
+    nodeModulesPaths: [
+      path.resolve(projectRoot, 'node_modules'),
+      path.resolve(workspaceRoot, 'node_modules'),
+    ],
+    // 3. Force Metro to resolve (sub)dependencies only from the `nodeModulesPaths`
+    disableHierarchicalLookup: true,
+  },
+};
+
+module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+```
+
+- [x] Run on iOS
+
+```bash
+# First, install CocoaPods dependencies
+cd /Users/juji/play/clifford-dejong/apps/mobile/ios
+pod install
+
+# Start the React Native development server (if not already running)
+cd /Users/juji/play/clifford-dejong/apps/mobile
+npx react-native start
+
+# In a separate terminal, launch the iOS app
+cd /Users/juji/play/clifford-dejong/apps/mobile
+npx react-native run-ios
+```
+
+> **Implementation Note**: Initial iOS run works successfully without any modifications to the Podfile's post_install hook. The default configuration correctly handles the monorepo structure for basic functionality.
+
+> **Note**: For more complex monorepo setups with shared packages, you may need to modify the Podfile to correctly resolve dependencies from the workspace root. If you encounter build errors, consider adding this to the Podfile's post_install hook:
+>
+> ```ruby
+> post_install do |installer|
+>   # Other existing configuration...
+>   
+>   # Monorepo support: Make Xcode create symlinks to included packages
+>   installer.pods_project.targets.each do |target|
+>     target.build_configurations.each do |config|
+>       config.build_settings['FRAMEWORK_SEARCH_PATHS'] ||= ['$(inherited)', '$(PODS_ROOT)/../../node_modules']
+>       config.build_settings['LIBRARY_SEARCH_PATHS'] ||= ['$(inherited)', '$(PODS_ROOT)/../../node_modules']
+>     end
+>   end
+> end
+> ```
+
+- [ ] Run on Android
+
+```bash
+# Start the React Native development server
+cd /Users/juji/play/clifford-dejong/apps/mobile
+npx react-native start
+
+# In a separate terminal, launch the Android app
+cd /Users/juji/play/clifford-dejong/apps/mobile
+npx react-native run-android
 ```
 
 - [ ] Update package.json with necessary dependencies
