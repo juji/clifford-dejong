@@ -72,7 +72,7 @@ describe("MenuSheetFooter", () => {
         screen.getByRole("button", { name: /load settings/i }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /Back to Origin Settings/i }),
+        screen.getByRole("button", { name: /back to origin settings/i }),
       ).toBeInTheDocument();
 
       // Check for dialog components
@@ -234,7 +234,7 @@ describe("MenuSheetFooter", () => {
         screen.getByRole("button", { name: /load settings/i }),
       ).toHaveAttribute("aria-label", "Load Settings");
       expect(
-        screen.getByRole("button", { name: /Back to Origin Settings/i }),
+        screen.getByRole("button", { name: /back to origin settings/i }),
       ).toHaveAttribute("aria-label", "Back to Origin Settings");
     });
 
