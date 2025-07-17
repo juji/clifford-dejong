@@ -54,16 +54,13 @@ module.exports = mergeConfig(getDefaultConfig(__dirname), config);
 
 ```bash
 # First, install CocoaPods dependencies
-cd /Users/juji/play/clifford-dejong/apps/mobile/ios
-pod install
+cd /Users/juji/play/clifford-dejong/apps/mobile/ios && pod install
 
 # Start the React Native development server (if not already running)
-cd /Users/juji/play/clifford-dejong/apps/mobile
-npx react-native start
+cd /Users/juji/play/clifford-dejong/apps/mobile && npx react-native start
 
 # In a separate terminal, launch the iOS app
-cd /Users/juji/play/clifford-dejong/apps/mobile
-npx react-native run-ios
+cd /Users/juji/play/clifford-dejong/apps/mobile && npx react-native run-ios
 ```
 
 > **Implementation Note**: Initial iOS run works successfully without any modifications to the Podfile's post_install hook. The default configuration correctly handles the monorepo structure for basic functionality.
