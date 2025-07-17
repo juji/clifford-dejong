@@ -66,11 +66,11 @@ export function MenuSheetFooter() {
       <Button
         variant="outline"
         size="sm"
-        aria-label="Reset Settings"
+        aria-label="Back to Origin Settings"
         className="flex-1"
         onClick={reset}
       >
-        reset
+        origin
       </Button>
       <ConfigSelectionDialog
         open={loadDialogOpen}

@@ -72,7 +72,7 @@ describe("MenuSheetFooter", () => {
         screen.getByRole("button", { name: /load settings/i }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /reset settings/i }),
+        screen.getByRole("button", { name: /Back to Origin Settings/i }),
       ).toBeInTheDocument();
 
       // Check for dialog components
@@ -85,7 +85,7 @@ describe("MenuSheetFooter", () => {
 
       expect(screen.getByText("save")).toBeInTheDocument();
       expect(screen.getByText("load")).toBeInTheDocument();
-      expect(screen.getByText("reset")).toBeInTheDocument();
+      expect(screen.getByText("origin")).toBeInTheDocument();
     });
 
     it("renders dialogs as closed by default", () => {
@@ -108,7 +108,7 @@ describe("MenuSheetFooter", () => {
       render(<MenuSheetFooter />);
 
       const resetButton = screen.getByRole("button", {
-        name: /reset settings/i,
+        name: /back to origin settings/i,
       });
       await user.click(resetButton);
 
@@ -234,8 +234,8 @@ describe("MenuSheetFooter", () => {
         screen.getByRole("button", { name: /load settings/i }),
       ).toHaveAttribute("aria-label", "Load Settings");
       expect(
-        screen.getByRole("button", { name: /reset settings/i }),
-      ).toHaveAttribute("aria-label", "Reset Settings");
+        screen.getByRole("button", { name: /Back to Origin Settings/i }),
+      ).toHaveAttribute("aria-label", "Back to Origin Settings");
     });
 
     it("supports keyboard navigation", async () => {
@@ -260,7 +260,7 @@ describe("MenuSheetFooter", () => {
 
       await user.tab();
       expect(
-        screen.getByRole("button", { name: /reset settings/i }),
+        screen.getByRole("button", { name: /back to origin settings/i }),
       ).toHaveFocus();
     });
   });

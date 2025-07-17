@@ -130,7 +130,7 @@ export function SmallMenu({ className }: { className?: string }) {
                 className="flex-1 text-xs h-7 px-2"
                 onClick={reset}
               >
-                Reset
+                Origin
               </Button>
             </div>
           </div>
