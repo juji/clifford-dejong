@@ -39,7 +39,7 @@ export function ConfigSelectionDialog({
             Browse and select from your saved attractor configurations.
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-4 h-40 border rounded bg-muted/30 p-2 flex flex-col">
+        <div className="mt-4 max-h-[30vh] border rounded bg-muted/30 p-2 flex flex-col">
           {error ? (
             <div className="flex h-full items-center justify-center text-center text-destructive">
               {String(error)}
