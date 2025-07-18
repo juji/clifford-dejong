@@ -3,7 +3,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { useAttractorStore } from "@repo/state/attractor-store";
 import { Button } from "@/components/ui/button";
-import { Dialog } from "@/components/ui/dialog";
 import { ConfigSelectionDialog } from "@/components/config-selection-dialog";
 import { ConfigSaveDialog } from "@/components/config-save-dialog";
 import { SmallMenuSub } from "./small-menu-sub";
