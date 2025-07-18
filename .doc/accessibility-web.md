@@ -110,7 +110,7 @@ Basic structural and interactive elements to ensure the application is accessibl
 Enhance accessibility with ARIA roles, attributes, and states to provide additional context to assistive technologies.
 
 2.1 [ ] Define main content regions with ARIA landmarks
-    2.1.1 [ ] In `page.tsx`, ensure the primary content container has `role="main"` or is a `<main>` element.
+    2.1.1 [*] In `page.tsx`, the primary content container is already using a semantic `<main>` element (completed in task 1.2.2).
     2.1.2 [ ] In `MenuSheet.tsx`, assign `role="navigation"` to the main navigation container and consider wrapping it in an `<aside>` tag.
 
 2.2 [ ] Add aria-label where text alternatives are needed
@@ -144,7 +144,7 @@ Make canvas-based visualizations accessible by providing alternatives and enabli
 
 3.1 [ ] In `AttractorCanvas.tsx`, add `role="img"` to the `<canvas>` element.
 3.2 [ ] Dynamically generate a descriptive `aria-label` for the canvas that includes the current attractor's parameters (e.g., "An abstract geometric pattern generated with Clifford attractor parameters a=-1.7, b=1.8, c=-0.9, d=-0.4.").
-3.3 [ ] Provide a visually hidden `<div>` linked with `aria-describedby` to offer a more detailed explanation of the visual pattern.
+3.3 [-] (Optional) Provide a visually hidden `<div>` linked with `aria-describedby` to offer a more detailed explanation of the visual pattern. Note: The `aria-label` from 3.2 may be sufficient without this additional description.
 3.4 [ ] Ensure the sounds from `use-boppop-sound`, `use-done-sound`, and `use-waiting-sound` provide meaningful auditory feedback for the start, progress, and completion of the rendering process.
 
 ### 4. Keyboard Navigation
@@ -152,7 +152,7 @@ Make canvas-based visualizations accessible by providing alternatives and enabli
 Ensure the application is fully navigable using a keyboard, with logical focus order and intuitive shortcuts.
 
 4.1 [ ] Review the tab sequence in `page.tsx` to ensure it flows logically from the menu controls to the main parameter sliders.
-4.2 [ ] Create a help dialog or a dedicated section in the `MenuSheet` to display a list of all available keyboard shortcuts (`M`, `D`, `F`, `T`).
+4.2 [ ] Add documentation for keyboard shortcuts (`M`, `D`, `F`, `T`) directly within the existing `MenuSheet` interface rather than creating a separate dialog.
 4.3 [ ] Verify that all custom controls (`Slider`, `Select`, `ColorWithOpacityPicker`) are fully operable using only the keyboard (e.g., arrow keys for sliders, space/enter to open selects).
 
 ### 5. Screen Reader Support
