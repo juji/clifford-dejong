@@ -39,7 +39,7 @@ export function ConfigSelectionDialog({
             Browse and select from your saved attractor configurations.
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-4 h-80 border rounded bg-muted/30 p-2 flex flex-col">
+        <div className="mt-4 h-40 border rounded bg-muted/30 p-2 flex flex-col">
           {error ? (
             <div className="flex h-full items-center justify-center text-center text-destructive">
               {String(error)}
@@ -56,7 +56,7 @@ export function ConfigSelectionDialog({
           )}
         </div>
         <button
-          className="mt-2 w-full py-2 rounded bg-primary text-primary-foreground disabled:opacity-50 sticky bottom-0 z-10"
+          className="mt-2 w-full py-2 rounded bg-primary text-primary-foreground disabled:opacity-50 z-10"
           onClick={loadMore}
           disabled={records.length >= total}
         >
