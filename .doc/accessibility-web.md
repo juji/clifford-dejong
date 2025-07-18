@@ -86,7 +86,6 @@ Basic structural and interactive elements to ensure the application is accessibl
 
 1.5 [ ] Create logical tab order
     1.5.1 [*] Logical tab order observed in `page.tsx`.
-    1.5.2 [ ] Add a visually hidden "Skip to main content" link at the top of `layout.tsx` that becomes visible on focus and moves focus to the main canvas area.
 
 1.6 [ ] Implement keyboard shortcuts for common actions
     1.6.1 [ ] Implement `M` to toggle the settings menu (`MenuSheet`).
