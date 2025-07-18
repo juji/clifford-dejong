@@ -71,13 +71,13 @@ Basic structural and interactive elements to ensure the application is accessibl
     1.1.1 [*] Some headings are used correctly, but `<h1>` is missing in `page.tsx`.
     1.1.2 [*] Ensure each page has a unique `<h1>`.
 
-1.2 [ ] Implement semantic landmarks (header, main, nav, footer)
+1.2 [*] Implement semantic landmarks (header, main, nav, footer)
     1.2.1 [*] Semantic landmarks like `<header>` and `<footer>` are used in `layout.tsx`.
-    1.2.2 [ ] Add `<main>` to define the main content area (not yet implemented).
+    1.2.2 [*] Added `<main>` to define the main content area in `page.tsx`.
 
-1.3 [ ] Use appropriate HTML elements (button, a, ul/ol)
+1.3 [*] Use appropriate HTML elements (button, a, ul/ol)
     1.3.1 [*] Buttons and links are used appropriately in most components.
-    1.3.2 [ ] In `page.tsx`, wrap the main content in a `<main>` tag and group control buttons like `MenuToggleButton` and `DownloadButton` in a `<div role="toolbar">`.
+    1.3.2 [*] In `page.tsx`, wrapped the main content in a `<main>` tag and grouped control buttons in a `<div role="toolbar" aria-label="Canvas controls">`.
 
 1.4 [ ] Ensure all interactive elements are focusable
     1.4.1 [*] Most interactive elements are focusable.
