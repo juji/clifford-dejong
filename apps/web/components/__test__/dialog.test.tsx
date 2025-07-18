@@ -128,7 +128,7 @@ describe("Dialog", () => {
       expect(overlay).toHaveClass(
         "fixed",
         "inset-0",
-        "z-50",
+        "z-[299]",
         "bg-black/50",
         "data-[state=open]:animate-in",
         "data-[state=closed]:animate-out",
@@ -239,7 +239,7 @@ describe("Dialog", () => {
         "fixed",
         "top-[50%]",
         "left-[50%]",
-        "z-50",
+        "z-[300]",
         "grid",
         "w-full",
         "max-w-[calc(100%-2rem)]",
