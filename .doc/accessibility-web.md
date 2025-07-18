@@ -82,7 +82,7 @@ Basic structural and interactive elements to ensure the application is accessibl
 1.4 [*] Ensure all interactive elements are focusable
     1.4.1 [*] Most interactive elements are focusable.
     1.4.2 [*] For `MenuSheet`, `Select`, and `Slider` components, all child elements are now keyboard-focusable with visible focus states.
-    1.4.3 [ ] For `ConfigSelectionDialog`, ensure focus is correctly trapped and that all buttons and list items are focusable.
+    1.4.3 [*] For `ConfigSelectionDialog`, focus is now correctly trapped and all buttons and list items are properly focusable with proper z-index to ensure visibility.
 
 1.5 [*] Create logical tab order
     1.5.1 [*] Logical tab order observed in `page.tsx`.
