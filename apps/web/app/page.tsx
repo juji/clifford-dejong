@@ -1,5 +1,6 @@
 import { AttractorCanvas } from "@/components/attractor-canvas";
 import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
 import { ProgressIndicator } from "@/components/progress-indicator";
 import { DarkModeToggle } from "@/components/dark-mode-toggle";
 import { FullScreenButton } from "@/components/full-screen-button";
@@ -10,6 +11,7 @@ import { DownloadButton } from "@/components/download-button";
 export default function Home() {
   return (
     <>
+      <Header />
       <ProgressIndicator />
       <MenuSheet />
       <DarkModeToggle />
