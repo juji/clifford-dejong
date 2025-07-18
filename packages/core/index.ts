@@ -1,4 +1,5 @@
 // Core mathematical logic for Clifford and de Jong attractors will be placed here.
+// Used for the Chaos Canvas visualization
 
 export function clifford(
   x: number,
