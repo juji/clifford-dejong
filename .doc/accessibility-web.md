@@ -67,9 +67,9 @@ This section organizes all accessibility tasks into categories for easier tracki
 
 Basic structural and interactive elements to ensure the application is accessible from the ground up.
 
-1.1 [ ] Use proper heading hierarchy (h1-h6)
+1.1 [*] Use proper heading hierarchy (h1-h6)
     1.1.1 [*] Some headings are used correctly, but `<h1>` is missing in `page.tsx`.
-    1.1.2 [ ] Ensure each page has a unique `<h1>`.
+    1.1.2 [*] Ensure each page has a unique `<h1>`.
 
 1.2 [ ] Implement semantic landmarks (header, main, nav, footer)
     1.2.1 [*] Semantic landmarks like `<header>` and `<footer>` are used in `layout.tsx`.
