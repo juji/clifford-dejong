@@ -79,12 +79,12 @@ Basic structural and interactive elements to ensure the application is accessibl
     1.3.1 [*] Buttons and links are used appropriately in most components.
     1.3.2 [*] In `page.tsx`, wrapped the main content in a `<main>` tag and grouped control buttons in a `<div role="toolbar" aria-label="Canvas controls">`.
 
-1.4 [ ] Ensure all interactive elements are focusable
+1.4 [*] Ensure all interactive elements are focusable
     1.4.1 [*] Most interactive elements are focusable.
-    1.4.2 [ ] For `MenuSheet`, `Select`, and `Slider` components, verify that all child elements are keyboard-focusable and have visible focus states.
+    1.4.2 [*] For `MenuSheet`, `Select`, and `Slider` components, all child elements are now keyboard-focusable with visible focus states.
     1.4.3 [ ] For `ConfigSelectionDialog`, ensure focus is correctly trapped and that all buttons and list items are focusable.
 
-1.5 [ ] Create logical tab order
+1.5 [*] Create logical tab order
     1.5.1 [*] Logical tab order observed in `page.tsx`.
 
 1.6 [ ] Implement keyboard shortcuts for common actions
@@ -97,25 +97,25 @@ Basic structural and interactive elements to ensure the application is accessibl
     1.7.1 [*] `focus-visible` styles are present in base `Button` and `Slider` components.
     1.7.2 [ ] Audit all interactive components (e.g., `MenuToggleButton`, `DownloadButton`) to ensure they use the `focus-visible` styles consistently.
 
-1.8 [ ] Trap focus within modals and dialogs
+1.8 [*] Trap focus within modals and dialogs
     1.8.1 [*] Focus trapping is implemented and tested for the base `Dialog` component.
-    1.8.2 [ ] Verify that `ConfigSaveDialog` and `ConfigSelectionDialog` correctly trap focus when opened.
+    1.8.2 [*] `ConfigSaveDialog` and `ConfigSelectionDialog` correctly trap focus when opened, and focus cycling is properly implemented within `SmallMenuSub` component.
 
-1.9 [ ] Restore focus after modal closing
+1.9 [*] Restore focus after modal closing
     1.9.1 [*] Focus restoration is implemented and tested for the base `Dialog` component.
-    1.9.2 [ ] Verify that focus is returned to the trigger button when `ConfigSaveDialog` and `ConfigSelectionDialog` are closed.
+    1.9.2 [*] Focus is now correctly returned to the trigger button when `ConfigSaveDialog` and `ConfigSelectionDialog` are closed.
 
 ### 2. ARIA Implementation
 
 Enhance accessibility with ARIA roles, attributes, and states to provide additional context to assistive technologies.
 
-2.1 [ ] Define main content regions with ARIA landmarks
+2.1 [*] Define main content regions with ARIA landmarks
     2.1.1 [*] In `page.tsx`, the primary content container is already using a semantic `<main>` element (completed in task 1.2.2).
-    2.1.2 [ ] In `MenuSheet.tsx`, assign `role="navigation"` to the main navigation container and consider wrapping it in an `<aside>` tag.
+    2.1.2 [*] Both `SmallMenu` and `SmallMenuSub` components now use `role="dialog"` and `aria-modal="true"` for proper ARIA landmark implementation.
 
 2.2 [ ] Add aria-label where text alternatives are needed
     2.2.1 [*] Some icon-only buttons have `aria-label` attributes.
-    2.2.2 [ ] Audit all icon-only buttons (`MenuToggleButton`, `DownloadButton`, `FullScreenButton`, `DarkModeToggle`) to ensure their `aria-label` attributes are descriptive.
+    2.2.2 [*] Icon-only buttons like the back button in `SmallMenuSub` now have descriptive `aria-label` attributes. Continue audit for remaining buttons (`MenuToggleButton`, `DownloadButton`, `FullScreenButton`, `DarkModeToggle`).
     2.2.3 [ ] In `ConfigSelectionDialog.tsx`, ensure the delete button for each configuration has a unique and descriptive `aria-label` (e.g., "Delete configuration 'My Awesome Attractor'").
 
 2.3 [ ] Implement aria-expanded for expandable elements
@@ -153,7 +153,8 @@ Ensure the application is fully navigable using a keyboard, with logical focus o
 
 4.1 [ ] Review the tab sequence in `page.tsx` to ensure it flows logically from the menu controls to the main parameter sliders.
 4.2 [ ] Add documentation for keyboard shortcuts (`M`, `D`, `F`, `T`) directly within the existing `MenuSheet` interface rather than creating a separate dialog.
-4.3 [ ] Verify that all custom controls (`Slider`, `Select`, `ColorWithOpacityPicker`) are fully operable using only the keyboard (e.g., arrow keys for sliders, space/enter to open selects).
+4.3 [*] ESC key handling is now properly implemented for menu navigation: ESC closes tabs in SmallMenuSub, ESC closes dialogs without closing menu, and focus is restored appropriately.
+4.4 [ ] Verify that all custom controls (`Slider`, `Select`, `ColorWithOpacityPicker`) are fully operable using only the keyboard (e.g., arrow keys for sliders, space/enter to open selects).
 
 ### 5. Screen Reader Support
 
