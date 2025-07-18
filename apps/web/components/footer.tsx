@@ -19,7 +19,7 @@ export function Footer() {
         before:from-[#343434cf] before:to-[#ffffff63]
       `)}
     >
-      <span>Clifford-de Jong Attractor &copy; {new Date().getFullYear()}</span>
+      <span>Chaos Canvas &copy; {new Date().getFullYear()}</span>
     </footer>
   );
 }

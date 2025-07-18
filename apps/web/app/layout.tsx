@@ -7,10 +7,10 @@ const inter = Inter({ subsets: ["latin"] });
 const robotoMono = Roboto_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "Clifford-de Jong Attractor Wallpaper Creator",
+  title: "Chaos Canvas",
   description:
     "A cross-platform app for generating beautiful mathematical art wallpapers using Clifford and de Jong attractors.",
-  applicationName: "Clifford-de Jong Attractor Wallpaper Creator",
+  applicationName: "Chaos Canvas",
   manifest: "/manifest.webmanifest", // Next.js will serve this from /app/manifest.ts
   metadataBase: new URL("https://clifford-dejong.vercel.app/"), // Set to your canonical URL
   icons: [
@@ -30,21 +30,21 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Clifford-de Jong Attractor Wallpaper Creator",
+    title: "Chaos Canvas",
     statusBarStyle: "black-translucent",
   },
   openGraph: {
-    title: "Clifford-de Jong Attractor Wallpaper Creator",
+    title: "Chaos Canvas",
     description:
       "A cross-platform app for generating beautiful mathematical art wallpapers using Clifford and de Jong attractors.",
     url: "https://clifford-dejong.example.com/", // Update to your canonical URL
-    siteName: "Clifford-de Jong Attractor Wallpaper Creator",
+    siteName: "Chaos Canvas",
     images: [
       {
         url: "/og-image.png", // Use the image in the public directory
         width: 1200,
         height: 630,
-        alt: "Clifford-de Jong Attractor Wallpaper Creator Open Graph Image",
+        alt: "Chaos Canvas Open Graph Image",
       },
     ],
     locale: "en_US",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Clifford-de Jong Attractor Wallpaper Creator",
+    title: "Chaos Canvas",
     description:
       "A cross-platform app for generating beautiful mathematical art wallpapers using Clifford and de Jong attractors.",
     images: ["/og-image.png"],

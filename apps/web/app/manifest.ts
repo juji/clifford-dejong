@@ -5,9 +5,9 @@ export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Clifford & de Jong Attractor",
-    short_name: "Attractor",
-    description: "Explore Clifford and de Jong attractors interactively.",
+    name: "Chaos Canvas",
+    short_name: "Chaos Canvas",
+    description: "A cross-platform app for generating beautiful mathematical art wallpapers using Clifford and de Jong attractors.",
     start_url: "/",
     display: "standalone",
     background_color: "#18181b",
