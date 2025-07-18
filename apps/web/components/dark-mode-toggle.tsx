@@ -19,7 +19,7 @@ export function DarkModeToggle() {
   return loaded ? (
     <div
       className={
-        `absolute top-4 right-4 z-[200] rounded-lg p-1 transition-colors ` +
+        `fixed top-4 right-4 z-[200] rounded-lg p-1 transition-colors ` +
         (isDark ? "bg-black/10" : "bg-white/90")
       }
     >
