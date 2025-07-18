@@ -30,7 +30,13 @@
     "zustand": "^5.0.6"
   },
   "lint-staged": {
-    "./*.{ts,tsx,js,jsx,md,json,yml,yaml}": "npm run format --if-present"
+    "**/*.{ts,tsx,js,jsx}": [
+      "prettier --write",
+      "eslint --cache --fix"
+    ],
+    "**/*.{md,json,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "workspaces": [
     "apps/*",
