@@ -260,4 +260,104 @@ describe("ConfigSelectionDialog", () => {
       "Delete configuration 'My Awesome Attractor'",
     );
   });
+
+  // Test for aria-disabled on Load More button
+  it("should have aria-disabled attribute on Load More button when all records are loaded", () => {
+    // Arrange
+    const mockRecords = [
+      {
+        uuid: "123",
+        name: "Test Attractor",
+        createdAt: Date.now(),
+        attractorParameters: {
+          attractor: "clifford" as const,
+          a: 1.7,
+          b: 1.7,
+          c: 0.6,
+          d: 1.2,
+          hue: 200,
+          saturation: 80,
+          brightness: 90,
+          background: [0, 0, 0, 255] as [number, number, number, number],
+          scale: 1,
+          left: 0,
+          top: 0,
+        },
+        image: "data:image/png;base64,abc123",
+      },
+    ];
+
+    vi.mocked(useAttractorRecordsStore).mockImplementation((selector) =>
+      selector({
+        records: mockRecords,
+        error: null,
+        loading: false,
+        refresh: mockRefresh,
+        removeRecord: mockRemoveRecord,
+        total: 1, // Total equals records length, so no more to load
+        loadMore: vi.fn(),
+        page: 0,
+        fetchRecords: vi.fn(),
+        addRecord: vi.fn(),
+      }),
+    );
+
+    render(<ConfigSelectionDialog open={true} onOpenChange={() => {}} />);
+
+    // Assert
+    const loadMoreButton = screen.getByRole("button", { name: /load more/i });
+    expect(loadMoreButton).toBeInTheDocument();
+    expect(loadMoreButton).toBeDisabled();
+    expect(loadMoreButton).toHaveAttribute("aria-disabled", "true");
+  });
+
+  // Test when more records are available
+  it("should not have aria-disabled on Load More button when more records are available", () => {
+    // Arrange
+    const mockRecords = [
+      {
+        uuid: "123",
+        name: "Test Attractor",
+        createdAt: Date.now(),
+        attractorParameters: {
+          attractor: "clifford" as const,
+          a: 1.7,
+          b: 1.7,
+          c: 0.6,
+          d: 1.2,
+          hue: 200,
+          saturation: 80,
+          brightness: 90,
+          background: [0, 0, 0, 255] as [number, number, number, number],
+          scale: 1,
+          left: 0,
+          top: 0,
+        },
+        image: "data:image/png;base64,abc123",
+      },
+    ];
+
+    vi.mocked(useAttractorRecordsStore).mockImplementation((selector) =>
+      selector({
+        records: mockRecords,
+        error: null,
+        loading: false,
+        refresh: mockRefresh,
+        removeRecord: mockRemoveRecord,
+        total: 2, // Total is more than records length, so more to load
+        loadMore: vi.fn(),
+        page: 0,
+        fetchRecords: vi.fn(),
+        addRecord: vi.fn(),
+      }),
+    );
+
+    render(<ConfigSelectionDialog open={true} onOpenChange={() => {}} />);
+
+    // Assert
+    const loadMoreButton = screen.getByRole("button", { name: /load more/i });
+    expect(loadMoreButton).toBeInTheDocument();
+    expect(loadMoreButton).not.toBeDisabled();
+    expect(loadMoreButton).toHaveAttribute("aria-disabled", "false");
+  });
 });

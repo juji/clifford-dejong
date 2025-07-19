@@ -130,13 +130,13 @@ Enhance accessibility with ARIA roles, attributes, and states to provide additio
     2.5.1 [*] In `SmallMenu.tsx`, applied `aria-selected="true"` to the active tab triggers.
     2.5.2 [*] Verified that `Select` component options use `aria-selected` for the currently chosen item. The Radix UI SelectItem component we use properly implements the WAI-ARIA Listbox pattern with aria-selected managed automatically.
 
-2.6 [ ] Use aria-pressed for toggle buttons
-    2.6.1 [ ] In `DarkModeToggle.tsx`, use `aria-pressed` to indicate whether dark mode is active.
-    2.6.2 [ ] In `FullScreenButton.tsx`, use `aria-pressed` to indicate whether fullscreen mode is active.
+2.6 [*] Use aria-pressed for toggle buttons
+    2.6.1 [*] In `DarkModeToggle.tsx`, added `aria-pressed` to indicate whether dark mode is active and updated tests to verify this attribute.
+    2.6.2 [*] In `FullScreenButton.tsx`, added `aria-pressed` to indicate whether fullscreen mode is active, and updated the component to track fullscreen state changes.
 
-2.7 [ ] Implement aria-disabled when appropriate
-    2.7.1 [ ] In `DownloadButton.tsx`, ensure `aria-disabled="true"` is set when the button is visually disabled.
-    2.7.2 [ ] In `ConfigSelectionDialog.tsx`, verify `aria-disabled` is used on the "Load More" button when appropriate.
+2.7 [*] Implement aria-disabled when appropriate
+    2.7.1 [*] In `DownloadButton.tsx`, implemented `aria-disabled="true"` when there's no image to download, along with visual styling changes to indicate the disabled state.
+    2.7.2 [*] In `ConfigSelectionDialog.tsx`, implemented `aria-disabled="true"` on the "Load More" button when all records are loaded (records.length >= total) and added tests to verify this behavior.
 
 ### 3. Canvas Accessibility
 

@@ -68,6 +68,7 @@ export function ConfigSelectionDialog({
           className="mt-2 w-full py-2 rounded bg-primary text-primary-foreground disabled:opacity-50 z-10"
           onClick={loadMore}
           disabled={records.length >= total}
+          aria-disabled={records.length >= total}
         >
           Load More
         </button>
