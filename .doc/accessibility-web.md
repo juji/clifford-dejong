@@ -135,7 +135,7 @@ Enhance accessibility with ARIA roles, attributes, and states to provide additio
     2.6.2 [*] In `FullScreenButton.tsx`, added `aria-pressed` to indicate whether fullscreen mode is active, and updated the component to track fullscreen state changes.
 
 2.7 [*] Implement aria-disabled when appropriate
-    2.7.1 [*] In `DownloadButton.tsx`, implemented `aria-disabled="true"` when there's no image to download, along with visual styling changes to indicate the disabled state.
+    2.7.1 [ ] In `DownloadButton.tsx`, implement `aria-disabled="true"` when there's no image to download, along with visual styling changes to indicate the disabled state. Note: Implementation changed - button is not rendered at all when no image is available, making this task unnecessary.
     2.7.2 [*] In `ConfigSelectionDialog.tsx`, implemented `aria-disabled="true"` on the "Load More" button when all records are loaded (records.length >= total) and added tests to verify this behavior.
 
 ### 3. Canvas Accessibility
