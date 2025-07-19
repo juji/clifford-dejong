@@ -366,8 +366,9 @@ describe("FullScreenButton", () => {
       render(<FullScreenButton />);
       const button = screen.getByRole("button", { name: "Toggle fullscreen" });
 
-      expect(button.className).toContain("focus:outline-none");
-      expect(button.className).toContain("focus:ring-2");
+      expect(button.className).toContain("outline-none");
+      expect(button.className).toContain("focus-visible:ring-[6px]");
+      expect(button.className).toContain("focus-visible:ring-yellow-400");
       expect(button.className).toContain("hover:scale-75");
 
       await user.tab();

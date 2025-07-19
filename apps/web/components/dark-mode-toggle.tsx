@@ -27,6 +27,7 @@ export function DarkModeToggle() {
         size="icon"
         aria-label="Toggle dark mode"
         onClick={() => setTheme(isDark ? "light" : "dark")}
+        className="outline-none focus-visible:ring-[6px] focus-visible:ring-yellow-400"
       >
         {isDark ? (
           <Sun className="h-5 w-5" data-testid="sun-icon" />

@@ -45,8 +45,8 @@ export function DownloadButton() {
         left-1/2 -translate-x-1/2
         z-[200] 
         rounded-full min-w-40 h-16 px-8 bg-background text-foreground 
-        shadow-lg border-2 border-foreground focus:outline-none focus:ring-2 
-        focus:ring-ring cursor-pointer hover:scale-75 
+        shadow-lg border-2 border-foreground outline-none 
+        focus-visible:ring-[6px] focus-visible:ring-yellow-400 cursor-pointer hover:scale-75 
         transition-transform duration-200 ${scaleClass} 
         hover:bg-background hover:text-foreground overflow-hidden ${styles.downloadButton}`)}
       size="default"

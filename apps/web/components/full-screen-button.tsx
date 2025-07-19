@@ -282,7 +282,7 @@ export function FullScreenButtonChild() {
         ${menuPosition === "left" ? "right-6" : "left-6"}
         z-[200] rounded-full w-16 h-16
         bg-background text-foreground shadow-lg border-2 border-foreground
-        focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer
+        outline-none focus-visible:ring-[6px] focus-visible:ring-yellow-400 cursor-pointer
         hover:scale-75 transition-transform duration-200
         ${scaleClass}
       `)}
