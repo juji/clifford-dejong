@@ -118,9 +118,9 @@ Enhance accessibility with ARIA roles, attributes, and states to provide additio
     2.2.2 [*] Icon-only buttons like the back button in `SmallMenuSub` now have descriptive `aria-label` attributes. Continue audit for remaining buttons (`MenuToggleButton`, `DownloadButton`, `FullScreenButton`, `DarkModeToggle`).
     2.2.3 [*] In `ConfigSelectionDialog.tsx`, ensure the delete button for each configuration has a unique and descriptive `aria-label` (e.g., "Delete configuration 'My Awesome Attractor'").
 
-2.3 [ ] Implement aria-expanded for expandable elements
+2.3 [*] Implement aria-expanded for expandable elements
     2.3.1 [*] In `MenuToggleButton.tsx`, implemented `aria-expanded` to reflect the open/closed state of the `MenuSheet` and added `aria-controls="menu-sheet"` to associate it with the menu element.
-    2.3.2 [ ] Verify that `Select` components correctly use `aria-expanded` when their popover is open.
+    2.3.2 [*] Verified that `Select` components correctly use `aria-expanded` when their popover is open. The Radix UI Select component we use implements the ListBox WAI-ARIA design pattern which automatically manages the aria-expanded attribute on the trigger element. Radix UI's Select component implements accessibility features following the ListBox WAI-ARIA design pattern.
 
 2.4 [ ] Add aria-live regions for dynamic content
     2.4.1 [ ] In `ProgressIndicator.tsx`, add an `aria-live="polite"` region to announce progress updates.
