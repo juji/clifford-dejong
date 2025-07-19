@@ -203,8 +203,8 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
               }`}
               aria-label={
                 confirmDeleteId === rec.uuid
-                  ? "Confirm deletion"
-                  : "Delete configuration"
+                  ? `Confirm deletion of configuration '${rec.name}'`
+                  : `Delete configuration '${rec.name}'`
               }
             >
               {confirmDeleteId === rec.uuid ? "Confirm Deletion?" : "Delete"}

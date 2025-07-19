@@ -206,4 +206,58 @@ describe("ConfigSelectionDialog", () => {
     );
     expect(mockOnOpenChange).toHaveBeenCalledWith(false);
   });
+
+  // Test for aria-label including configuration name
+  it("should have descriptive aria-labels on delete buttons", async () => {
+    // Arrange
+    const mockRecords = [
+      {
+        uuid: "123",
+        name: "My Awesome Attractor",
+        createdAt: Date.now(), // Using a number timestamp instead of string
+        attractorParameters: {
+          attractor: "clifford" as const,
+          a: 1.7,
+          b: 1.7,
+          c: 0.6,
+          d: 1.2,
+          hue: 200,
+          saturation: 80,
+          brightness: 90,
+          background: [0, 0, 0, 255] as [number, number, number, number],
+          scale: 1,
+          left: 0,
+          top: 0,
+        },
+        image: "data:image/png;base64,abc123",
+      },
+    ];
+
+    vi.mocked(useAttractorRecordsStore).mockImplementation((selector) =>
+      selector({
+        records: mockRecords,
+        error: null,
+        loading: false,
+        refresh: mockRefresh,
+        removeRecord: mockRemoveRecord,
+        total: 1,
+        loadMore: vi.fn(),
+        page: 0,
+        fetchRecords: vi.fn(),
+        addRecord: vi.fn(),
+      }),
+    );
+
+    render(<ConfigSelectionDialog open={true} onOpenChange={() => {}} />);
+
+    // Assert
+    const deleteButton = screen.getByRole("button", {
+      name: /delete configuration 'My Awesome Attractor'/i,
+    });
+    expect(deleteButton).toBeInTheDocument();
+    expect(deleteButton).toHaveAttribute(
+      "aria-label",
+      "Delete configuration 'My Awesome Attractor'",
+    );
+  });
 });
