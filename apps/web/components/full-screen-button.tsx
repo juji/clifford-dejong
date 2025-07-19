@@ -42,6 +42,16 @@ interface FullscreenElement extends HTMLElement {
   msRequestFullscreen?: () => Promise<void>;
 }
 
+// Define fullscreen document interface for exit methods
+interface FullscreenExitDocument extends Document {
+  webkitExitFullscreen?: () => Promise<void>;
+  mozCancelFullScreen?: () => Promise<void>;
+  msExitFullscreen?: () => Promise<void>;
+  webkitFullscreenElement?: Element;
+  mozFullScreenElement?: Element;
+  msFullscreenElement?: Element;
+}
+
 export function FullScreenButton() {
   const [showButton, setShowButton] = useState(false);
   const menuOpen = useUIStore((s) => s.menuOpen);
@@ -77,6 +87,7 @@ export function FullScreenButton() {
 
 export function FullScreenButtonChild() {
   const [rotated, setRotated] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [scaleClass, setScaleClass] = useState("scale-60");
   const menuPosition = useUIStore((s) => s.menuPosition);
 
@@ -90,15 +101,52 @@ export function FullScreenButtonChild() {
     }
   }, []);
 
-  // Define fullscreen document interface for exit methods
-  interface FullscreenExitDocument extends Document {
-    webkitExitFullscreen?: () => Promise<void>;
-    mozCancelFullScreen?: () => Promise<void>;
-    msExitFullscreen?: () => Promise<void>;
-    webkitFullscreenElement?: Element;
-    mozFullScreenElement?: Element;
-    msFullscreenElement?: Element;
-  }
+  // Track fullscreen state changes
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      const handleFullscreenChange = () => {
+        const doc = document as FullscreenExitDocument;
+        const fullscreenElement =
+          doc.fullscreenElement ||
+          doc.webkitFullscreenElement ||
+          doc.mozFullScreenElement ||
+          doc.msFullscreenElement;
+
+        setIsFullscreen(!!fullscreenElement);
+        setRotated(!!fullscreenElement);
+      };
+
+      document.addEventListener("fullscreenchange", handleFullscreenChange);
+      document.addEventListener(
+        "webkitfullscreenchange",
+        handleFullscreenChange,
+      );
+      document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+      document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+
+      // Check initial state
+      handleFullscreenChange();
+
+      return () => {
+        document.removeEventListener(
+          "fullscreenchange",
+          handleFullscreenChange,
+        );
+        document.removeEventListener(
+          "webkitfullscreenchange",
+          handleFullscreenChange,
+        );
+        document.removeEventListener(
+          "mozfullscreenchange",
+          handleFullscreenChange,
+        );
+        document.removeEventListener(
+          "MSFullscreenChange",
+          handleFullscreenChange,
+        );
+      };
+    }
+  }, []);
 
   function handleFullScreen() {
     const el = document.documentElement as FullscreenElement;
@@ -156,8 +204,7 @@ export function FullScreenButtonChild() {
             });
           }
         }
-        // Only set rotated after a successful request
-        setRotated(true);
+        // We no longer need to set the state here as it will be handled by the fullscreenchange event listener
       } catch (err) {
         console.error("Error in fullscreen request:", err);
       }
@@ -206,8 +253,7 @@ export function FullScreenButtonChild() {
             });
           }
         }
-        // Only set rotated after a successful exit
-        setRotated(false);
+        // We no longer need to set the state here as it will be handled by the fullscreenchange event listener
       } catch (err) {
         console.error("Error in fullscreen exit:", err);
       }
@@ -276,6 +322,7 @@ export function FullScreenButtonChild() {
     <button
       type="button"
       aria-label="Toggle fullscreen"
+      aria-pressed={isFullscreen}
       className={cn(`
         fs-button fixed 
         bottom-15 
