@@ -113,7 +113,7 @@ Enhance accessibility with ARIA roles, attributes, and states to provide additio
     2.1.1 [*] In `page.tsx`, the primary content container is already using a semantic `<main>` element (completed in task 1.2.2).
     2.1.2 [*] Both `SmallMenu` and `SmallMenuSub` components now use `role="dialog"` and `aria-modal="true"` for proper ARIA landmark implementation.
 
-2.2 [ ] Add aria-label where text alternatives are needed
+2.2 [*] Add aria-label where text alternatives are needed
     2.2.1 [*] Some icon-only buttons have `aria-label` attributes.
     2.2.2 [*] Icon-only buttons like the back button in `SmallMenuSub` now have descriptive `aria-label` attributes. Continue audit for remaining buttons (`MenuToggleButton`, `DownloadButton`, `FullScreenButton`, `DarkModeToggle`).
     2.2.3 [*] In `ConfigSelectionDialog.tsx`, ensure the delete button for each configuration has a unique and descriptive `aria-label` (e.g., "Delete configuration 'My Awesome Attractor'").
