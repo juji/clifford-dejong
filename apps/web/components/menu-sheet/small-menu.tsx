@@ -75,11 +75,11 @@ function useSmallMenuKeyboard({
             e.preventDefault();
             setMenuOpen(false);
             break;
-          
+
           case "Tab": {
             // If dialogs are open, don't create focus trap in the menu
             if (loadDialogOpen || saveDialogOpen) return;
-            
+
             // Create a focus trap to cycle focus within our menu buttons
             const buttons = [
               attractorBtnRef.current,
@@ -87,23 +87,23 @@ function useSmallMenuKeyboard({
               positionBtnRef.current,
               saveBtnRef.current,
               loadBtnRef.current,
-              originBtnRef.current
+              originBtnRef.current,
             ].filter(Boolean);
-            
+
             // If there are no buttons, don't try to trap focus
             if (buttons.length === 0) return;
-            
+
             // Check if the active element is the last button (origin)
             const activeElement = document.activeElement;
             const isLastButton = activeElement === originBtnRef.current;
-            
+
             // If we're on the last button and pressing Tab (without shift)
             if (isLastButton && !e.shiftKey) {
               e.preventDefault();
               // Focus back to the first button (attractor)
               attractorBtnRef.current?.focus();
             }
-            
+
             // If we're on the first button and pressing Shift+Tab
             const isFirstButton = activeElement === attractorBtnRef.current;
             if (isFirstButton && e.shiftKey) {
@@ -123,8 +123,8 @@ function useSmallMenuKeyboard({
       setMenuOpen,
       loadDialogOpen,
       saveDialogOpen,
-      dialogJustClosedRef
-    ]
+      dialogJustClosedRef,
+    ],
   );
 
   useEffect(() => {
@@ -133,14 +133,14 @@ function useSmallMenuKeyboard({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [handleKeyDown]);
-  
+
   return {
     attractorBtnRef,
     colorBtnRef,
     positionBtnRef,
     saveBtnRef,
     loadBtnRef,
-    originBtnRef
+    originBtnRef,
   };
 }
 
@@ -152,13 +152,13 @@ export function SmallMenu({ className }: { className?: string }) {
   // For save/load dialog state
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
-  
+
   // Track which button opened a dialog to restore focus when it closes
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
-  
+
   // Track if a dialog was just closed to prevent ESC from also closing the menu
   const dialogJustClosedRef = useRef<boolean>(false);
-  
+
   const [isOpen, setIsOpen] = useState(menuOpen);
   const setMenuOpenRef = useRef<null | ReturnType<typeof setTimeout>>(null);
   useEffect(() => {
@@ -194,7 +194,7 @@ export function SmallMenu({ className }: { className?: string }) {
     positionBtnRef,
     saveBtnRef,
     loadBtnRef,
-    originBtnRef
+    originBtnRef,
   } = useSmallMenuKeyboard({
     menuOpen,
     setMenuOpen,
@@ -221,9 +221,9 @@ export function SmallMenu({ className }: { className?: string }) {
         {openTab ? (
           <SmallMenuSub onTabClose={handleTabClose} tab={openTab} />
         ) : (
-          <div 
+          <div
             className="fixed bottom-[42px] left-1/2 -translate-x-1/2 z-[202] w-auto max-w-[400px] flex flex-col items-center gap-2 pb-3"
-            role="dialog" 
+            role="dialog"
             aria-modal="true"
           >
             {/* Primary Menu - Attractor, Color, Position */}
@@ -243,8 +243,11 @@ export function SmallMenu({ className }: { className?: string }) {
                 size="sm"
                 className="flex-1 text-xs h-8"
                 onClick={() => handleTabChange("attractor")}
-                tabIndex={0} /* Explicitly set tabIndex to make it the first focusable element */
+                tabIndex={
+                  0
+                } /* Explicitly set tabIndex to make it the first focusable element */
                 autoFocus /* Add autoFocus as an extra hint to the browser */
+                aria-selected={openTab === "attractor"}
               >
                 Attractor
               </Button>
@@ -254,6 +257,7 @@ export function SmallMenu({ className }: { className?: string }) {
                 size="sm"
                 className="flex-1 text-xs h-8"
                 onClick={() => handleTabChange("color")}
+                aria-selected={openTab === "color"}
               >
                 Color
               </Button>
@@ -263,6 +267,7 @@ export function SmallMenu({ className }: { className?: string }) {
                 size="sm"
                 className="flex-1 text-xs h-8"
                 onClick={() => handleTabChange("position")}
+                aria-selected={openTab === "position"}
               >
                 Position
               </Button>
@@ -325,12 +330,12 @@ export function SmallMenu({ className }: { className?: string }) {
           if (!open && lastFocusedButton.current) {
             // Set flag that dialog was just closed
             dialogJustClosedRef.current = true;
-            
+
             // Reset the flag after a short delay
             setTimeout(() => {
               dialogJustClosedRef.current = false;
             }, 100);
-            
+
             // Restore focus after a short delay
             setTimeout(() => {
               lastFocusedButton.current?.focus();
@@ -346,12 +351,12 @@ export function SmallMenu({ className }: { className?: string }) {
           if (!open && lastFocusedButton.current) {
             // Set flag that dialog was just closed
             dialogJustClosedRef.current = true;
-            
+
             // Reset the flag after a short delay
             setTimeout(() => {
               dialogJustClosedRef.current = false;
             }, 100);
-            
+
             // Restore focus after a short delay
             setTimeout(() => {
               lastFocusedButton.current?.focus();

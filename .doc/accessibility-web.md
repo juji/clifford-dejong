@@ -126,9 +126,9 @@ Enhance accessibility with ARIA roles, attributes, and states to provide additio
     2.4.1 [*] In `ProgressIndicator.tsx`, add an `aria-live="polite"` region to announce progress updates.
     2.4.2 [*] When saving or loading a configuration, use an `aria-live` region to announce success or failure.
 
-2.5 [ ] Apply aria-selected for selection controls
-    2.5.1 [ ] In `MenuSheet.tsx`, apply `aria-selected="true"` to the active tab trigger.
-    2.5.2 [ ] Verify that `Select` component options use `aria-selected` for the currently chosen item.
+2.5 [*] Apply aria-selected for selection controls
+    2.5.1 [*] In `SmallMenu.tsx`, applied `aria-selected="true"` to the active tab triggers.
+    2.5.2 [*] Verified that `Select` component options use `aria-selected` for the currently chosen item. The Radix UI SelectItem component we use properly implements the WAI-ARIA Listbox pattern with aria-selected managed automatically.
 
 2.6 [ ] Use aria-pressed for toggle buttons
     2.6.1 [ ] In `DarkModeToggle.tsx`, use `aria-pressed` to indicate whether dark mode is active.
