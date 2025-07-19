@@ -32,17 +32,14 @@ export function DownloadButton() {
     document.body.removeChild(a);
   }
 
-  // If menu is open, don't render the button at all
-  if (menuOpen) return null;
-
-  // If no image URL, still render the button but in a disabled state
-  const isDisabled = !imageUrl;
+  // If menu is open or no image URL, don't render the button at all
+  if (menuOpen || !imageUrl) return null;
 
   return (
     <Button
       type="button"
       aria-label="Download attractor image"
-      aria-disabled={isDisabled}
+      aria-disabled={false}
       onClick={handleDownload}
       className={cn(`
         fixed 
@@ -52,11 +49,10 @@ export function DownloadButton() {
         rounded-full min-w-40 h-16 px-8 bg-background text-foreground 
         shadow-lg border-2 border-foreground outline-none 
         focus-visible:ring-[6px] focus-visible:ring-yellow-400 
-        ${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:scale-75"} 
+        cursor-pointer hover:scale-75 
         transition-transform duration-200 ${scaleClass} 
         hover:bg-background hover:text-foreground overflow-hidden ${styles.downloadButton}`)}
       size="default"
-      disabled={isDisabled}
     >
       <span className="relative w-full h-full flex flex-row items-center justify-center gap-2">
         <Download className="size-6" />

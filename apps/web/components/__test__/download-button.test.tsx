@@ -145,20 +145,15 @@ describe("DownloadButton", () => {
       ).not.toBeInTheDocument();
     });
 
-    it("renders in a disabled state when there is no image URL", () => {
+    it("does not render when there is no image URL", () => {
       mockMenuOpen.mockReturnValue(false);
       mockImageUrl.mockReturnValue("");
       render(<DownloadButton />, { container });
 
-      const button = screen.getByRole("button", {
+      const button = screen.queryByRole("button", {
         name: "Download attractor image",
       });
-      expect(button).toBeInTheDocument();
-      expect(button).toHaveAttribute("aria-disabled", "true");
-      expect(button).toHaveAttribute("disabled");
-      expect(button.className).toContain("opacity-50");
-      expect(button.className).toContain("cursor-not-allowed");
-      expect(button.className).not.toContain("hover:scale-75");
+      expect(button).not.toBeInTheDocument();
     });
 
     it("renders when menu is closed and image URL is available", () => {
@@ -267,20 +262,7 @@ describe("DownloadButton", () => {
       expect(button).toBeVisible();
     });
 
-    it("correctly applies aria-disabled when image URL is not available", () => {
-      mockImageUrl.mockReturnValue("");
-      render(<DownloadButton />, { container });
-      const button = screen.getByRole("button", {
-        name: "Download attractor image",
-      });
-      expect(button).toHaveAttribute("aria-disabled", "true");
-
-      mockImageUrl.mockReturnValue("test-image-url.png");
-      render(<DownloadButton />, { container });
-      const enabledButton = screen.getByRole("button", {
-        name: "Download attractor image",
-      });
-      expect(enabledButton).toHaveAttribute("aria-disabled", "false");
-    });
+    // Test removed: The aria-disabled test is no longer needed since
+    // the button is not rendered at all when no image URL is available
   });
 });
