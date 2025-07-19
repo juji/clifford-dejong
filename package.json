@@ -30,7 +30,7 @@
     "zustand": "^5.0.6"
   },
   "lint-staged": {
-    "**/*.{ts,tsx,js,jsx,md,json,yml,yaml}": [
+    "**/*.{ts,tsx,js,jsx,json,yml,yaml}": [
       "prettier --write"
     ]
   },

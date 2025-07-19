@@ -95,7 +95,7 @@ Basic structural and interactive elements to ensure the application is accessibl
 
 1.7 [ ] Add visible focus indicators for all interactive elements
     1.7.1 [*] `focus-visible` styles are present in base `Button` and `Slider` components.
-    1.7.2 [ ] Audit all interactive components (e.g., `MenuToggleButton`, `DownloadButton`) to ensure they use the `focus-visible` styles consistently.
+    1.7.2 [*] Audit all interactive components (e.g., `MenuToggleButton`, `DownloadButton`) to ensure they use the `focus-visible` styles consistently.
 
 1.8 [*] Trap focus within modals and dialogs
     1.8.1 [*] Focus trapping is implemented and tested for the base `Dialog` component.
