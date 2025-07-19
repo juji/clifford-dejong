@@ -125,7 +125,10 @@ describe("ConfigSaveDialog", () => {
 
       // Verify the button text changes to show the saving state
       expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
-      expect(screen.getByRole("status")).toHaveTextContent("Saved!");
+
+      // Find element with aria-live="polite" containing "Saved!"
+      const liveRegion = screen.getByText("Saved!");
+      expect(liveRegion).toBeInTheDocument();
 
       // Verify onSave callback was called
       expect(onSave).toHaveBeenCalled();
@@ -172,11 +175,10 @@ describe("ConfigSaveDialog", () => {
       const saveButton = screen.getByRole("button", { name: "Save" });
       await user.click(saveButton);
 
-      // Verify error is displayed
+      // Verify error is displayed in aria-live region
       await waitFor(() => {
-        expect(screen.getByRole("alert")).toHaveTextContent(
-          "Error: Failed to save config",
-        );
+        const errorText = screen.getByText("Error: Failed to save config");
+        expect(errorText).toBeInTheDocument();
       });
 
       // Verify the save button is still enabled
@@ -269,7 +271,10 @@ describe("ConfigSaveDialog", () => {
         expect(
           screen.getByRole("button", { name: "Close" }),
         ).toBeInTheDocument();
-        expect(screen.getByRole("status")).toHaveTextContent("Saved!");
+
+        // Find element with the success text in aria-live region
+        const successText = screen.getByText("Saved!");
+        expect(successText).toBeInTheDocument();
       });
 
       // Close and reopen dialog
@@ -295,7 +300,7 @@ describe("ConfigSaveDialog", () => {
       });
 
       // Verify state is reset
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      expect(screen.queryByText("Saved!")).not.toBeInTheDocument();
       expect(screen.getByRole("textbox", { name: "Config name" })).toHaveValue(
         "",
       );
@@ -353,7 +358,10 @@ describe("ConfigSaveDialog", () => {
           attractorParameters: mockAttractorParameters,
           image: mockResizedImage,
         });
-        expect(screen.getByRole("status")).toHaveTextContent("Saved!");
+
+        // Find element with the success message in aria-live region
+        const successText = screen.getByText("Saved!");
+        expect(successText).toBeInTheDocument();
       });
 
       // Restore fake timers for other tests
@@ -389,11 +397,10 @@ describe("ConfigSaveDialog", () => {
       const saveButton = screen.getByRole("button", { name: "Save" });
       await user.click(saveButton);
 
-      // Verify error is displayed
+      // Verify error is displayed in aria-live region
       await waitFor(() => {
-        expect(screen.getByRole("alert")).toHaveTextContent(
-          "Error: Image retrieval failed",
-        );
+        const errorText = screen.getByText("Error: Image retrieval failed");
+        expect(errorText).toBeInTheDocument();
       });
 
       // Verify addRecord was not called

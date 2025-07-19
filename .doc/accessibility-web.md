@@ -122,9 +122,9 @@ Enhance accessibility with ARIA roles, attributes, and states to provide additio
     2.3.1 [*] In `MenuToggleButton.tsx`, implemented `aria-expanded` to reflect the open/closed state of the `MenuSheet` and added `aria-controls="menu-sheet"` to associate it with the menu element.
     2.3.2 [*] Verified that `Select` components correctly use `aria-expanded` when their popover is open. The Radix UI Select component we use implements the ListBox WAI-ARIA design pattern which automatically manages the aria-expanded attribute on the trigger element. Radix UI's Select component implements accessibility features following the ListBox WAI-ARIA design pattern.
 
-2.4 [ ] Add aria-live regions for dynamic content
-    2.4.1 [ ] In `ProgressIndicator.tsx`, add an `aria-live="polite"` region to announce progress updates.
-    2.4.2 [ ] When saving or loading a configuration, use an `aria-live` region to announce success or failure.
+2.4 [*] Add aria-live regions for dynamic content
+    2.4.1 [*] In `ProgressIndicator.tsx`, add an `aria-live="polite"` region to announce progress updates.
+    2.4.2 [*] When saving or loading a configuration, use an `aria-live` region to announce success or failure.
 
 2.5 [ ] Apply aria-selected for selection controls
     2.5.1 [ ] In `MenuSheet.tsx`, apply `aria-selected="true"` to the active tab trigger.

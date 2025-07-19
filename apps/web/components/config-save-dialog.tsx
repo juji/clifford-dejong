@@ -135,16 +135,18 @@ export function ConfigSaveDialog({
                   ? "Saving..."
                   : "Save"}
           </Button>
-          {error ? (
-            <div className="text-destructive text-center" role="alert">
-              {error.toString()}
-            </div>
-          ) : null}
-          {success ? (
-            <div className="text-green-600 text-center" role="status">
-              Saved!
-            </div>
-          ) : null}
+          {/* Use aria-live for dynamic announcements */}
+          <div aria-live="polite" className={error || success ? "" : "sr-only"}>
+            {error ? (
+              <div className="text-destructive text-center">
+                {error.toString()}
+              </div>
+            ) : success ? (
+              <div className="text-green-600 text-center">Saved!</div>
+            ) : (
+              "Configuration ready to save."
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
