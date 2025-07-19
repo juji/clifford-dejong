@@ -178,7 +178,8 @@ Ensure visual elements are accessible to users with visual impairments by mainta
 
 Make motion and animation accessible by respecting user preferences and providing controls to manage animations.
 
-7.1 [ ] Verify that all animations and transitions, especially those from `tailwindcss-animate`, respect the `prefers-reduced-motion` media query by disabling or reducing them.
+7.1 [*] Verify that all animations and transitions, especially those from `tailwindcss-animate`, respect the `prefers-reduced-motion` media query by disabling or reducing them.
+    7.1.1 [*] Added CSS media query `@media (prefers-reduced-motion: reduce)` in `globals.css` that sets minimal animation durations and disables transitions when the user has reduced motion preferences enabled.
 7.2 [ ] Ensure the progress indicator animation is subtle and does not flash or distract users.
 
 ### 8. Custom Components
