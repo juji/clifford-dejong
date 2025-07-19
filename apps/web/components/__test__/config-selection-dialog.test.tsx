@@ -5,6 +5,14 @@ import { ConfigSelectionDialog } from "../config-selection-dialog";
 import { useAttractorRecordsStore } from "@/store/attractor-records-store";
 import { useAttractorStore } from "@repo/state/attractor-store";
 
+// Mock IntersectionObserver which isn't available in the test environment
+class MockIntersectionObserver {
+  observe = vi.fn();
+  disconnect = vi.fn();
+  unobserve = vi.fn();
+  constructor() {}
+}
+
 // Mock the stores
 vi.mock("../../store/attractor-records-store", () => ({
   useAttractorRecordsStore: vi.fn(),
@@ -20,6 +28,13 @@ const mockRemoveRecord = vi.fn();
 describe("ConfigSelectionDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Mock IntersectionObserver
+    Object.defineProperty(window, "IntersectionObserver", {
+      writable: true,
+      configurable: true,
+      value: MockIntersectionObserver,
+    });
 
     // Default mock implementation for the records store
     vi.mocked(useAttractorRecordsStore).mockImplementation((selector) => {
