@@ -26,6 +26,7 @@ export function DarkModeToggle() {
       <Button
         size="icon"
         aria-label="Toggle dark mode"
+        aria-pressed={isDark}
         onClick={() => setTheme(isDark ? "light" : "dark")}
         className="outline-none focus-visible:ring-[6px] focus-visible:ring-yellow-400"
       >

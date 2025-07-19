@@ -37,7 +37,9 @@ describe("DarkModeToggle", () => {
       render(<DarkModeToggle />);
       // Advance timers to trigger useEffect
       vi.advanceTimersByTime(0);
-      expect(screen.getByLabelText("Toggle dark mode")).toBeInTheDocument();
+      const toggleButton = screen.getByLabelText("Toggle dark mode");
+      expect(toggleButton).toBeInTheDocument();
+      expect(toggleButton).toHaveAttribute("aria-pressed", "false");
       expect(screen.getByTestId("moon-icon")).toBeInTheDocument();
       expect(screen.queryByTestId("sun-icon")).not.toBeInTheDocument();
     });
@@ -50,7 +52,9 @@ describe("DarkModeToggle", () => {
       render(<DarkModeToggle />);
       // Advance timers to trigger useEffect
       vi.advanceTimersByTime(0);
-      expect(screen.getByLabelText("Toggle dark mode")).toBeInTheDocument();
+      const toggleButton = screen.getByLabelText("Toggle dark mode");
+      expect(toggleButton).toBeInTheDocument();
+      expect(toggleButton).toHaveAttribute("aria-pressed", "true");
       expect(screen.getByTestId("sun-icon")).toBeInTheDocument();
       expect(screen.queryByTestId("moon-icon")).not.toBeInTheDocument();
     });
