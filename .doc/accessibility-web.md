@@ -161,7 +161,9 @@ Ensure the application is fully navigable using a keyboard, with logical focus o
 Provide meaningful content and feedback for users relying on screen readers to navigate the application.
 
 5.1 [*] For the main `<canvas>`, provide a text alternative that describes the visual content, as detailed in items 3.2 and 3.3.
-5.2 [ ] Use the `sr-only` class for the descriptive `aria-label` text on icon-only buttons to ensure it's available to screen readers but not visually displayed.
+5.2 [*] Use the `sr-only` class for the descriptive `aria-label` text on icon-only buttons to ensure it's available to screen readers but not visually displayed.
+    5.2.1 [*] Icon-only buttons (`MenuToggleButton`, `DarkModeToggle`, `FullScreenButton`) now have both `aria-label` and matching `sr-only` text.
+    5.2.2 [*] `DownloadButton` already has visible text "Download", so no additional `sr-only` text is needed.
 5.3 [ ] Ensure all purely decorative SVG icons or visual elements are hidden from screen readers using `aria-hidden="true"`.
 
 ### 6. Color and Contrast

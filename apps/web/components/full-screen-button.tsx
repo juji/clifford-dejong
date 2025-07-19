@@ -346,6 +346,7 @@ export function FullScreenButtonChild() {
           />
         ))}
       </span>
+      <span className="sr-only">Toggle fullscreen</span>
     </button>
   );
 }

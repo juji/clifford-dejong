@@ -363,6 +363,13 @@ describe("FullScreenButton", () => {
       expect(button).toHaveAttribute("aria-pressed", "false");
     });
 
+    it("has sr-only text for screen readers", () => {
+      render(<FullScreenButton />);
+      expect(
+        screen.getByText("Toggle fullscreen", { selector: "span.sr-only" }),
+      ).toBeInTheDocument();
+    });
+
     // Instead of testing the dynamic behavior (which is challenging due to the React re-render cycle in the test environment),
     // we'll verify that the component has the correct implementation of aria-pressed
     it("has aria-pressed attribute reflecting the fullscreen state", () => {
