@@ -186,7 +186,12 @@ Make motion and animation accessible by respecting user preferences and providin
 
 Ensure custom UI components are accessible by implementing proper roles, states, and keyboard interactions.
 
-8.1 [ ] Audit `ColorWithOpacityPicker.tsx` to ensure the color swatch and slider are fully keyboard accessible and announce their state to screen readers.
+8.1 [*] Audit `ColorWithOpacityPicker.tsx` to ensure the color swatch and slider are fully keyboard accessible and announce their state to screen readers.
+    8.1.1 [*] Added proper ARIA attributes including `role="group"`, `aria-labelledby`, `aria-label`, and `aria-description`.
+    8.1.2 [*] Added `aria-live="polite"` regions for dynamic content (color and opacity values) to announce changes to screen readers.
+    8.1.3 [*] Used unique IDs to associate labels with form elements.
+    8.1.4 [*] Added screen-reader-only labels and descriptions for elements.
+    8.1.5 [*] Added appropriate tests to verify accessibility attributes.
 8.2 [ ] For the `Select` component, verify that it follows the ARIA patterns for a listbox, including proper roles (`listbox`, `option`) and state management (`aria-selected`).
 8.3 [ ] For the `MenuSheet.tsx`, ensure it functions as a disclosure widget with correct `aria-expanded` and `aria-controls` attributes on the trigger button.
 
