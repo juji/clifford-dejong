@@ -154,7 +154,7 @@ Ensure the application is fully navigable using a keyboard, with logical focus o
 4.1 [*] Reviewed and verified the tab sequence in `page.tsx` flows logically from the menu controls to the main parameter sliders. Added a proper test to verify the tab order follows: menuToggleButton → downloadButton → fullScreenButton → darkModeToggle.
 4.2 [ ] Add documentation for keyboard shortcuts (`M`, `D`, `F`, `T`) directly within the existing `MenuSheet` interface rather than creating a separate dialog.
 4.3 [*] ESC key handling is now properly implemented for menu navigation: ESC closes tabs in SmallMenuSub, ESC closes dialogs without closing menu, and focus is restored appropriately.
-4.4 [ ] Verify that all custom controls (`Slider`, `Select`, `ColorWithOpacityPicker`) are fully operable using only the keyboard (e.g., arrow keys for sliders, space/enter to open selects).
+4.4 [*] Verified that all custom controls (`Slider`, `Select`, `ColorWithOpacityPicker`) are fully operable using only the keyboard (e.g., arrow keys for sliders, space/enter to open selects).
 
 ### 5. Screen Reader Support
 
