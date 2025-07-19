@@ -92,6 +92,22 @@ describe("MenuToggleButton", () => {
 
       expect(mockSetMenuOpen).toHaveBeenCalledWith(false);
     });
+
+    it("has correct aria-expanded attribute when menu is closed", () => {
+      mockMenuOpen.mockReturnValue(false);
+      render(<MenuToggleButton />);
+
+      const button = screen.getByRole("button", { name: "Open menu" });
+      expect(button).toHaveAttribute("aria-expanded", "false");
+    });
+
+    it("has correct aria-expanded attribute when menu is open", () => {
+      mockMenuOpen.mockReturnValue(true);
+      render(<MenuToggleButton />);
+
+      const button = screen.getByRole("button", { name: "Close menu" });
+      expect(button).toHaveAttribute("aria-expanded", "true");
+    });
   });
 
   describe("Pointer Type Detection", () => {

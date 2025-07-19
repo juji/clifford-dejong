@@ -35,6 +35,8 @@ export function MenuToggleButton({ className }: { className?: string }) {
     <button
       type="button"
       aria-label={menuOpen ? "Close menu" : "Open menu"}
+      aria-expanded={menuOpen}
+      aria-controls="menu-sheet"
       onClick={() => setMenuOpen(!menuOpen)}
       className={cn(
         `
