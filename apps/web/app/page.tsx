@@ -14,19 +14,23 @@ export default function Home() {
     <>
       <Header />
       <ProgressIndicator />
-      <MenuSheet />
+      {/* Reorganize for logical tab order */}
       <main className={styles.mainContent}>
         <AttractorCanvas />
-        <div 
-          role="toolbar" 
+        {/* Place toolbar before MenuSheet to ensure control buttons are encountered first in tab order */}
+        <div
+          role="toolbar"
           aria-label="Canvas controls"
           className={styles.toolbar}
         >
-          <DarkModeToggle />
-          <FullScreenButton />
+          {/* Order buttons by frequency of use and logical grouping */}
           <MenuToggleButton />
           <DownloadButton />
+          <FullScreenButton />
+          <DarkModeToggle />
         </div>
+        {/* Move MenuSheet after the toolbar for a more logical tab order */}
+        <MenuSheet />
       </main>
       <Footer />
     </>
