@@ -6,5 +6,9 @@ import { useDynamicMenuLayout } from "@/hooks/use-dynamic-menu-layout";
 
 export function MenuSheet() {
   const [menuType] = useDynamicMenuLayout();
-  return menuType === "small" ? <SmallMenu /> : <BigMenu />;
+  return (
+    <div id="menu-sheet">
+      {menuType === "small" ? <SmallMenu /> : <BigMenu />}
+    </div>
+  );
 }

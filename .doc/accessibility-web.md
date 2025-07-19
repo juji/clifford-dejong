@@ -119,7 +119,7 @@ Enhance accessibility with ARIA roles, attributes, and states to provide additio
     2.2.3 [*] In `ConfigSelectionDialog.tsx`, ensure the delete button for each configuration has a unique and descriptive `aria-label` (e.g., "Delete configuration 'My Awesome Attractor'").
 
 2.3 [ ] Implement aria-expanded for expandable elements
-    2.3.1 [ ] In `MenuToggleButton.tsx`, implement `aria-expanded` to reflect the open/closed state of the `MenuSheet`.
+    2.3.1 [*] In `MenuToggleButton.tsx`, implemented `aria-expanded` to reflect the open/closed state of the `MenuSheet` and added `aria-controls="menu-sheet"` to associate it with the menu element.
     2.3.2 [ ] Verify that `Select` components correctly use `aria-expanded` when their popover is open.
 
 2.4 [ ] Add aria-live regions for dynamic content
