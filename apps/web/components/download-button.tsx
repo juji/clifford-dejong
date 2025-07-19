@@ -22,8 +22,6 @@ export function DownloadButton() {
     }
   }, []);
 
-  if (menuOpen || !imageUrl) return null;
-
   function handleDownload() {
     if (!imageUrl) return;
     const a = document.createElement("a");
@@ -34,7 +32,7 @@ export function DownloadButton() {
     document.body.removeChild(a);
   }
 
-  return (
+  return menuOpen || !imageUrl ? null : (
     <Button
       type="button"
       aria-label="Download attractor image"

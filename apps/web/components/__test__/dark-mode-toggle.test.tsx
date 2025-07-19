@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
+// Remove unused import: import userEvent from "@testing-library/user-event";
 import { DarkModeToggle } from "../dark-mode-toggle";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import React from "react";
@@ -98,6 +99,23 @@ describe("DarkModeToggle", () => {
       expect(
         screen.getByRole("button", { name: "Toggle dark mode" }),
       ).toBeInTheDocument();
+    });
+
+    it("has proper focus-visible styles", () => {
+      mockUseTheme.mockReturnValue({
+        theme: "light",
+        setTheme: mockSetTheme,
+      });
+      render(<DarkModeToggle />);
+      vi.advanceTimersByTime(0);
+
+      const button = screen.getByRole("button", { name: "Toggle dark mode" });
+      expect(button.className).toContain("focus-visible:ring-[6px]");
+      expect(button.className).toContain("focus-visible:ring-yellow-400");
+
+      // Focus the button manually instead of using userEvent.tab() which can time out
+      button.focus();
+      expect(button).toHaveFocus();
     });
 
     it("has sr-only span for screen readers", () => {
