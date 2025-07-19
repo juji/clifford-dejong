@@ -200,9 +200,7 @@ Ensure custom UI components are accessible by implementing proper roles, states,
 Integrate accessibility into the development workflow to ensure ongoing compliance and improvement.
 
 9.1 [ ] Integrate `axe-core` with Vitest using `jest-axe` to add automated accessibility checks to unit and integration tests.
-9.2 [ ] Configure a pre-commit hook using `husky` that runs accessibility linting to catch issues before they are committed.
-9.3 [ ] Add a CI step that runs the full suite of accessibility tests on every pull request to prevent regressions.
-9.4 [ ] Document the process for manual accessibility testing with VoiceOver (macOS) and NVDA (Windows) in a `TESTING.md` file.
+9.2 [ ] Document the process for manual accessibility testing with VoiceOver (macOS) and NVDA (Windows) in a `TESTING.md` file.
 
 ## Resources To Read and Ponder Upon.
 
