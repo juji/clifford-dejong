@@ -142,8 +142,8 @@ Enhance accessibility with ARIA roles, attributes, and states to provide additio
 
 Make canvas-based visualizations accessible by providing alternatives and enabling interaction through assistive technologies.
 
-3.1 [ ] In `AttractorCanvas.tsx`, add `role="img"` to the `<canvas>` element.
-3.2 [ ] Dynamically generate a descriptive `aria-label` for the canvas that includes the current attractor's parameters (e.g., "An abstract geometric pattern generated with Clifford attractor parameters a=-1.7, b=1.8, c=-0.9, d=-0.4.").
+3.1 [*] In `AttractorCanvas.tsx`, added `role="img"` to the `<canvas>` element to identify it as an image.
+3.2 [*] Dynamically generated a descriptive `aria-label` for the canvas that includes the current attractor's parameters (e.g., "An abstract geometric pattern generated with Clifford attractor parameters a=-1.7, b=1.8, c=-0.9, d=-0.4.").
 3.3 [-] (Optional) Provide a visually hidden `<div>` linked with `aria-describedby` to offer a more detailed explanation of the visual pattern. Note: The `aria-label` from 3.2 may be sufficient without this additional description.
 3.4 [ ] Ensure the sounds from `use-boppop-sound`, `use-done-sound`, and `use-waiting-sound` provide meaningful auditory feedback for the start, progress, and completion of the rendering process.
 

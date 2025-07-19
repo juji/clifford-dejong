@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { runAttractorBenchmark } from "@/lib/attractor-benchmark";
 import { useAttractorStore } from "@repo/state/attractor-store";
 import { useAttractorWorker } from "@/hooks/use-attractor-worker";
@@ -14,6 +14,28 @@ import {
   LOW_QUALITY_INTERVAL,
 } from "@/lib/constants";
 import debounce from "debounce";
+import type { AttractorParameters } from "@repo/core/types";
+
+/**
+ * Generates a descriptive label for the attractor visualization for screen readers
+ */
+function generateAttractorDescription(params: AttractorParameters): string {
+  const {
+    attractor = "unknown",
+    a,
+    b,
+    c,
+    d,
+    hue,
+    saturation,
+    brightness,
+  } = params;
+  const attractorType = attractor
+    ? attractor.charAt(0).toUpperCase() + attractor.slice(1)
+    : "Unknown";
+
+  return `An abstract geometric pattern generated with ${attractorType} attractor. Parameters: a=${a.toFixed(1)}, b=${b.toFixed(1)}, c=${c.toFixed(1)}, d=${d.toFixed(1)}. Colors: hue=${hue}°, saturation=${saturation}%, brightness=${brightness}%.`;
+}
 
 export function AttractorCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -27,6 +49,12 @@ export function AttractorCanvas() {
   const setProgress = useUIStore((s) => s.setProgress);
   const setImageUrl = useUIStore((s) => s.setImageUrl);
   const setError = useUIStore((s) => s.setError);
+
+  // Generate accessible description for the attractor visualization
+  const ariaLabel = useMemo(
+    () => generateAttractorDescription(attractorParameters),
+    [attractorParameters],
+  );
 
   // State for rendering
   const [canvasSize, setCanvasSize] = useState<{
@@ -314,6 +342,8 @@ export function AttractorCanvas() {
     >
       <canvas
         ref={canvasRef}
+        role="img"
+        aria-label={ariaLabel}
         style={{ touchAction: "none" }}
         className={`block w-full h-full transition-opacity ${canvasVisible ? "opacity-100" : "opacity-0"}`}
       />

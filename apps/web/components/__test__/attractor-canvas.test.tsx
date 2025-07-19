@@ -22,6 +22,7 @@ vi.mock("@repo/state/attractor-store", () => {
     useAttractorStore: vi.fn((selector) =>
       selector({
         attractorParameters: {
+          attractor: "clifford", // Add the missing attractor property
           a: 1,
           b: 2,
           c: 3,
@@ -96,7 +97,7 @@ beforeAll(() => {
 });
 
 describe("AttractorCanvas", () => {
-  it("renders a canvas element", async () => {
+  it("renders a canvas element with proper accessibility attributes", async () => {
     let renderResult: ReturnType<typeof render>;
     await act(async () => {
       renderResult = render(<AttractorCanvas />);
@@ -105,6 +106,13 @@ describe("AttractorCanvas", () => {
     const canvas = container.querySelector("canvas");
     expect(canvas).toBeInTheDocument();
     expect(canvas?.tagName).toBe("CANVAS");
+    expect(canvas).toHaveAttribute("role", "img");
+    expect(canvas).toHaveAttribute("aria-label");
+
+    // Verify that the aria-label contains key information about the attractor
+    const ariaLabel = canvas?.getAttribute("aria-label");
+    expect(ariaLabel).toContain("abstract geometric pattern");
+    expect(ariaLabel).toContain("Parameters: a=1.0, b=2.0, c=3.0, d=4.0");
   });
 });
 
