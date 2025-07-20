@@ -1,4 +1,4 @@
 CI=1 npm run check-types
-CI=1 npm run test
 CI=1 npm run lint
+CI=1 npm run test
 npm exec lint-staged
