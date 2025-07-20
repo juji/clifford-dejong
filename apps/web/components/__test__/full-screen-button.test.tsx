@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { FullScreenButton } from "../full-screen-button";
+import { itHasNoA11yViolations } from "@/lib/test-utils/a11y-test-helpers";
 
 // Define interfaces for typing the fullscreen API
 interface FullscreenElement extends HTMLElement {
@@ -17,6 +18,12 @@ vi.mock("../../store/ui-store", () => ({
 
 describe("FullScreenButton", () => {
   const user = userEvent.setup();
+
+  // Accessibility test
+  itHasNoA11yViolations(() => {
+    mockMenuOpen.mockReturnValue(false);
+    return render(<FullScreenButton />);
+  });
 
   // Store original console error function to restore later
   const originalConsoleError = console.error;

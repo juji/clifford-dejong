@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { vi, describe, it, expect } from "vitest";
 import { ProgressIndicator } from "../progress-indicator";
+import { itHasNoA11yViolations } from "@/lib/test-utils/a11y-test-helpers";
 
 // Mock useUIStore
 const mockProgress = vi.fn();
@@ -9,6 +10,12 @@ vi.mock("../../store/ui-store", () => ({
 }));
 
 describe("ProgressIndicator", () => {
+  // Accessibility test
+  itHasNoA11yViolations(() => {
+    mockProgress.mockReturnValue(50);
+    return render(<ProgressIndicator />);
+  });
+
   describe("Basic Rendering", () => {
     it("renders the main container and progress bar", () => {
       mockProgress.mockReturnValue(0);

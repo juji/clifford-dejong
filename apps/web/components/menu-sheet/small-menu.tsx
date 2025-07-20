@@ -224,6 +224,7 @@ export function SmallMenu({ className }: { className?: string }) {
           <div
             className="fixed bottom-[42px] left-1/2 -translate-x-1/2 z-[202] w-auto max-w-[400px] flex flex-col items-center gap-2 pb-3"
             role="dialog"
+            aria-label="Menu options"
             aria-modal="true"
           >
             {/* Primary Menu - Attractor, Color, Position */}
@@ -247,7 +248,8 @@ export function SmallMenu({ className }: { className?: string }) {
                   0
                 } /* Explicitly set tabIndex to make it the first focusable element */
                 autoFocus /* Add autoFocus as an extra hint to the browser */
-                aria-selected={openTab === "attractor"}
+                aria-pressed={openTab === "attractor"}
+                aria-expanded={openTab === "attractor"}
               >
                 Attractor
               </Button>
@@ -257,7 +259,8 @@ export function SmallMenu({ className }: { className?: string }) {
                 size="sm"
                 className="flex-1 text-xs h-8"
                 onClick={() => handleTabChange("color")}
-                aria-selected={openTab === "color"}
+                aria-pressed={openTab === "color"}
+                aria-expanded={openTab === "color"}
               >
                 Color
               </Button>
@@ -267,7 +270,8 @@ export function SmallMenu({ className }: { className?: string }) {
                 size="sm"
                 className="flex-1 text-xs h-8"
                 onClick={() => handleTabChange("position")}
-                aria-selected={openTab === "position"}
+                aria-pressed={openTab === "position"}
+                aria-expanded={openTab === "position"}
               >
                 Position
               </Button>

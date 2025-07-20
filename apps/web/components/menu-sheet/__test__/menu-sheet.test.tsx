@@ -5,6 +5,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
+import { itHasNoA11yViolations } from "@/lib/test-utils/a11y-test-helpers";
 
 // Mock dependencies
 vi.mock("@/hooks/use-dynamic-menu-layout", () => ({
@@ -23,6 +24,11 @@ vi.mock("../big-menu", () => ({
 import { MenuSheet } from "../index";
 
 describe("MenuSheet", () => {
+  // Accessibility test
+  itHasNoA11yViolations(() => {
+    return render(<MenuSheet />);
+  });
+
   it("should have the correct id for aria-controls reference", () => {
     const { container } = render(<MenuSheet />);
 

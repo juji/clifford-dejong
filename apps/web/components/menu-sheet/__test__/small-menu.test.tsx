@@ -5,6 +5,7 @@ import { SmallMenu } from "../small-menu";
 import { useUIStore, type UITab } from "@/store/ui-store";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
+import { itHasNoA11yViolations } from "@/lib/test-utils/a11y-test-helpers";
 
 // Mock useUIStore
 vi.mock("@/store/ui-store", () => ({
@@ -55,8 +56,22 @@ describe("SmallMenu", () => {
     vi.clearAllMocks();
   });
 
-  // Test for aria-selected attributes on tab buttons (accessibility)
-  it("verifies that the tab buttons have aria-selected attribute", () => {
+  // Accessibility test
+  itHasNoA11yViolations(() => {
+    // Setup mocks for the test
+    (useUIStore as any).mockImplementation((selector: any) => {
+      const store = {
+        menuOpen: true,
+        setMenuOpen: vi.fn(),
+      };
+      return selector(store);
+    });
+
+    return render(<SmallMenu />);
+  });
+
+  // Test for ARIA attributes on tab buttons (accessibility)
+  it("verifies that the tab buttons have proper ARIA attributes", () => {
     // Setup mocks
     (useUIStore as any).mockImplementation((selector: any) => {
       const store = {
@@ -73,9 +88,12 @@ describe("SmallMenu", () => {
     const colorButton = screen.getByText("Color");
     const positionButton = screen.getByText("Position");
 
-    // Verify aria-selected is present on all tab buttons
-    expect(attractorButton).toHaveAttribute("aria-selected");
-    expect(colorButton).toHaveAttribute("aria-selected");
-    expect(positionButton).toHaveAttribute("aria-selected");
+    // Verify aria-pressed and aria-expanded attributes are present on all tab buttons
+    expect(attractorButton).toHaveAttribute("aria-pressed");
+    expect(attractorButton).toHaveAttribute("aria-expanded");
+    expect(colorButton).toHaveAttribute("aria-pressed");
+    expect(colorButton).toHaveAttribute("aria-expanded");
+    expect(positionButton).toHaveAttribute("aria-pressed");
+    expect(positionButton).toHaveAttribute("aria-expanded");
   });
 });

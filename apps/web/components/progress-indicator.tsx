@@ -26,6 +26,7 @@ export function ProgressIndicator() {
     <>
       <div
         role="progressbar"
+        aria-label="Page loading progress"
         aria-valuenow={roundedProgress}
         aria-valuemin={0}
         aria-valuemax={100}

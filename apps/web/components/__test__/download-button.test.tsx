@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { DownloadButton } from "../download-button";
 import React from "react";
+import { itHasNoA11yViolations } from "@/lib/test-utils/a11y-test-helpers";
 
 // Create a container for rendering
 let container: HTMLDivElement;
@@ -61,6 +62,15 @@ vi.mock("@/store/ui-store", () => ({
 
 describe("DownloadButton", () => {
   const user = userEvent.setup();
+
+  // Accessibility test
+  itHasNoA11yViolations(() => {
+    mockImageUrl.mockReturnValue(
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    );
+    mockMenuOpen.mockReturnValue(false);
+    return render(<DownloadButton />);
+  });
 
   // Mock document.createElement for download functionality
   const mockAnchor = {

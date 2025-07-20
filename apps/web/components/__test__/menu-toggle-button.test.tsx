@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { MenuToggleButton } from "../menu-toggle-button";
+import { itHasNoA11yViolations } from "@/lib/test-utils/a11y-test-helpers";
 
 // Mock the UI store
 const mockMenuOpen = vi.fn();
@@ -19,6 +20,13 @@ vi.mock("@/store/ui-store", () => ({
 
 describe("MenuToggleButton", () => {
   const user = userEvent.setup();
+
+  // Accessibility test
+  itHasNoA11yViolations(() => {
+    mockMenuOpen.mockReturnValue(false);
+    mockMenuPosition.mockReturnValue("right");
+    return render(<MenuToggleButton />);
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();

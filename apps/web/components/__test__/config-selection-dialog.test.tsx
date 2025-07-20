@@ -4,6 +4,7 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import { ConfigSelectionDialog } from "../config-selection-dialog";
 import { useAttractorRecordsStore } from "@/store/attractor-records-store";
 import { useAttractorStore } from "@repo/state/attractor-store";
+import { itHasNoA11yViolations } from "@/lib/test-utils/a11y-test-helpers";
 
 // Mock IntersectionObserver which isn't available in the test environment
 class MockIntersectionObserver {
@@ -26,6 +27,13 @@ const mockRefresh = vi.fn();
 const mockRemoveRecord = vi.fn();
 
 describe("ConfigSelectionDialog", () => {
+  // Accessibility test
+  itHasNoA11yViolations(() => {
+    return render(
+      <ConfigSelectionDialog open={true} onOpenChange={() => {}} />,
+    );
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
 

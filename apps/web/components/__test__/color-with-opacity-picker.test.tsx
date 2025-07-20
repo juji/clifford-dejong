@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { ColorWithOpacityPicker } from "../color-with-opacity-picker";
 import { ThemeProvider } from "next-themes";
+import { itHasNoA11yViolations } from "@/lib/test-utils/a11y-test-helpers";
 
 // Mock matchMedia for theme provider
 Object.defineProperty(window, "matchMedia", {
@@ -94,6 +95,11 @@ const renderWithTheme = (ui: React.ReactElement, { theme = "light" } = {}) => {
 };
 
 describe("ColorWithOpacityPicker", () => {
+  // Accessibility test - using renderWithTheme helper
+  itHasNoA11yViolations(() => {
+    return renderWithTheme(<ColorWithOpacityPicker {...defaultProps} />);
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });

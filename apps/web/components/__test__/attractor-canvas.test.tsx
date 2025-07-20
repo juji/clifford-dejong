@@ -96,7 +96,19 @@ beforeAll(() => {
   });
 });
 
-describe("AttractorCanvas", () => {
+describe("AttractorCanvas (basic)", () => {
+  // Add automated accessibility testing with axe
+  it("has no accessibility violations", async () => {
+    let result;
+    await act(async () => {
+      result = render(<AttractorCanvas />);
+    });
+    const { container } = result!;
+    const axe = await import("jest-axe");
+    const results = await axe.axe(container);
+    expect(results).toHaveNoViolations();
+  });
+
   it("renders a canvas element with proper accessibility attributes", async () => {
     let renderResult: ReturnType<typeof render>;
     await act(async () => {
