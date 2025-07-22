@@ -127,194 +127,88 @@ npx react-native run-android
 
 > **Implementation Note**: When running React Native Android apps in a monorepo, the Android build system expects the Gradle plugin in `../node_modules/@react-native/gradle-plugin` relative to the app's directory. In our monorepo setup, it's actually in the root node_modules folder, so we created a symlink to make it work without modifying the build configurations. This is a common pattern for React Native apps in monorepos.
 
-- [ ] Update package.json with necessary dependencies
+- [ ] Update package.json with additional dependencies
 
 ```bash
 cd /Users/juji/play/clifford-dejong/apps/mobile
-npm install react-native-skia @shopify/react-native-skia
-npm install react-native-reanimated
 npm install react-native-orientation-locker
 npm install react-native-safe-area-context
-npm install nativewind
-npm install --save-dev tailwindcss
 npm install --save-dev babel-plugin-module-resolver
 ```
 
 ### 1.2 TypeScript Configuration
 
 - [ ] Configure TypeScript for cross-platform compatibility
+  - Copy base TypeScript config from packages/typescript-config
+  - Update tsconfig.json to include React Native types
+  - Set up path aliases for `@/*` and `@repo/*` imports
 
-```bash
-# Navigate to the mobile app directory
-cd /Users/juji/play/clifford-dejong/apps/mobile
+### 1.3 Attach State to Zustand
 
-# Copy base TypeScript config from packages/typescript-config
-cp ../../packages/typescript-config/base.json ./tsconfig.json
-```
+- [ ] Install AsyncStorage for React Native
+  - `@react-native-async-storage/async-storage` package
+- [ ] Verify existing Zustand storage integration
+  - Current `zustand-storage.ts` already has React Native support
+  - Check `isReactNative` detection works properly on device
+- [ ] Create temporary UI to update Zustand store
+  - Add simple parameter sliders to test state updates
+  - Create persistence test buttons (save/reset)
+  - Display current state values on screen
+- [ ] Connect store to mobile components
+  - Import from shared state package
+  - Ensure persistence works correctly on mobile
 
-- [ ] Update the TypeScript configuration to include React Native types
+### 1.4 Implement Initial Attractor with Skia
 
-```json
-{
-  "extends": "../../packages/typescript-config/base.json",
-  "compilerOptions": {
-    "jsx": "react-native",
-    "types": ["react-native"],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@repo/*": ["../../packages/*"]
-    }
-  },
-  "include": ["src", "index.js"]
-}
-```
+- [ ] Install Skia dependencies
+  - `react-native-skia` and `@shopify/react-native-skia`
+- [ ] Create basic Skia canvas component
+  - Set up responsive canvas dimensions
+  - Connect to attractor store
+- [ ] Implement basic point plotting functionality
+  - Draw attractor points efficiently
+  - Handle canvas lifecycle appropriately
 
-### 1.3 Monorepo Integration
+### 1.5 Implement Worklet for Performance
+
+- [ ] Install Reanimated for worklet support
+  - `react-native-reanimated` package
+- [ ] Set up Babel config for Reanimated
+  - Add required plugin to babel.config.js
+- [ ] Create attractor calculation worklet
+  - Implement efficient point calculation
+  - Use worklet-to-JS thread communication
+
+### 1.6 Development Environment Verification
+
+- [ ] Run the app on iOS simulator
+- [ ] Run the app on Android emulator
+- [ ] Verify that all dependencies are correctly linked
+
+## Phase 2: Additional Configuration and Integration (Weeks 2-3)
+
+### 2.1 Monorepo Integration
 
 - [ ] Add mobile app to Turborepo configuration
 - [ ] Update root turbo.json to include mobile app
 - [ ] Create mobile-specific build and lint scripts
-- [ ] Configure path aliases in tsconfig.json for `@/` and `@repo/` imports
 
-### 1.4 NativeWind Setup
+### 2.2 NativeWind Setup
 
-- [ ] Initialize Tailwind configuration
-
-```bash
-cd /Users/juji/play/clifford-dejong/apps/mobile
-npx tailwindcss init
-```
-
-- [ ] Configure Tailwind CSS for NativeWind
-
-```js
-// tailwind.config.js
-module.exports = {
-  content: ["./src/**/*.{js,jsx,ts,tsx}"],
-  theme: {
-    extend: {
-      // Match web theme extensions for consistency
-    },
-  },
-  plugins: [],
-};
-```
-
+- [ ] Install NativeWind dependencies
+  - NativeWind and TailwindCSS packages
+- [ ] Initialize and configure Tailwind
+  - Create tailwind.config.js with proper content paths
+  - Match web theme extensions for consistency
 - [ ] Set up Babel configuration for NativeWind
+  - Add required plugins for NativeWind and module resolver
 
-```json
-// babel.config.js
-module.exports = {
-  presets: ['module:metro-react-native-babel-preset'],
-  plugins: [
-    'nativewind/babel',
-    'react-native-reanimated/plugin',
-    [
-      'module-resolver',
-      {
-        root: ['.'],
-        alias: {
-          '@': './src',
-          '@repo': '../../packages'
-        }
-      }
-    ]
-  ],
-};
-```
-
-### 1.5 Development Environment Verification
-
-- [ ] Run the app on iOS simulator
-
-```bash
-cd /Users/juji/play/clifford-dejong/apps/mobile
-npm run ios
-```
-
-- [ ] Run the app on Android emulator
-
-```bash
-cd /Users/juji/play/clifford-dejong/apps/mobile
-npm run android
-```
-
-- [ ] Verify that all dependencies are correctly linked
-
-```bash
-cd /Users/juji/play/clifford-dejong/apps/mobile
-npx react-native doctor
-```
-
-## Phase 2: Core Shared Logic (Weeks 2-3)
-
-### 2.1 Package Import Structure
+### 2.3 Package Import Structure
 
 - [ ] Import core attractor logic from packages/core
-
-```tsx
-// src/attractors/index.ts
-export * from "@repo/core";
-```
-
 - [ ] Create platform-specific entry points for shared modules
-
-```tsx
-// src/attractors/platform.ts
-import { Platform } from "react-native";
-
-export const isNative = true;
-export const isMobile = true;
-export const isIOS = Platform.OS === "ios";
-export const isAndroid = Platform.OS === "android";
-```
-
-### 2.2 State Management
-
-- [ ] Import Zustand store from packages/state
-- [ ] Create mobile-specific store configuration
-
-```tsx
-// src/store/index.ts
-import { createAttractorStore } from "@repo/state/attractor-store";
-import { createMMKVStorage } from "@/store/mmkv-storage"; // Platform-specific storage
-
-export const useAttractorStore = createAttractorStore(
-  createMMKVStorage("attractorStore"),
-);
-```
-
-### 2.3 Mobile-Specific Storage
-
-- [ ] Implement MMKV storage adapter for React Native
-
-```bash
-cd /Users/juji/play/clifford-dejong/apps/mobile
-npm install react-native-mmkv
-```
-
-```tsx
-// src/store/mmkv-storage.ts
-import { MMKV } from "react-native-mmkv";
-
-export const createMMKVStorage = (storageName: string) => {
-  const storage = new MMKV({ id: storageName });
-
-  return {
-    getItem: (key: string) => {
-      const value = storage.getString(key);
-      return value === undefined ? null : value;
-    },
-    setItem: (key: string, value: string) => {
-      storage.set(key, value);
-    },
-    removeItem: (key: string) => {
-      storage.delete(key);
-    },
-  };
-};
-```
+  - Define platform flags (isNative, isMobile, isIOS, isAndroid)
+  - Set up environment-specific code paths
 
 ### 2.4 Testing Framework
 
@@ -327,37 +221,11 @@ export const createMMKVStorage = (storageName: string) => {
 ### 3.1 Navigation Structure
 
 - [ ] Install React Navigation
-
-```bash
-cd /Users/juji/play/clifford-dejong/apps/mobile
-npm install @react-navigation/native @react-navigation/native-stack
-npm install react-native-screens
-```
-
+  - Core navigation package and native stack navigator
+  - Required dependencies like react-native-screens
 - [ ] Set up basic navigation structure
-
-```tsx
-// src/navigation/index.tsx
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { HomeScreen } from "@/screens/home";
-import { SettingsScreen } from "@/screens/settings";
-
-const Stack = createNativeStackNavigator();
-
-export const AppNavigation = () => (
-  <NavigationContainer>
-    <Stack.Navigator initialRouteName="Home">
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen name="Settings" component={SettingsScreen} />
-    </Stack.Navigator>
-  </NavigationContainer>
-);
-```
+  - Configure main navigator with home and settings screens
+  - Set up navigation container and screen options
 
 ### 3.2 Base Screen Components
 
@@ -382,95 +250,35 @@ export const AppNavigation = () => (
 
 ### 3.5 Screen Orientation
 
-- [ ] Implement orientation handling
-
-```tsx
-// src/hooks/use-orientation.ts
-import { useEffect } from "react";
-import Orientation from "react-native-orientation-locker";
-
-export const useOrientation = (lockToPortrait = true) => {
-  useEffect(() => {
-    if (lockToPortrait) {
-      Orientation.lockToPortrait();
-    } else {
-      Orientation.unlockAllOrientations();
-    }
-
-    return () => {
-      Orientation.unlockAllOrientations();
-    };
-  }, [lockToPortrait]);
-};
-```
+- [ ] Install orientation handling package
+- [ ] Implement orientation lock/unlock functionality
+- [ ] Create hook for orientation management
 
 ## Phase 4: Canvas & Performance (Weeks 7-9)
 
-### 4.1 Skia Setup
+### 4.1 Advanced Skia Optimizations
 
-- [ ] Create Skia canvas component
+- [ ] Enhance Skia canvas rendering with optimized drawing techniques
+- [ ] Implement efficient canvas redrawing strategy
+- [ ] Apply hardware acceleration optimizations
 
-```tsx
-// src/components/attractor-canvas.tsx
-import { Canvas, useCanvas } from "@shopify/react-native-skia";
-import { useWindowDimensions } from "react-native";
-import { useAttractorStore } from "@/store";
+### 4.2 Enhanced Attractor Algorithms
 
-export const AttractorCanvas = () => {
-  const { width, height } = useWindowDimensions();
+- [ ] Implement additional attractor types beyond Clifford-deJong
+- [ ] Add color mapping algorithms for visual variety
+- [ ] Create parameter presets for interesting configurations
 
-  return (
-    <Canvas style={{ width, height }}>
-      {/* Skia drawing implementation */}
-    </Canvas>
-  );
-};
-```
+### 4.3 Advanced Pixel Manipulation with Skia
 
-### 4.2 Attractor Drawing Implementation
+- [ ] Implement optimized direct pixel manipulation
+- [ ] Add support for high-density rendering
+- [ ] Create efficient image data handling
 
-- [ ] Port attractor calculation logic to Skia worklets
-- [ ] Implement pixel array generation similar to web worker
+### 4.4 Advanced Animation and Interaction
 
-### 4.3 Pixel Manipulation with Skia
-
-- [ ] Implement direct pixel manipulation
-
-```tsx
-// Example implementation approach
-import { Skia, useCanvas, Image, useValue } from "@shopify/react-native-skia";
-import { useWindowDimensions } from "react-native";
-
-export const AttractorRenderer = () => {
-  const { width, height } = useWindowDimensions();
-  const canvasRef = useCanvas();
-
-  const renderAttractor = (pixels: Uint8Array) => {
-    const imageInfo = {
-      width: canvasWidth,
-      height: canvasHeight,
-      alphaType: Skia.AlphaType.Unpremul,
-      colorType: Skia.ColorType.RGBA_8888,
-    };
-
-    const pixelImage = Skia.MakeImage(imageInfo, pixels, canvasWidth * 4);
-
-    // Draw image to canvas
-    if (pixelImage && canvasRef.current) {
-      const canvas = canvasRef.current;
-      canvas.drawImage(pixelImage, 0, 0);
-    }
-  };
-
-  // Implementation continues...
-};
-```
-
-### 4.4 Reanimated Integration
-
-- [ ] Create worklets for performance-critical calculations
-- [ ] Implement shared transition animations
-- [ ] Optimize UI responsiveness
+- [ ] Implement gesture-based parameter adjustments
+- [ ] Create smooth transitions between attractor states
+- [ ] Add interactive exploration of parameter space
 
 ### 4.5 Memory Optimization
 

@@ -8,5 +8,5 @@
 
 // We've moved the App component to src/App.tsx
 // This is just a pass-through import for backwards compatibility
-import App from './src/App';
-export default App;
+import Main from './src/main';
+export default Main;
