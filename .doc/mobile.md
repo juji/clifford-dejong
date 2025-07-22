@@ -1,6 +1,13 @@
 # Clifford-deJong Attractor Mobile Implementation Guide
 
-This document provides a step-by-step guide for implementing the mobile version of the Clifford-deJong attractor application using React Native.
+This document provides a step-by-step guide for implementing the mobile version of the Clifford-deJong at### 2.2 Package Import Structurepplication using R### 2.2 Package Import Structure
+
+- [ ] Import core attractor logic from packages/core
+- [ ] Create platform-specific entry points for shared modules
+  - Define platform flags (isNative, isMobile, isIOS, isAndroid)
+  - Set up environment-specific code paths
+
+### 2.3 Testing Frameworkive.
 
 ## Phase 1: Environment Setup (Week 1)
 
@@ -160,7 +167,17 @@ npm install --save-dev babel-plugin-module-resolver
   - Added StoreTest component to main screen for testing
   - iOS build successful, Android requires additional configuration
 
-### 1.4 Implement Initial Attractor with Skia
+### 1.4 NativeWind Setup
+
+- [ ] Install NativeWind dependencies
+  - NativeWind and TailwindCSS packages
+- [ ] Initialize and configure Tailwind
+  - Create tailwind.config.js with proper content paths
+  - Match web theme extensions for consistency
+- [ ] Set up Babel configuration for NativeWind
+  - Add required plugins for NativeWind and module resolver
+
+### 1.5 Implement Initial Attractor with Skia
 
 - [ ] Install Skia dependencies
   - `react-native-skia` and `@shopify/react-native-skia`
@@ -171,7 +188,7 @@ npm install --save-dev babel-plugin-module-resolver
   - Draw attractor points efficiently
   - Handle canvas lifecycle appropriately
 
-### 1.5 Implement Worklet for Performance
+### 1.6 Implement Worklet for Performance
 
 - [ ] Install Reanimated for worklet support
   - `react-native-reanimated` package
@@ -181,17 +198,16 @@ npm install --save-dev babel-plugin-module-resolver
   - Implement efficient point calculation
   - Use worklet-to-JS thread communication
 
-### 1.6 Development Environment Verification
+### 1.7 Development Environment Verification
 
 - [x] Run the app on iOS simulator 
   - ✅ Successfully built and ran on iOS
-- [ ] Run the app on Android emulator
-  - ⚠️ **Issue:** Requires additional configuration for `@react-native/codegen`
-  - Codegen error with AsyncStorage native module
-- [ ] Fix Android build issues
-  - Install required dependencies (`@react-native/codegen`)
-  - Configure proper Android SDK version
-  - Update Gradle configuration if needed
+- [x] Run the app on Android emulator
+  - ✅ Fixed codegen issues with @react-native/codegen symlinks
+- [x] Fix Android build issues
+  - ✅ Installed required dependencies (`@react-native/codegen`)
+  - ✅ Created proper symlinks in setup.sh script
+  - ✅ Successfully built and ran on Android emulator
 
 ## Phase 2: Additional Configuration and Integration (Weeks 2-3)
 
@@ -201,17 +217,7 @@ npm install --save-dev babel-plugin-module-resolver
 - [ ] Update root turbo.json to include mobile app
 - [ ] Create mobile-specific build and lint scripts
 
-### 2.2 NativeWind Setup
-
-- [ ] Install NativeWind dependencies
-  - NativeWind and TailwindCSS packages
-- [ ] Initialize and configure Tailwind
-  - Create tailwind.config.js with proper content paths
-  - Match web theme extensions for consistency
-- [ ] Set up Babel configuration for NativeWind
-  - Add required plugins for NativeWind and module resolver
-
-### 2.3 Package Import Structure
+### 2.2 Package Import Structure
 
 - [ ] Import core attractor logic from packages/core
 - [ ] Create platform-specific entry points for shared modules
