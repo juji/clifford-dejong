@@ -10,7 +10,7 @@ module.exports = {
         none: '1', // Default - no line height (equivalent to 1)
         tight: '1.25', // Default - tighter than normal
         snug: '1.375', // Default - slightly tighter than normal
-        normal: '1.625', // Default - slightly more than normal
+        normal: '1.625', // Custom - slightly more than normal
         relaxed: '1.75', // Custom - slightly higher than Tailwind's default (1.625)
         loose: '2', // Default - loose line height
         'extra-loose': '2.5', // Custom - very spacious line height
