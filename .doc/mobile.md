@@ -188,9 +188,21 @@ npm install --save-dev babel-plugin-module-resolver
 - [ ] Create basic Skia canvas component
   - Set up responsive canvas dimensions
   - Connect to attractor store
-- [ ] Implement basic point plotting functionality
-  - Draw attractor points efficiently
+- [ ] Implement bitmap-based attractor rendering
+  - Create efficient bitmap/image buffer for attractor visualization
+  - Use pixel-based density mapping for high-quality rendering
   - Handle canvas lifecycle appropriately
+- [ ] Create main-thread implementation
+  - Implement attractor calculation algorithm directly in JS
+  - Use shared core functions for pixel color mapping
+  - Ensure identical visual output to web version
+
+> **Reference Web Implementation Files**:
+> - `/packages/core/color.ts` - Contains HSV to RGB conversion and density-based color mapping
+> - `/packages/core/types.ts` - Contains AttractorParameters type definition
+> - `/apps/web/lib/main-thread-drawing.ts` - Shows how pixels are rendered to canvas with density mapping
+> - `/apps/web/components/attractor-canvas.tsx` - Shows component lifecycle and worker integration
+> - `/apps/web/workers/attractor-worker.ts` - For reference on calculation algorithm (to be adapted for worklets)
 
 ### 1.6 Implement Worklet for Performance
 
@@ -201,6 +213,10 @@ npm install --save-dev babel-plugin-module-resolver
 - [ ] Create attractor calculation worklet
   - Implement efficient point calculation
   - Use worklet-to-JS thread communication
+- [ ] Implement runtime detection system
+  - Add detection for worklet availability and performance
+  - Create factory function to select appropriate implementation
+  - Build unified API that works with both implementations
 
 ### 1.7 Development Environment Verification
 
