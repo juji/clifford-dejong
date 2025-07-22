@@ -1,5 +1,6 @@
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 const path = require('path');
+const { withNativeWind } = require('nativewind/metro');
 
 /**
  * Metro configuration
@@ -26,4 +27,6 @@ const config = {
   },
 };
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+const mergedConfig = mergeConfig(getDefaultConfig(__dirname), config);
+
+module.exports = withNativeWind(mergedConfig, { input: './global.css' });

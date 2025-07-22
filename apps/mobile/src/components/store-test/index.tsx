@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { View, Text, Button, Switch, StyleSheet, Alert } from 'react-native';
+import { Button, Switch, Alert, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useAttractorStore, isReactNativeCheck } from '../../store';
 
@@ -42,38 +43,46 @@ const StoreTest: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Attractor Store Test</Text>
+    <View className="p-4 bg-white dark:bg-gray-900">
+      <Text className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+        Attractor Store Test
+      </Text>
 
-      <Text style={styles.subheading}>Environment Detection</Text>
-      <Text style={styles.text}>
+      <Text className="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">
+        Environment Detection
+      </Text>
+      <Text className="text-base mb-2 text-gray-700 dark:text-gray-300">
         React Native detected: {isRNDetected ? 'Yes ✅' : 'No ❌'}
       </Text>
-      <Text style={styles.text}>
+      <Text className="text-base mb-2 text-gray-700 dark:text-gray-300">
         Current attractor: {attractorParameters.attractor}
       </Text>
 
-      <View style={styles.section}>
-        <Text style={styles.subheading}>Parameters</Text>
+      <View className="my-4">
+        <Text className="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">
+          Parameters
+        </Text>
 
-        <View style={styles.paramContainer}>
-          <Text style={styles.label}>Type:</Text>
-          <View style={styles.switchContainer}>
-            <Text>DeJong</Text>
+        <View className="mb-4">
+          <Text className="text-base mb-1 text-gray-700 dark:text-gray-300">
+            Type:
+          </Text>
+          <View className="flex-row items-center justify-between w-40">
+            <Text className="text-gray-700 dark:text-gray-300">DeJong</Text>
             <Switch
               value={attractorParameters.attractor === 'clifford'}
               onValueChange={isClifford => updateType(isClifford)}
             />
-            <Text>Clifford</Text>
+            <Text className="text-gray-700 dark:text-gray-300">Clifford</Text>
           </View>
         </View>
 
-        <View style={styles.paramContainer}>
-          <Text style={styles.label}>
+        <View className="mb-4">
+          <Text className="text-base mb-1 text-gray-700 dark:text-gray-300">
             Parameter A: {attractorParameters.a.toFixed(2)}
           </Text>
           <Slider
-            style={styles.slider}
+            className="w-full h-10"
             minimumValue={-3}
             maximumValue={3}
             step={0.01}
@@ -82,12 +91,12 @@ const StoreTest: React.FC = () => {
           />
         </View>
 
-        <View style={styles.paramContainer}>
-          <Text style={styles.label}>
+        <View className="mb-4">
+          <Text className="text-base mb-1 text-gray-700 dark:text-gray-300">
             Parameter B: {attractorParameters.b.toFixed(2)}
           </Text>
           <Slider
-            style={styles.slider}
+            className="w-full h-10"
             minimumValue={-3}
             maximumValue={3}
             step={0.01}
@@ -96,12 +105,12 @@ const StoreTest: React.FC = () => {
           />
         </View>
 
-        <View style={styles.paramContainer}>
-          <Text style={styles.label}>
+        <View className="mb-4">
+          <Text className="text-base mb-1 text-gray-700 dark:text-gray-300">
             Parameter C: {attractorParameters.c.toFixed(2)}
           </Text>
           <Slider
-            style={styles.slider}
+            className="w-full h-10"
             minimumValue={-3}
             maximumValue={3}
             step={0.01}
@@ -110,12 +119,12 @@ const StoreTest: React.FC = () => {
           />
         </View>
 
-        <View style={styles.paramContainer}>
-          <Text style={styles.label}>
+        <View className="mb-4">
+          <Text className="text-base mb-1 text-gray-700 dark:text-gray-300">
             Parameter D: {attractorParameters.d.toFixed(2)}
           </Text>
           <Slider
-            style={styles.slider}
+            className="w-full h-10"
             minimumValue={-3}
             maximumValue={3}
             step={0.01}
@@ -125,15 +134,17 @@ const StoreTest: React.FC = () => {
         </View>
       </View>
 
-      <View style={styles.buttonContainer}>
+      <View className="flex-row my-4">
         <Button title="Save Parameters" onPress={showSaveConfirmation} />
-        <View style={styles.buttonSpacer} />
+        <View className="w-4" />
         <Button title="Reset to Default" onPress={reset} color="#FF6B6B" />
       </View>
 
-      <View style={styles.currentState}>
-        <Text style={styles.subheading}>Current Store State:</Text>
-        <Text style={styles.text}>
+      <View className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg mt-4">
+        <Text className="text-lg font-bold mb-2 text-gray-800 dark:text-gray-200">
+          Current Store State:
+        </Text>
+        <Text className="text-base text-gray-700 dark:text-gray-300">
           Type: {attractorParameters.attractor}
           {'\n'}
           A: {attractorParameters.a.toFixed(2)}
