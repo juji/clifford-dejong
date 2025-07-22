@@ -16,6 +16,7 @@ import {
 // Import using path aliases
 import { AppTheme } from '@/types';
 import { getThemeStyles } from '@/components/styles';
+import StoreTest from '@/components/store-test';
 
 function Main() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -103,6 +104,10 @@ function Main() {
           concepts to your fingertips in an intuitive and visually stunning
           interface.
         </Text>
+
+        <View style={styles.divider} />
+
+        <StoreTest />
       </ScrollView>
     </View>
   );

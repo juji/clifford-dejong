@@ -29,6 +29,11 @@ export const getThemeStyles = (isDarkMode: boolean) => {
       marginBottom: 8,
       color: colors.textSecondary,
     },
+    divider: {
+      height: 1,
+      backgroundColor: isDarkMode ? '#444' : '#ccc',
+      marginVertical: 20,
+    },
   });
 };
 
