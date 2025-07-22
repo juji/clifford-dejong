@@ -1,13 +1,6 @@
 # Clifford-deJong Attractor Mobile Implementation Guide
 
-This document provides a step-by-step guide for implementing the mobile version of the Clifford-deJong at### 2.2 Package Import Structurepplication using R### 2.2 Package Import Structure
-
-- [ ] Import core attractor logic from packages/core
-- [ ] Create platform-specific entry points for shared modules
-  - Define platform flags (isNative, isMobile, isIOS, isAndroid)
-  - Set up environment-specific code paths
-
-### 2.3 Testing Frameworkive.
+This document provides a step-by-step guide for implementing the mobile version of the Clifford-deJong attractor application using React Native.
 
 ## Phase 1: Environment Setup (Week 1)
 
@@ -176,6 +169,10 @@ npm install --save-dev babel-plugin-module-resolver
   - Match web theme extensions for consistency
 - [ ] Set up Babel configuration for NativeWind
   - Add required plugins for NativeWind and module resolver
+- [ ] Change current implementation to use NativeWind
+  - Refactor component styling to use NativeWind classes
+  - Update theme handling to use NativeWind's theme system
+  - Ensure dark/light mode works consistently across the app
 
 ### 1.5 Implement Initial Attractor with Skia
 
@@ -224,7 +221,7 @@ npm install --save-dev babel-plugin-module-resolver
   - Define platform flags (isNative, isMobile, isIOS, isAndroid)
   - Set up environment-specific code paths
 
-### 2.4 Testing Framework
+### 2.3 Testing Framework
 
 - [ ] Set up Jest configuration for React Native
 - [ ] Create test utils for shared components
