@@ -108,3 +108,16 @@ npm test --filter=core
 - Write commit messages that are **concise yet descriptive**, clearly summarizing the purpose and impact of the change.
 - For multi-item commits, **use bullet points** to list key changes for better readability.
 - If a commit fails due to linting, tests, or other checks, **reuse the original commit message** when fixing and recommitting. Do not create redundant commit histories.
+
+### Example Commit Message
+
+```bash
+git commit -m "docs: update Skia implementation approach in mobile guide
+
+- Implement bitmap-based rendering instead of point plotting
+- Move main-thread implementation to section 1.5
+- Add runtime detection system for worklets in 1.6
+- Add reference files for proper implementation"
+```
+
+Note: When formatting multi-line commit messages, use actual line breaks rather than `\n` escape sequences for proper readability in git logs.
