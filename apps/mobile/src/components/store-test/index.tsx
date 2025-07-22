@@ -1,9 +1,10 @@
 /**
  * A component to test the Zustand store functionality
  * This component allows users to modify attractor parameters and see persistence working
+ * Updates are made directly to the Zustand store without local state
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Button, Switch, StyleSheet, Alert } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useAttractorStore, isReactNativeCheck } from '../../store';
@@ -11,28 +12,28 @@ import { useAttractorStore, isReactNativeCheck } from '../../store';
 const StoreTest: React.FC = () => {
   const { attractorParameters, setAttractorParams, reset } =
     useAttractorStore();
-  const [isRNDetected, setIsRNDetected] = useState(isReactNativeCheck());
 
-  // Local state for parameter values
-  const [paramA, setParamA] = useState(attractorParameters.a);
-  const [paramB, setParamB] = useState(attractorParameters.b);
-  const [paramC, setParamC] = useState(attractorParameters.c);
-  const [paramD, setParamD] = useState(attractorParameters.d);
-  const [type, setType] = useState(
-    attractorParameters.attractor === 'clifford',
-  );
+  // Environment detection is a constant as it won't change during the component lifecycle
+  const isRNDetected = isReactNativeCheck();
 
-  // Apply changes to the store
-  const applyChanges = () => {
+  // Helper function to update a single parameter
+  const updateParam = (param: string, value: number) => {
     setAttractorParams({
       ...attractorParameters,
-      a: paramA,
-      b: paramB,
-      c: paramC,
-      d: paramD,
-      attractor: type ? 'clifford' : 'dejong',
+      [param]: value,
     });
+  };
 
+  // Update attractor type
+  const updateType = (isClifford: boolean) => {
+    setAttractorParams({
+      ...attractorParameters,
+      attractor: isClifford ? 'clifford' : 'dejong',
+    });
+  };
+
+  // Show save confirmation
+  const showSaveConfirmation = () => {
     Alert.alert(
       'Parameters Saved',
       'Your parameters have been saved and will persist across app restarts.',
@@ -59,62 +60,73 @@ const StoreTest: React.FC = () => {
           <Text style={styles.label}>Type:</Text>
           <View style={styles.switchContainer}>
             <Text>DeJong</Text>
-            <Switch value={type} onValueChange={setType} />
+            <Switch
+              value={attractorParameters.attractor === 'clifford'}
+              onValueChange={isClifford => updateType(isClifford)}
+            />
             <Text>Clifford</Text>
           </View>
         </View>
 
         <View style={styles.paramContainer}>
-          <Text style={styles.label}>Parameter A: {paramA.toFixed(2)}</Text>
+          <Text style={styles.label}>
+            Parameter A: {attractorParameters.a.toFixed(2)}
+          </Text>
           <Slider
             style={styles.slider}
             minimumValue={-3}
             maximumValue={3}
             step={0.01}
-            value={paramA}
-            onValueChange={setParamA}
+            value={attractorParameters.a}
+            onValueChange={value => updateParam('a', value)}
           />
         </View>
 
         <View style={styles.paramContainer}>
-          <Text style={styles.label}>Parameter B: {paramB.toFixed(2)}</Text>
+          <Text style={styles.label}>
+            Parameter B: {attractorParameters.b.toFixed(2)}
+          </Text>
           <Slider
             style={styles.slider}
             minimumValue={-3}
             maximumValue={3}
             step={0.01}
-            value={paramB}
-            onValueChange={setParamB}
+            value={attractorParameters.b}
+            onValueChange={value => updateParam('b', value)}
           />
         </View>
 
         <View style={styles.paramContainer}>
-          <Text style={styles.label}>Parameter C: {paramC.toFixed(2)}</Text>
+          <Text style={styles.label}>
+            Parameter C: {attractorParameters.c.toFixed(2)}
+          </Text>
           <Slider
             style={styles.slider}
             minimumValue={-3}
             maximumValue={3}
             step={0.01}
-            value={paramC}
-            onValueChange={setParamC}
+            value={attractorParameters.c}
+            onValueChange={value => updateParam('c', value)}
           />
         </View>
 
         <View style={styles.paramContainer}>
-          <Text style={styles.label}>Parameter D: {paramD.toFixed(2)}</Text>
+          <Text style={styles.label}>
+            Parameter D: {attractorParameters.d.toFixed(2)}
+          </Text>
           <Slider
             style={styles.slider}
             minimumValue={-3}
             maximumValue={3}
             step={0.01}
-            value={paramD}
-            onValueChange={setParamD}
+            value={attractorParameters.d}
+            onValueChange={value => updateParam('d', value)}
           />
         </View>
       </View>
 
       <View style={styles.buttonContainer}>
-        <Button title="Save Parameters" onPress={applyChanges} />
+        <Button title="Save Parameters" onPress={showSaveConfirmation} />
         <View style={styles.buttonSpacer} />
         <Button title="Reset to Default" onPress={reset} color="#FF6B6B" />
       </View>
