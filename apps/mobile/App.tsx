@@ -1,28 +1,12 @@
 /**
  * Sample React Native App
- * https://github.com/facebook/react-native
+ * This file is kept for backward compatibility.
+ * The actual app is in src/App.tsx
  *
  * @format
  */
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <NewAppScreen templateFileName="App.tsx" />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
-
+// We've moved the App component to src/App.tsx
+// This is just a pass-through import for backwards compatibility
+import App from './src/App';
 export default App;
