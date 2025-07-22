@@ -4,15 +4,25 @@
 
 echo "📱 Running React Native platform-specific setup for monorepo..."
 
-# Create Android Gradle plugin symlink
-echo "🤖 Setting up Android Gradle plugin symlink..."
+# Create Android Gradle plugin symlink and other required React Native modules
+echo "🤖 Setting up Android module symlinks..."
 mkdir -p ./node_modules/@react-native
+REPO_ROOT="$(cd ../.. && pwd)"
+
+# Create symlink for gradle-plugin
 if [ ! -L "./node_modules/@react-native/gradle-plugin" ]; then
-  REPO_ROOT="$(cd ../.. && pwd)"
   echo "Creating symlink to $REPO_ROOT/node_modules/@react-native/gradle-plugin"
   ln -sf "$REPO_ROOT/node_modules/@react-native/gradle-plugin" "./node_modules/@react-native/gradle-plugin"
 else
   echo "Symlink for gradle-plugin already exists"
+fi
+
+# Create symlink for codegen
+if [ ! -L "./node_modules/@react-native/codegen" ]; then
+  echo "Creating symlink to $REPO_ROOT/node_modules/@react-native/codegen"
+  ln -sf "$REPO_ROOT/node_modules/@react-native/codegen" "./node_modules/@react-native/codegen"
+else
+  echo "Symlink for codegen already exists"
 fi
 
 # Install iOS CocoaPods if on macOS
@@ -37,6 +47,33 @@ if [ "$(uname)" == "Darwin" ]; then
   fi
 else
   echo "Not on macOS, skipping CocoaPods setup"
+fi
+
+# Additional setup for React Native native modules
+echo "🧩 Setting up additional React Native modules..."
+
+# Create necessary symlinks for other React Native modules
+RN_MODULES=("hermes-engine" "assets")
+for module in "${RN_MODULES[@]}"; do
+  if [ ! -L "./node_modules/@react-native/$module" ] && [ -d "$REPO_ROOT/node_modules/@react-native/$module" ]; then
+    echo "Creating symlink to $REPO_ROOT/node_modules/@react-native/$module"
+    ln -sf "$REPO_ROOT/node_modules/@react-native/$module" "./node_modules/@react-native/$module"
+  fi
+done
+
+# Make sure node_modules are properly linked for native modules
+if [ -d "./node_modules" ]; then
+  echo "Ensuring proper React Native module symlinks..."
+  for dir in ./node_modules/@react-native-*; do
+    if [ -d "$dir" ] && [ ! -L "$dir" ]; then
+      echo "Found native module directory: $dir"
+      if [ -d "$dir/android" ]; then
+        echo "✅ Native Android module directory exists: $dir/android"
+      else
+        echo "⚠️ Android directory missing for module: $dir"
+      fi
+    fi
+  done
 fi
 
 echo "✅ Platform-specific setup completed!"
