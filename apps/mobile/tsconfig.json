@@ -20,7 +20,8 @@
     "*.js",
     "*.ts",
     "*.tsx",
-    "nativewind-styled.d.ts"
+    "nativewind-styled.d.ts",
+    "nativewind-env.d.ts"
   ],
   "exclude": [
     "node_modules",

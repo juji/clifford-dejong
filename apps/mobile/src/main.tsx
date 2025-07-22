@@ -17,6 +17,7 @@ import {
 import { AppTheme } from '@/types';
 import { getThemeStyles } from '@/components/styles';
 import StoreTest from '@/components/store-test';
+import { TestComponent } from '@/components/test-component';
 
 function Main() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -33,6 +34,14 @@ function Main() {
         <Text className="text-base mb-2 text-gray-600 dark:text-gray-400">
           Current theme: {theme}
         </Text>
+
+        {/* Font Size Test Component */}
+        <View className="mt-6 mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <Text className="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200">
+            Default Tailwind Font Sizes:
+          </Text>
+          <TestComponent />
+        </View>
 
         <Text className="text-base leading-6 mb-2 text-gray-600 dark:text-gray-400">
           Welcome to the Clifford-deJong Attractor mobile application! This app
