@@ -49,6 +49,7 @@ export function AttractorCanvas() {
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
   const setProgress = useUIStore((s) => s.setProgress);
   const setImageUrl = useUIStore((s) => s.setImageUrl);
+  const imageUrl = useUIStore((s) => s.imageUrl);
   const setError = useUIStore((s) => s.setError);
 
   // Generate accessible description for the attractor visualization
@@ -336,7 +337,7 @@ export function AttractorCanvas() {
 
   return (
     <div
-      className="flex items-center justify-center w-full h-full fixed top-0 left-0"
+      className={`flex items-center justify-center w-full h-full fixed top-0 left-0 ${canvasVisible ? "opacity-100" : "opacity-0"}`}
       ref={containerRef}
       style={
         {
@@ -344,12 +345,24 @@ export function AttractorCanvas() {
         } as React.CSSProperties
       }
     >
+      {/* this is for safari */}
+      {imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imageUrl || ""}
+          alt=""
+          aria-hidden="true"
+          role="presentation"
+          className="absolute inset-0 w-full h-full object-contain"
+          style={{ touchAction: "none" }}
+        />
+      ) : null}
       <canvas
         ref={canvasRef}
         role="img"
         aria-label={ariaLabel}
         style={{ touchAction: "none" }}
-        className={`block w-full h-full transition-opacity ${canvasVisible ? "opacity-100" : "opacity-0"}`}
+        className={`block w-full h-full transition-opacity`}
       />
     </div>
   );
