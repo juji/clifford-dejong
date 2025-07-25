@@ -52,6 +52,14 @@ fi
 # Additional setup for React Native native modules
 echo "🧩 Setting up additional React Native modules..."
 
+# Create symlink for React Native itself
+if [ ! -L "./node_modules/react-native" ]; then
+  echo "Creating symlink to $REPO_ROOT/node_modules/react-native"
+  ln -sf "$REPO_ROOT/node_modules/react-native" "./node_modules/react-native"
+else
+  echo "Symlink for react-native already exists"
+fi
+
 # Create necessary symlinks for other React Native modules
 RN_MODULES=("hermes-engine" "assets")
 for module in "${RN_MODULES[@]}"; do
