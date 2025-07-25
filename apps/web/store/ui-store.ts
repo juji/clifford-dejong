@@ -26,6 +26,12 @@ interface UIState {
   setImageUrl: (url: string | null) => void;
   error: string | null;
   setError: (error: string | null) => void;
+  canvasSize: { width: number; height: number } | null;
+  setCanvasSize: (size: { width: number; height: number }) => void;
+  canvasVisible: boolean;
+  setCanvasVisible: (visible: boolean) => void;
+  onInitResize?: () => void; // callback for initial resize
+  setOnInitResize: (callback: () => void) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -41,8 +47,7 @@ export const useUIStore = create<UIState>()(
     showInfo: false,
     toggleInfo: () => set((state) => ({ showInfo: !state.showInfo })),
     showSettings: false,
-    toggleSettings: () =>
-      set((state) => ({ showSettings: !state.showSettings })),
+    toggleSettings: () => set((state) => ({ showSettings: !state.showSettings })),
     fullscreen: false,
     toggleFullscreen: () => set((state) => ({ fullscreen: !state.fullscreen })),
     progress: 0,
@@ -51,5 +56,10 @@ export const useUIStore = create<UIState>()(
     setImageUrl: (url) => set({ imageUrl: url }),
     error: null,
     setError: (error) => set({ error }),
+    canvasSize: null,
+    setCanvasSize: (size) => set({ canvasSize: size }), 
+    canvasVisible: true,
+    setCanvasVisible: (visible) => set({ canvasVisible: visible }),
+    setOnInitResize: (callback) => set({ onInitResize: callback }),
   })),
 );
