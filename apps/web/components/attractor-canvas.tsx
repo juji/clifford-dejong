@@ -137,7 +137,6 @@ export function AttractorCanvas() {
       }
       const canvas = canvasRef.current;
       if (canvas && e.data.qualityMode === "high") {
-        console.log("Attractor rendering completed with high quality.");
         setImageUrl(canvas.toDataURL("image/png"));
       }
     },
