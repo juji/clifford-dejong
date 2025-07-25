@@ -12,10 +12,21 @@ const { withNativeWind } = require('nativewind/metro');
 // Find the workspace root
 const workspaceRoot = path.resolve(__dirname, '../..');
 const projectRoot = __dirname;
+const srcDir = path.resolve(projectRoot, 'src');
+const coreDir = path.resolve(projectRoot, '../../packages/core');
+const stateDir = path.resolve(projectRoot, '../../packages/state');
 
 const config = {
+  projectRoot: projectRoot,
+
   // 1. Watch all files within the monorepo
-  watchFolders: [workspaceRoot],
+  watchFolders: [
+    srcDir,
+    coreDir,
+    stateDir,
+    path.resolve(projectRoot, 'node_modules'),
+    path.resolve(workspaceRoot, 'node_modules'),
+  ],
   // 2. Let Metro know where to resolve packages, and in what order
   resolver: {
     nodeModulesPaths: [

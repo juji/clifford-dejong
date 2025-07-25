@@ -138,6 +138,9 @@ importers:
       "@types/react":
         specifier: ^19.1.0
         version: 19.1.0
+      "@types/react-native":
+        specifier: ^0.73.0
+        version: 0.73.0(@babel/core@7.28.0)(@react-native-community/cli@19.0.0(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0)
       "@types/react-test-renderer":
         specifier: ^19.1.0
         version: 19.1.0
@@ -3793,6 +3796,13 @@ packages:
       }
     peerDependencies:
       "@types/react": ^19.0.0
+
+  "@types/react-native@0.73.0":
+    resolution:
+      {
+        integrity: sha512-6ZRPQrYM72qYKGWidEttRe6M5DZBEV5F+MHMHqd4TTYx0tfkcdrUFGdef6CCxY0jXU7wldvd/zA/b0A/kTeJmA==,
+      }
+    deprecated: This is a stub types definition. react-native provides its own type definitions, so you do not need this installed.
 
   "@types/react-test-renderer@19.1.0":
     resolution:
@@ -13067,9 +13077,7 @@ snapshots:
       metro-runtime: 0.82.5
     transitivePeerDependencies:
       - "@babel/core"
-      - bufferutil
       - supports-color
-      - utf-8-validate
 
   "@react-native/new-app-screen@0.80.1(@types/react@19.1.0)(react-native@0.80.1(@babel/core@7.28.0)(@react-native-community/cli@19.0.0(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)":
     dependencies:
@@ -13519,6 +13527,18 @@ snapshots:
   "@types/react-dom@19.1.1(@types/react@19.1.0)":
     dependencies:
       "@types/react": 19.1.0
+
+  "@types/react-native@0.73.0(@babel/core@7.28.0)(@react-native-community/cli@19.0.0(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0)":
+    dependencies:
+      react-native: 0.80.1(@babel/core@7.28.0)(@react-native-community/cli@19.0.0(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0)
+    transitivePeerDependencies:
+      - "@babel/core"
+      - "@react-native-community/cli"
+      - "@types/react"
+      - bufferutil
+      - react
+      - supports-color
+      - utf-8-validate
 
   "@types/react-test-renderer@19.1.0":
     dependencies:
