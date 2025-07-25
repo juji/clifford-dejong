@@ -1,40 +1,47 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
+import { AttractorBenchmarkResult } from "../lib/attractor-benchmark";
 
 export type UITab = "attractor" | "color" | "position";
 export type QualityMode = "high" | "low";
 export type MenuPosition = "top" | "left" | "bottom" | "right";
+export type CanvasSize = { width: number; height: number };
 
-interface UIState {
+export interface UIState {
   menuOpen: boolean;
-  setMenuOpen: (open: boolean) => void;
   openTab: UITab;
-  setOpenTab: (tab: UITab) => void;
   qualityMode: QualityMode;
-  setQualityMode: (mode: QualityMode) => void;
   menuPosition: MenuPosition;
-  setMenuPosition: (pos: MenuPosition) => void;
   showInfo: boolean;
-  toggleInfo: () => void;
   showSettings: boolean;
-  toggleSettings: () => void;
   fullscreen: boolean;
-  toggleFullscreen: () => void;
   progress: number;
-  setProgress: (progress: number) => void;
   imageUrl: string | null;
-  setImageUrl: (url: string | null) => void;
   error: string | null;
-  setError: (error: string | null) => void;
-  canvasSize: { width: number; height: number } | null;
-  setCanvasSize: (size: { width: number; height: number }) => void;
+  canvasSize: CanvasSize | null;
   canvasVisible: boolean;
-  setCanvasVisible: (visible: boolean) => void;
   onInitResize?: () => void; // callback for initial resize
-  setOnInitResize: (callback: () => void) => void;
+  benchmarkResult: AttractorBenchmarkResult | null;
 }
 
-export const useUIStore = create<UIState>()(
+export interface UIActions {
+  setMenuOpen: (open: boolean) => void;
+  setOpenTab: (tab: UITab) => void;
+  setQualityMode: (mode: QualityMode) => void;
+  setMenuPosition: (pos: MenuPosition) => void;
+  toggleInfo: () => void;
+  toggleSettings: () => void;
+  toggleFullscreen: () => void;
+  setProgress: (progress: number) => void;
+  setImageUrl: (url: string | null) => void;
+  setError: (error: string | null) => void;
+  setCanvasSize: (size: CanvasSize) => void;
+  setCanvasVisible: (visible: boolean) => void;
+  setOnInitResize: (callback: () => void) => void;
+  setBenchmarkResult: (result: AttractorBenchmarkResult | null) => void;
+}
+
+export const useUIStore = create<UIState & UIActions>()(
   devtools((set) => ({
     menuOpen: false,
     setMenuOpen: (open) => set({ menuOpen: open }),
@@ -61,5 +68,7 @@ export const useUIStore = create<UIState>()(
     canvasVisible: true,
     setCanvasVisible: (visible) => set({ canvasVisible: visible }),
     setOnInitResize: (callback) => set({ onInitResize: callback }),
+    benchmarkResult: null,
+    setBenchmarkResult: (result) => set({ benchmarkResult: result }),
   })),
 );

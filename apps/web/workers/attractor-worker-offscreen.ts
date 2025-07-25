@@ -14,6 +14,12 @@
 import { clifford, dejong } from "@repo/core";
 import { getColorData, hsv2rgb } from "@repo/core/color";
 import type { AttractorParameters } from "@repo/core/types";
+import {
+  calculateAttractorPoints,
+  getBatchSize,
+  getInterval,
+  type AttractorRunParams
+} from "./shared/attractor-core";
 
 type Params = {
   params: AttractorParameters;
@@ -184,6 +190,8 @@ function parseParams(data: any) {
   };
 }
 
+// This worker uses the shared attractor core module
+
 function runAttractor({
   attractorFn,
   a,
@@ -202,37 +210,31 @@ function runAttractor({
   saturation,
   brightness,
   background,
-}: any) {
-  let x = 0,
-    y = 0;
-  const pixels = new Uint32Array(width * height);
-  let maxDensity = 0;
-  const interval = Math.max(1, Math.floor(points * (progressInterval / 100)));
-  const batchSize =
-    qualityMode === "low"
-      ? Math.max(10000, Math.floor(points / 10))
-      : Math.max(1000, Math.floor(points / 1000));
-  let i = 0;
+}: AttractorRunParams) {
   shouldStop = false;
 
-  function smoothing(num: number, scale: number) {
-    return num + (Math.random() < 0.5 ? -0.2 : 0.2) * (1 / scale);
-  }
-
-  function drawPixels(progress: number) {
+  // Get calculation parameters from shared helpers
+  const interval = getInterval(points, progressInterval);
+  const batchSize = getBatchSize(points, qualityMode);
+  
+  function drawPixels(pixels: Uint32Array, maxDensity: number, progress: number) {
     if (!offscreenCtx) return;
     const imageData = offscreenCtx.createImageData(width, height);
     const data = new Uint32Array(imageData.data.buffer);
-    const bgArr = background;
-    const bgColor =
-      (bgArr[3] << 24) | (bgArr[2] << 16) | (bgArr[1] << 8) | bgArr[0];
+    const bgArr = background || [0, 0, 0, 255];
+    const bgColor = (
+      ((bgArr[3] || 255) << 24) | 
+      ((bgArr[2] || 0) << 16) | 
+      ((bgArr[1] || 0) << 8) | 
+      (bgArr[0] || 0)
+    );
 
     if (qualityMode === "low") {
       for (let i = 0; i < pixels.length; i++) {
         const val = Number(pixels[i]) || 0;
         if (val > 0) {
           // Use HSV to RGB conversion for low quality mode
-          const [r, g, b] = hsv2rgb(hue, saturation, brightness);
+          const [r, g, b] = hsv2rgb(hue || 120, saturation || 100, brightness || 100);
           data[i] = (255 << 24) | (b << 16) | (g << 8) | r;
         } else {
           data[i] = bgColor;
@@ -245,11 +247,11 @@ function runAttractor({
           data[i] = getColorData(
             density,
             maxDensity,
-            hue,
-            saturation,
-            brightness,
+            hue || 120,
+            saturation || 100,
+            brightness || 100,
             progress,
-            background, // Pass the background color array
+            bgArr
           );
         } else {
           data[i] = bgColor;
@@ -258,42 +260,47 @@ function runAttractor({
     }
     offscreenCtx.putImageData(imageData, 0, 0);
   }
-
-  function processBatch() {
-    if (shouldStop) return;
-    const end = Math.min(i + batchSize, points);
-    for (; i < end; i++) {
-      const [nxRaw, nyRaw] = attractorFn(x, y, a, b, c, d) as [number, number];
-      let nx = smoothing(nxRaw, scale);
-      let ny = smoothing(nyRaw, scale);
-      x = nx;
-      y = ny;
-      const screenX = Math.round(x * scale);
-      const screenY = Math.round(y * scale);
-      const px = Math.floor(screenX + width / 2 + left * width);
-      const py = Math.floor(screenY + height / 2 + top * height);
-      if (px >= 0 && px < width && py >= 0 && py < height) {
-        const idx = px + py * width;
-        pixels[idx] = (pixels[idx] || 0) + 1;
-        if (pixels[idx] > maxDensity) maxDensity = pixels[idx];
-      }
-      if ((i > 0 && i % interval === 0) || i === points - 1) {
-        const progress = i / (points - 1);
-        drawPixels(progress);
-        const progressVal = Math.round(progress * 100);
-        const typeVal = i === points - 1 ? "done" : "preview";
-        self.postMessage({
-          type: typeVal,
-          progress: progressVal,
-          qualityMode: qualityMode,
-        });
-      }
+  
+  // Setup calculation with batch progress handler
+  const { processBatch } = calculateAttractorPoints({
+    attractorFn,
+    a,
+    b,
+    c,
+    d,
+    points,
+    width,
+    height,
+    scale,
+    left,
+    top,
+    batchSize,
+    interval,
+    onBatchProgress: (i, pixels, maxDensity, isDone) => {
+      if (shouldStop) return;
+      
+      const progress = i / (points - 1);
+      drawPixels(pixels, maxDensity, progress);
+      
+      const progressVal = Math.round(progress * 100);
+      const typeVal = isDone ? "done" : "preview";
+      self.postMessage({
+        type: typeVal,
+        progress: progressVal,
+        qualityMode,
+      });
     }
-    if (i < points && !shouldStop) {
-      rafHandle = self.requestAnimationFrame(processBatch);
+  });
+  
+  function runBatch() {
+    if (shouldStop) return;
+    processBatch();
+    if (!shouldStop) {
+      rafHandle = self.requestAnimationFrame(runBatch);
     }
   }
-  rafHandle = self.requestAnimationFrame(processBatch);
+  
+  rafHandle = self.requestAnimationFrame(runBatch);
 }
 
 // This worker only handles OffscreenCanvas rendering

@@ -2,7 +2,14 @@
 // Usage: import and call runAttractorBenchmark() to get ms per 100k points
 import { clifford } from "@repo/core";
 
-export async function runAttractorBenchmark(points = 100000, runs = 5) {
+export interface AttractorBenchmarkResult {
+  points: number;
+  runs: number;
+  avgMs: number;
+  msPer100k: number;
+}
+
+export async function runAttractorBenchmark(points = 100000, runs = 5): Promise<AttractorBenchmarkResult> {
   let totalMs = 0;
   for (let run = 0; run < runs; run++) {
     let x = 0,
