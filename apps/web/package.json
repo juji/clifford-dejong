@@ -20,8 +20,8 @@
     "@radix-ui/react-slider": "^1.3.5",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.12",
-    "@repo/core": "*",
-    "@repo/ui": "*",
+    "@repo/core": "workspace:*",
+    "@repo/ui": "workspace:*",
     "@serwist/next": "^9.0.15",
     "@testing-library/dom": "^10.4.0",
     "@types/howler": "^2.2.12",
@@ -41,8 +41,8 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4.1.11",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",

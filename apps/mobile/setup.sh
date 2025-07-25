@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# setup.sh - Platform-specific setup for React Native in monorepo
+# setup.sh - Platform-specific setup for React Native in monorepo (pnpm version)
 
 # Ensure script runs in its own directory regardless of where it's called from
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -9,25 +9,60 @@ cd "$SCRIPT_DIR"
 echo "📱 Running React Native platform-specific setup for monorepo..."
 echo "Working directory: $(pwd)"
 
-# Create Android Gradle plugin symlink and other required React Native modules
+# Create necessary directories for React Native modules
 echo "🤖 Setting up Android module symlinks..."
 mkdir -p ./node_modules/@react-native
 REPO_ROOT="$(cd ../.. && pwd)"
 
-# Create symlink for gradle-plugin
-if [ ! -L "./node_modules/@react-native/gradle-plugin" ]; then
-  echo "Creating symlink to $REPO_ROOT/node_modules/@react-native/gradle-plugin"
-  ln -sf "$REPO_ROOT/node_modules/@react-native/gradle-plugin" "./node_modules/@react-native/gradle-plugin"
-else
-  echo "Symlink for gradle-plugin already exists"
-fi
+# When using pnpm, we need to ensure React Native modules are properly linked
+# Check if we're using pnpm by looking for .pnpm directory in node_modules
+if [ -d "$REPO_ROOT/node_modules/.pnpm" ]; then
+  echo "📦 pnpm detected, using specific pnpm symlink approach"
+  
+  # Create symlink for gradle-plugin
+  if [ ! -L "./node_modules/@react-native/gradle-plugin" ]; then
+    GRADLE_PLUGIN_PATH=$(find "$REPO_ROOT/node_modules/.pnpm" -path "*/@react-native/gradle-plugin@*" -type d | head -n 1)
+    if [ -n "$GRADLE_PLUGIN_PATH" ]; then
+      echo "Creating symlink to $GRADLE_PLUGIN_PATH/node_modules/@react-native/gradle-plugin"
+      ln -sf "$GRADLE_PLUGIN_PATH/node_modules/@react-native/gradle-plugin" "./node_modules/@react-native/gradle-plugin"
+    else
+      echo "Using direct symlink to $REPO_ROOT/node_modules/@react-native/gradle-plugin"
+      ln -sf "$REPO_ROOT/node_modules/@react-native/gradle-plugin" "./node_modules/@react-native/gradle-plugin"
+    fi
+  else
+    echo "Symlink for gradle-plugin already exists"
+  fi
 
-# Create symlink for codegen
-if [ ! -L "./node_modules/@react-native/codegen" ]; then
-  echo "Creating symlink to $REPO_ROOT/node_modules/@react-native/codegen"
-  ln -sf "$REPO_ROOT/node_modules/@react-native/codegen" "./node_modules/@react-native/codegen"
+  # Create symlink for codegen
+  if [ ! -L "./node_modules/@react-native/codegen" ]; then
+    CODEGEN_PATH=$(find "$REPO_ROOT/node_modules/.pnpm" -path "*/@react-native/codegen@*" -type d | head -n 1)
+    if [ -n "$CODEGEN_PATH" ]; then
+      echo "Creating symlink to $CODEGEN_PATH/node_modules/@react-native/codegen"
+      ln -sf "$CODEGEN_PATH/node_modules/@react-native/codegen" "./node_modules/@react-native/codegen"
+    else
+      echo "Using direct symlink to $REPO_ROOT/node_modules/@react-native/codegen"
+      ln -sf "$REPO_ROOT/node_modules/@react-native/codegen" "./node_modules/@react-native/codegen"
+    fi
+  else
+    echo "Symlink for codegen already exists"
+  fi
 else
-  echo "Symlink for codegen already exists"
+  # Regular npm symlink approach
+  # Create symlink for gradle-plugin
+  if [ ! -L "./node_modules/@react-native/gradle-plugin" ]; then
+    echo "Creating symlink to $REPO_ROOT/node_modules/@react-native/gradle-plugin"
+    ln -sf "$REPO_ROOT/node_modules/@react-native/gradle-plugin" "./node_modules/@react-native/gradle-plugin"
+  else
+    echo "Symlink for gradle-plugin already exists"
+  fi
+
+  # Create symlink for codegen
+  if [ ! -L "./node_modules/@react-native/codegen" ]; then
+    echo "Creating symlink to $REPO_ROOT/node_modules/@react-native/codegen"
+    ln -sf "$REPO_ROOT/node_modules/@react-native/codegen" "./node_modules/@react-native/codegen"
+  else
+    echo "Symlink for codegen already exists"
+  fi
 fi
 
 # Install iOS CocoaPods if on macOS
@@ -59,8 +94,20 @@ echo "🧩 Setting up additional React Native modules..."
 
 # Create symlink for React Native itself
 if [ ! -L "./node_modules/react-native" ]; then
-  echo "Creating symlink to $REPO_ROOT/node_modules/react-native"
-  ln -sf "$REPO_ROOT/node_modules/react-native" "./node_modules/react-native"
+  if [ -d "$REPO_ROOT/node_modules/.pnpm" ]; then
+    # Find react-native in pnpm's virtual store
+    RN_PATH=$(find "$REPO_ROOT/node_modules/.pnpm" -path "*/react-native@*" -type d | head -n 1)
+    if [ -n "$RN_PATH" ]; then
+      echo "Creating symlink to $RN_PATH/node_modules/react-native"
+      ln -sf "$RN_PATH/node_modules/react-native" "./node_modules/react-native"
+    else
+      echo "Creating symlink to $REPO_ROOT/node_modules/react-native"
+      ln -sf "$REPO_ROOT/node_modules/react-native" "./node_modules/react-native"
+    fi
+  else
+    echo "Creating symlink to $REPO_ROOT/node_modules/react-native"
+    ln -sf "$REPO_ROOT/node_modules/react-native" "./node_modules/react-native"
+  fi
 else
   echo "Symlink for react-native already exists"
 fi
@@ -68,9 +115,22 @@ fi
 # Create necessary symlinks for other React Native modules
 RN_MODULES=("hermes-engine" "assets")
 for module in "${RN_MODULES[@]}"; do
-  if [ ! -L "./node_modules/@react-native/$module" ] && [ -d "$REPO_ROOT/node_modules/@react-native/$module" ]; then
-    echo "Creating symlink to $REPO_ROOT/node_modules/@react-native/$module"
-    ln -sf "$REPO_ROOT/node_modules/@react-native/$module" "./node_modules/@react-native/$module"
+  if [ ! -L "./node_modules/@react-native/$module" ]; then
+    if [ -d "$REPO_ROOT/node_modules/.pnpm" ]; then
+      # Find module in pnpm's virtual store
+      MODULE_PATH=$(find "$REPO_ROOT/node_modules/.pnpm" -path "*/@react-native/$module@*" -type d 2>/dev/null | head -n 1)
+      if [ -n "$MODULE_PATH" ]; then
+        echo "Creating symlink to $MODULE_PATH/node_modules/@react-native/$module"
+        ln -sf "$MODULE_PATH/node_modules/@react-native/$module" "./node_modules/@react-native/$module"
+        continue
+      fi
+    fi
+    
+    # Fallback to direct symlink
+    if [ -d "$REPO_ROOT/node_modules/@react-native/$module" ]; then
+      echo "Creating symlink to $REPO_ROOT/node_modules/@react-native/$module"
+      ln -sf "$REPO_ROOT/node_modules/@react-native/$module" "./node_modules/@react-native/$module"
+    fi
   fi
 done
 

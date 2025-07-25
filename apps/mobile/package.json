@@ -11,7 +11,7 @@
     "test": "jest",
     "postinstall": "./setup.sh",
     "setup": "./setup.sh",
-    "build": "npm run build:android && npm run build:ios",
+    "build": "pnpm run build:android && pnpm run build:ios",
     "build:android": "cd android && ./gradlew assembleRelease",
     "build:ios": "cd ios && xcodebuild -workspace mobile.xcworkspace -scheme mobile -configuration Release -sdk iphoneos -quiet"
   },
@@ -20,6 +20,8 @@
     "@react-native-community/slider": "^4.5.7",
     "@react-native/codegen": "^0.80.1",
     "@react-native/new-app-screen": "0.80.1",
+    "@repo/core": "workspace:*",
+    "@repo/state": "workspace:*",
     "nativewind": "^4.1.23",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "react": "19.1.0",

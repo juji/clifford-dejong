@@ -9,9 +9,8 @@
     "check-types": "turbo run check-types",
     "test": "turbo run test",
     "prepare": "husky",
-    "postinstall": "cd apps/mobile && ./setup.sh",
-    "android": "cd apps/mobile && npm run android",
-    "ios": "cd apps/mobile && npm run ios"
+    "android": "cd apps/mobile && pnpm run android",
+    "ios": "cd apps/mobile && pnpm run ios"
   },
   "devDependencies": {
     "husky": "^9.1.7",
@@ -41,5 +40,5 @@
     "apps/*",
     "packages/*"
   ],
-  "packageManager": "npm@10.5.0"
+  "packageManager": "pnpm@10.7.1"
 }

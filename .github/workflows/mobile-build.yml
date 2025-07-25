@@ -28,10 +28,15 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "18"
-          cache: "npm"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.10.0
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -60,7 +65,7 @@ jobs:
         run: cd apps/mobile && ./setup.sh
 
       - name: Build Android app
-        run: cd apps/mobile && npm run build:android
+        run: cd apps/mobile && pnpm run build:android
 
       - name: Upload APK
         uses: actions/upload-artifact@v3
@@ -79,10 +84,15 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "18"
-          cache: "npm"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.10.0
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -104,7 +114,7 @@ jobs:
       # This is a basic build for demonstration
       # For a real setup, we would need code signing setup
       - name: Build iOS app (Development)
-        run: cd apps/mobile && npm run build:ios -- -workspace mobile.xcworkspace -scheme mobile -configuration Debug -sdk iphonesimulator -derivedDataPath build
+        run: cd apps/mobile && pnpm run build:ios -- -workspace mobile.xcworkspace -scheme mobile -configuration Debug -sdk iphonesimulator -derivedDataPath build
 
       - name: Upload IPA
         uses: actions/upload-artifact@v3

@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: '21 17 * * 2'
+    - cron: "21 17 * * 2"
 
 permissions:
   contents: read
@@ -48,14 +48,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.14.0'
-          cache: 'npm'
+          node-version: "22.14.0"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.10.0
 
       - name: Install dependencies
-        run: CI=1 npm ci
+        run: CI=1 pnpm install
 
       - name: Lint
-        run: CI=1 npm run lint
+        run: CI=1 pnpm run lint
 
   type-check:
     name: Type Check
@@ -68,14 +73,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.14.0'
-          cache: 'npm'
+          node-version: "22.14.0"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.10.0
 
       - name: Install dependencies
-        run: CI=1 npm ci
+        run: CI=1 pnpm install
 
       - name: Check Types
-        run: CI=1 npm run check-types
+        run: CI=1 pnpm run check-types
 
   test:
     name: Test
@@ -88,14 +98,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.14.0'
-          cache: 'npm'
-      
+          node-version: "22.14.0"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.10.0
+
       - name: Install dependencies
-        run: CI=1 npm ci
+        run: CI=1 pnpm install
 
       - name: Test
-        run: CI=1 npm run test
+        run: CI=1 pnpm run test
 
   deploy-cf:
     runs-on: ubuntu-latest
@@ -103,39 +118,44 @@ jobs:
     permissions:
       contents: read
       deployments: write
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
-          cache: 'npm'
-      
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.10.0
+
       # Set up the entire workspace with Turborepo
       - name: Install dependencies
-        run: npm ci --ignore-scripts
-        
+        run: pnpm install --frozen-lockfile
+
       # Build the entire monorepo with turbo
       - name: Build web app with monorepo dependencies
         env:
           HUSKY: 0
           HUSKY_SKIP_INSTALL: 1
-        run: npm run build -- --filter=web
-      
+        run: pnpm run build -- --filter=web
+
       # List output directory to verify it exists
       - name: List build outputs
         run: ls -la apps/web/out/
-      
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: clifford-dejong  # Replace with your preferred Cloudflare Pages project name
-          directory: apps/web/out        # The output directory from Next.js static export
+          projectName: clifford-dejong # Replace with your preferred Cloudflare Pages project name
+          directory: apps/web/out # The output directory from Next.js static export
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           # When branch is 'main', deploy to production; otherwise, deploy as a preview with branch name
           branch: ${{ github.ref_name }}
