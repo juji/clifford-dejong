@@ -16,7 +16,8 @@ export function AttractorCanvasDynamic({ ariaLabel }: { ariaLabel?: string }) {
   
   // Run the benchmark on component mount and store the result
   useEffect(() => {
-    async function benchmark() {
+
+    ;(async () => {
       try {
         const result = await runAttractorBenchmark(100000, 3);
         setBenchmarkResult(result);
@@ -29,9 +30,8 @@ export function AttractorCanvasDynamic({ ariaLabel }: { ariaLabel?: string }) {
           msPer100k: 21.199999968210857
         });
       }
-    }
+    })();
     
-    benchmark();
   }, [setBenchmarkResult]);
 
   console.log('workerSupport', workerSupport)
