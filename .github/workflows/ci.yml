@@ -147,7 +147,7 @@ jobs:
         env:
           HUSKY: 0
           HUSKY_SKIP_INSTALL: 1
-        run: pnpm run build -- --filter=web
+        run: pnpm run build --filter=web
 
       # List output directory to verify it exists
       - name: List build outputs
