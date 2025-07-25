@@ -2,14 +2,14 @@ name: Mobile Build
 
 on:
   push:
-    branches: [main, mobile]
+    branches: [release]
     paths:
       - "apps/mobile/**"
       - "packages/core/**"
       - "packages/state/**"
       - ".github/workflows/mobile-build.yml"
   pull_request:
-    branches: [main]
+    branches: [release]
     paths:
       - "apps/mobile/**"
       - "packages/core/**"
