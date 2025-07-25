@@ -41,7 +41,7 @@ function AttractorImage(){
         alt=""
         aria-hidden="true"
         role="presentation"
-        className="absolute inset-0 w-full h-full object-contain"
+        className="absolute inset-0 w-full h-full object-cover"
         style={{ touchAction: "none" }}
       />
     ) : null
