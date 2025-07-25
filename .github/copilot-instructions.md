@@ -35,28 +35,28 @@ This is a monorepo for the Clifford-deJong Attractor application, which generate
 
 ```bash
 # Install all dependencies
-npm install
+pnpm install
 
 # Run both web and mobile development servers
-npm run dev
+pnpm run dev
 
 # Run only web app
-npm run dev --filter=web
+pnpm run dev --filter=web
 
 # Run only mobile app
-npm run dev --filter=mobile
+pnpm run dev --filter=mobile
 ```
 
 ### Testing
 
 ```bash
 # Run all tests
-npm test
+pnpm test
 
 # Run specific app/package tests
-npm test --filter=web
-npm test --filter=mobile
-npm test --filter=core
+pnpm test --filter=web
+pnpm test --filter=mobile
+pnpm test --filter=core
 ```
 
 ## Project Conventions

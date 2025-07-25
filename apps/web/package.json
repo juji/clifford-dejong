@@ -49,6 +49,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/jest-axe": "^3.5.9",
     "@types/node": "^22.15.3",
+    "@types/offscreencanvas": "^2019.7.3",
     "@types/pica": "^9.0.5",
     "@types/react": "19.1.0",
     "@types/react-dom": "19.1.1",

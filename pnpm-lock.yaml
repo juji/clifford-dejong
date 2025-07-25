@@ -268,6 +268,9 @@ importers:
       "@types/node":
         specifier: ^22.15.3
         version: 22.16.5
+      "@types/offscreencanvas":
+        specifier: ^2019.7.3
+        version: 2019.7.3
       "@types/pica":
         specifier: ^9.0.5
         version: 9.0.5
@@ -3781,6 +3784,12 @@ packages:
     resolution:
       {
         integrity: sha512-bJFoMATwIGaxxx8VJPeM8TonI8t579oRvgAuT8zFugJsJZgzqv0Fu8Mhp68iecjzG7cnN3mO2dJQ5uUM2EFrgQ==,
+      }
+
+  "@types/offscreencanvas@2019.7.3":
+    resolution:
+      {
+        integrity: sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A==,
       }
 
   "@types/pica@9.0.5":
@@ -13077,7 +13086,9 @@ snapshots:
       metro-runtime: 0.82.5
     transitivePeerDependencies:
       - "@babel/core"
+      - bufferutil
       - supports-color
+      - utf-8-validate
 
   "@react-native/new-app-screen@0.80.1(@types/react@19.1.0)(react-native@0.80.1(@babel/core@7.28.0)(@react-native-community/cli@19.0.0(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)":
     dependencies:
@@ -13521,6 +13532,8 @@ snapshots:
   "@types/node@22.16.5":
     dependencies:
       undici-types: 6.21.0
+
+  "@types/offscreencanvas@2019.7.3": {}
 
   "@types/pica@9.0.5": {}
 
