@@ -27,6 +27,7 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
   } | null>(null);
   const lastDistance = useRef<number | null>(null);
   const dragging = useRef(false);
+  const wheelingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
   const setAttractorParams = useAttractorStore((s) => s.setAttractorParams);
@@ -77,6 +78,11 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
         ...attractorParameters,
         scale: clamp(scale * (1 + delta), 0.001, 5),
       });
+      setQualityMode("low");
+      if (wheelingTimeout.current) clearTimeout(wheelingTimeout.current);
+      wheelingTimeout.current = setTimeout(() => {
+        setQualityMode("high");
+      }, 1000);
     };
 
     // --- Touch for top/left and pinch/scale ---

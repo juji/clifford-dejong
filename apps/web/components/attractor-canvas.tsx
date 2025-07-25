@@ -39,7 +39,8 @@ function generateAttractorDescription(params: AttractorParameters): string {
 
 export function AttractorCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  usePointerControl(canvasRef);
+  const containerRef = useRef<HTMLDivElement>(null);
+  usePointerControl(containerRef);
 
   // Use the hook to update the CSS variable when attractor background changes
   useParamsBackgroundColor();
@@ -134,8 +135,10 @@ export function AttractorCanvas() {
         );
       }
       const canvas = canvasRef.current;
-      if (canvas && e.data.qualityMode === "high")
+      if (canvas && e.data.qualityMode === "high") {
+        console.log("Attractor rendering completed with high quality.");
         setImageUrl(canvas.toDataURL("image/png"));
+      }
     },
     onError: (error: string) => {
       setError(error || "Unknown error in worker");
@@ -334,6 +337,7 @@ export function AttractorCanvas() {
   return (
     <div
       className="flex items-center justify-center w-full h-full fixed top-0 left-0"
+      ref={containerRef}
       style={
         {
           backgroundColor: "var(--cda-bg-canvas)",
