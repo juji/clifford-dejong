@@ -2,7 +2,12 @@
 
 # setup.sh - Platform-specific setup for React Native in monorepo
 
+# Ensure script runs in its own directory regardless of where it's called from
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR"
+
 echo "📱 Running React Native platform-specific setup for monorepo..."
+echo "Working directory: $(pwd)"
 
 # Create Android Gradle plugin symlink and other required React Native modules
 echo "🤖 Setting up Android module symlinks..."
@@ -85,3 +90,8 @@ if [ -d "./node_modules" ]; then
 fi
 
 echo "✅ Platform-specific setup completed!"
+
+# Setup watchman to watch the current directory
+echo "🔍 Setting up Watchman for fast file watching..."
+watchman watch-del-all
+watchman watch "$(pwd)"
