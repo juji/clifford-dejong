@@ -21,7 +21,7 @@ function SettingsScreen({ navigation }: Props) {
   const styles = getThemeStyles(isDarkMode);
 
   return (
-    <ScrollView className="p-4">
+    <ScrollView className="p-4 flex-1">
       <Text className="text-2xl font-bold mb-4 mt-14 text-text-light dark:text-text-dark">
         Settings
       </Text>
@@ -43,14 +43,55 @@ function SettingsScreen({ navigation }: Props) {
         themes is smooth and immediate.
       </Text>
 
-      {/* Placeholder for settings controls */}
-      <View className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4">
-        <Text className="text-gray-800 dark:text-gray-200 font-medium mb-2">
-          Theme Mode
-        </Text>
-        <Text className="text-gray-600 dark:text-gray-400">
-          Current: {theme} (follows system)
-        </Text>
+      {/* Settings options */}
+      <View className="mt-4 space-y-3 mb-6">
+        <View className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <Text className="text-gray-800 dark:text-gray-200 font-medium mb-2">
+            Theme Mode
+          </Text>
+          <Text className="text-gray-600 dark:text-gray-400">
+            Current: {theme} (follows system)
+          </Text>
+        </View>
+
+        <View className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <Text className="text-gray-800 dark:text-gray-200 font-medium mb-2">
+            Quality
+          </Text>
+          <Text className="text-gray-600 dark:text-gray-400">
+            Current: High (10,000 points)
+          </Text>
+        </View>
+
+        <View className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <Text className="text-gray-800 dark:text-gray-200 font-medium mb-2">
+            Animation Speed
+          </Text>
+          <Text className="text-gray-600 dark:text-gray-400">
+            Current: Medium
+          </Text>
+        </View>
+      </View>
+
+      {/* Navigation buttons */}
+      <View className="my-4 flex-row space-x-2">
+        <View
+          className="flex-1 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg items-center"
+          onTouchEnd={() => navigation.navigate('Home')}
+        >
+          <Text className="text-blue-800 dark:text-blue-200 font-medium">
+            Back to Home
+          </Text>
+        </View>
+
+        <View
+          className="flex-1 p-3 bg-green-100 dark:bg-green-900 rounded-lg items-center"
+          onTouchEnd={() => navigation.navigate('AttractorScreen')}
+        >
+          <Text className="text-green-800 dark:text-green-200 font-medium">
+            View Attractors
+          </Text>
+        </View>
       </View>
 
       <View style={styles.divider} />

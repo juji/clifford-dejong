@@ -14,7 +14,7 @@ import { getThemeStyles } from '@/components/styles';
 import StoreTest from '@/components/store-test';
 import { RootStackParamList } from '@/navigation/types';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Attractor'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'AttractorScreen'>;
 
 function AttractorScreen({ navigation }: Props) {
   const isDarkMode = useColorScheme() === 'dark';
@@ -22,7 +22,7 @@ function AttractorScreen({ navigation }: Props) {
   const styles = getThemeStyles(isDarkMode);
 
   return (
-    <ScrollView className="p-4">
+    <ScrollView className="p-4 flex-1">
       <Text className="text-2xl font-bold mb-4 mt-14 text-text-light dark:text-text-dark">
         Attractor Visualization
       </Text>
@@ -51,6 +51,26 @@ function AttractorScreen({ navigation }: Props) {
         <Text className="text-gray-500 dark:text-gray-400">
           Attractor visualization will appear here
         </Text>
+      </View>
+
+      {/* Sample attractors list */}
+      <Text className="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200">
+        Sample Attractors:
+      </Text>
+
+      <View className="flex flex-col space-y-3 mb-6">
+        {['classic', 'symmetric', 'spiral', 'fractal'].map(id => (
+          <View
+            key={id}
+            className="p-3 bg-blue-50 dark:bg-blue-900/40 rounded-lg flex-row justify-between items-center"
+            onTouchEnd={() => navigation.navigate('AttractorDetail', { id })}
+          >
+            <Text className="text-blue-800 dark:text-blue-200 font-medium capitalize">
+              {id} Attractor
+            </Text>
+            <Text className="text-gray-500 dark:text-gray-400">→</Text>
+          </View>
+        ))}
       </View>
 
       <View className="mt-6 mb-6">

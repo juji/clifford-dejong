@@ -4,21 +4,22 @@
 
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, useColorScheme, View } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useColorScheme } from 'react-native';
 
 // Import screens
 import HomeScreen from '@/screens/home-screen';
 import AttractorScreen from '@/screens/attractor-screen';
+import AttractorDetailScreen from '@/screens/attractor-detail-screen';
 import SettingsScreen from '@/screens/settings-screen';
 
 // Import types
-import { BottomTabParamList } from './types';
+import { RootStackParamList } from './types';
 
 // Import default theme for NavigationContainer
 import { DefaultTheme, DarkTheme } from '@react-navigation/native';
 
-const Tab = createBottomTabNavigator<BottomTabParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -48,48 +49,48 @@ function AppNavigator() {
     <NavigationContainer
       theme={isDarkMode ? customDarkTheme : customLightTheme}
     >
-      <Tab.Navigator
+      <Stack.Navigator
+        initialRouteName="Home"
         screenOptions={{
-          tabBarActiveTintColor: isDarkMode ? '#8EB8E5' : '#3366BB',
-          tabBarInactiveTintColor: isDarkMode ? '#71717A' : '#A1A1AA',
-          tabBarStyle: {
+          headerStyle: {
             backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
-            borderTopColor: isDarkMode ? '#27272A' : '#E4E4E7',
           },
-          headerShown: false,
-          tabBarBackground: () => (
-            <View className="flex-1 bg-background-light dark:bg-background-dark" />
-          ),
+          headerTintColor: isDarkMode ? '#FFFFFF' : '#000000',
+          contentStyle: {
+            backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
+          },
         }}
       >
-        <Tab.Screen
+        <Stack.Screen
           name="Home"
           component={HomeScreen}
           options={{
-            tabBarIcon: ({ color }: { color: string }) => (
-              <Text style={{ color, fontSize: 20 }}>🏠</Text>
-            ),
+            title: 'Clifford-deJong Attractor',
+            headerShown: false,
           }}
         />
-        <Tab.Screen
-          name="Attractor"
+        <Stack.Screen
+          name="AttractorScreen"
           component={AttractorScreen}
           options={{
-            tabBarIcon: ({ color }: { color: string }) => (
-              <Text style={{ color, fontSize: 20 }}>🔮</Text>
-            ),
+            title: 'Attractor View',
           }}
         />
-        <Tab.Screen
+        <Stack.Screen
+          name="AttractorDetail"
+          component={AttractorDetailScreen}
+          options={{
+            title: 'Attractor Detail',
+          }}
+        />
+        <Stack.Screen
           name="Settings"
           component={SettingsScreen}
           options={{
-            tabBarIcon: ({ color }: { color: string }) => (
-              <Text style={{ color, fontSize: 20 }}>⚙️</Text>
-            ),
+            title: 'Settings',
           }}
         />
-      </Tab.Navigator>
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
