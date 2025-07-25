@@ -348,18 +348,39 @@ npm install --save-dev babel-plugin-module-resolver
 
 ## Phase 6: Deployment (Post Implementation)
 
-### 6.1 Fastlane Setup
+### 6.1 GitHub Actions CI/CD Setup
+
+- [ ] Create GitHub Actions workflow for mobile builds
+  - [ ] Configure workflow to build on push/PR to main branches
+  - [ ] Set up matrix builds for iOS and Android
+  - [ ] Configure build caching for faster iterations
+  - [ ] Set up proper environment secrets for signing
+- [ ] Configure artifact storage for builds
+  - [ ] Store APKs and IPAs as workflow artifacts
+  - [ ] Enable downloading builds for testing
+- [ ] Set up automated testing in CI
+  - [ ] Run unit and integration tests in workflow
+  - [ ] Configure test reports and coverage tracking
+
+### 6.2 Fastlane Setup
 
 - [ ] Configure Fastlane for iOS
 - [ ] Configure Fastlane for Android
-- [ ] Set up CI/CD integration
+- [ ] Integrate Fastlane with GitHub Actions
 
-### 6.2 App Store Deployment
+### 6.3 App Store Deployment
 
+- [ ] Set up automated submission via GitHub Actions
+  - [ ] Configure App Store Connect API keys
+  - [ ] Set up Google Play developer API access
 - [ ] Submit to Apple App Store
+  - [ ] Configure TestFlight distribution groups
+  - [ ] Set up phased release for production
 - [ ] Submit to Google Play Store
+  - [ ] Configure testing tracks (internal, closed, open)
+  - [ ] Set up staged rollout for production
 
-### 6.3 Post-Launch
+### 6.4 Post-Launch
 
 - [ ] Monitor analytics and crash reports
 - [ ] Plan for updates and improvements
