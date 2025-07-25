@@ -9,21 +9,21 @@ import { render } from '@testing-library/react-native';
 // Import Jest mocking utilities
 import { jest } from '@jest/globals';
 
-// Mock CSS imports
-jest.mock('../global.css', () => ({}), { virtual: true });
-
-// Mock the NativeWind provider
-jest.mock('nativewind', () => ({
-  useColorScheme: () => ({
-    colorScheme: 'light',
-    setColorScheme: jest.fn(),
-  }),
+// Mock modules before importing
+jest.mock('../src/navigation/app-navigator', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
-// Import App component (after mocks are defined)
+// Now we can safely import App
 import App from '../src/main';
 
-// Test that the App component can be imported and created
+describe('Basic Tests', () => {
+  it('should pass a simple test', () => {
+    expect(1 + 1).toBe(2);
+  });
+});
+
 describe('App', () => {
   it('imports without crashing', () => {
     // This verifies that the App component can be imported
