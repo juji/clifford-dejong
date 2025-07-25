@@ -57,7 +57,7 @@ function AppNavigator() {
           },
           headerTintColor: isDarkMode ? '#FFFFFF' : '#000000',
           contentStyle: {
-            backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
+            backgroundColor: isDarkMode ? '#303030' : '#FFFFFF',
           },
         }}
       >
