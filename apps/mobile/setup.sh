@@ -151,7 +151,11 @@ fi
 
 echo "✅ Platform-specific setup completed!"
 
-# Setup watchman to watch the current directory
-echo "🔍 Setting up Watchman for fast file watching..."
-watchman watch-del-all
-watchman watch "$(pwd)"
+# Setup watchman only if it's installed
+if command -v watchman &> /dev/null; then
+  echo "🔍 Setting up Watchman for fast file watching..."
+  watchman watch-del-all
+  watchman watch "$(pwd)"
+else
+  echo "ℹ️ Watchman not found. Skipping watchman setup."
+fi
