@@ -49,12 +49,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.14.0"
-          cache: "pnpm"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8.10.0
+          version: 10.7.1
+          run_install: false
+          cache: "pnpm"
 
       - name: Install dependencies
         run: CI=1 pnpm install
@@ -74,12 +75,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.14.0"
-          cache: "pnpm"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8.10.0
+          version: 10.7.1
+          run_install: false
+          cache: "pnpm"
 
       - name: Install dependencies
         run: CI=1 pnpm install
@@ -99,12 +101,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.14.0"
-          cache: "pnpm"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8.10.0
+          version: 10.7.1
+          run_install: false
+          cache: "pnpm"
 
       - name: Install dependencies
         run: CI=1 pnpm install
@@ -127,12 +130,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
-          cache: "pnpm"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8.10.0
+          version: 10.7.1
+          run_install: false
+          cache: "pnpm"
 
       # Set up the entire workspace with Turborepo
       - name: Install dependencies
