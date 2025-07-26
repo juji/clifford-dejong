@@ -12,7 +12,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppTheme } from '@/types';
 import { getThemeStyles } from '@/components/styles';
 import { TestComponent } from '@/components/test-component';
-import FabSettingsButton from '@/components/fab-settings-button';
+import MainMenuButton from '@/components/main-menu-button';
 import { RootStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
@@ -79,7 +79,7 @@ function HomeScreen({ navigation }: Props) {
 
         <View style={styles.divider} />
       </ScrollView>
-      <FabSettingsButton />
+      <MainMenuButton />
     </View>
   );
 }
