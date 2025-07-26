@@ -4,23 +4,34 @@ import { useRef, useEffect, useCallback } from "react";
 import { useUIStore } from "@/store/ui-store";
 import { useAttractorStore } from "@repo/state/attractor-store";
 import { mainThreadDrawing } from "@/lib/main-thread-drawing";
-import {
-  calculateAttractorPoints,
-  getBatchSize,
-  getInterval
-} from "../../workers/shared/attractor-core";
-import {
-  DEFAULT_POINTS,
-  DEFAULT_SCALE,
-  LOW_QUALITY_POINTS,
-  LOW_QUALITY_INTERVAL,
-} from "@/lib/constants";
+import { calculateAttractorPoints, getBatchSize, getInterval } from "../../workers/shared/attractor-core";
+import { DEFAULT_POINTS, DEFAULT_SCALE, LOW_QUALITY_POINTS, LOW_QUALITY_INTERVAL } from "@/lib/constants";
+import { clifford, dejong } from "@repo/core";
+
+type PlainAttractorParams = {
+  attractorFn: typeof clifford | typeof dejong;
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  width: number;
+  height: number;
+  scale: number;
+  left: number;
+  top: number;
+  points: number;
+  progressInterval: number;
+  qualityMode: string;
+  hue: number;
+  saturation: number;
+  brightness: number;
+  background: [number, number, number, number];
+};
 
 export function PlainCanvas({ ariaLabel }: { ariaLabel?: string }) {
   const benchmarkResult = useUIStore((s) => s.benchmarkResult);
   const setProgress = useUIStore((s) => s.setProgress);
   const canvasSize = useUIStore((s) => s.canvasSize);
-  const canvasVisible = useUIStore((s) => s.canvasVisible);
   const setOnInitResize = useUIStore((s) => s.setOnInitResize);
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -29,14 +40,12 @@ export function PlainCanvas({ ariaLabel }: { ariaLabel?: string }) {
 
   // Main thread calculation and drawing
   const rafId = useRef<number | null>(null);
-  const runAttractor = useCallback((params: any) => {
+  const runAttractor = useCallback((params: PlainAttractorParams) => {
     if (rafId.current !== null) {
       cancelAnimationFrame(rafId.current);
       rafId.current = null;
     }
     if (!canvasRef.current || !params) return;
-    const width = params.width;
-    const height = params.height;
     const points = params.points;
     const batchSize = getBatchSize(points, params.qualityMode);
     const interval = getInterval(points, params.progressInterval);
@@ -45,7 +54,7 @@ export function PlainCanvas({ ariaLabel }: { ariaLabel?: string }) {
     setProgress(0);
     setImageUrl(null);
 
-    const { processBatch, pixels, maxDensity } = calculateAttractorPoints({
+    const { processBatch } = calculateAttractorPoints({
       ...params,
       batchSize,
       interval,
@@ -59,7 +68,7 @@ export function PlainCanvas({ ariaLabel }: { ariaLabel?: string }) {
             maxD,
             progress,
             params.qualityMode,
-            params.params
+            attractorParameters
           );
           lastProgress = progress;
         }
@@ -78,13 +87,13 @@ export function PlainCanvas({ ariaLabel }: { ariaLabel?: string }) {
       }
     }
     rafId.current = requestAnimationFrame(step);
-  }, [setProgress, setImageUrl]);
+    
+  }, [setProgress, setImageUrl, attractorParameters]);
 
-  // Re-run on parameter/size/quality changes
   useEffect(() => {
     if (!benchmarkResult || !attractorParameters || !canvasSize) return;
-    const params = {
-      attractorFn: attractorParameters.attractor === "clifford" ? require("@repo/core").clifford : require("@repo/core").dejong,
+    const params: PlainAttractorParams = {
+      attractorFn: attractorParameters.attractor === "clifford" ? clifford : dejong,
       a: attractorParameters.a,
       b: attractorParameters.b,
       c: attractorParameters.c,
@@ -100,8 +109,7 @@ export function PlainCanvas({ ariaLabel }: { ariaLabel?: string }) {
       hue: attractorParameters.hue,
       saturation: attractorParameters.saturation,
       brightness: attractorParameters.brightness,
-      background: attractorParameters.background,
-      params: attractorParameters,
+      background: attractorParameters.background
     };
     runAttractor(params);
     // eslint-disable-next-line react-hooks/exhaustive-deps

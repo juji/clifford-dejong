@@ -25,7 +25,7 @@ export function SharedArrayCanvas({ ariaLabel }: { ariaLabel?: string }) {
   const sharedBufferRef = useRef<SharedArrayBuffer | null>(null);
 
   const handleWorkerMessage = useCallback((e: MessageEvent) => {
-    const { type, maxDensity, progress, qualityMode, attractorParameters: params, width, height } = e.data;
+    const { type, progress, qualityMode, attractorParameters: params, width, height } = e.data;
 
     if(!canvasRef.current) return;
     if(!workerRef.current) return;
@@ -91,7 +91,7 @@ export function SharedArrayCanvas({ ariaLabel }: { ariaLabel?: string }) {
       width: canvasSize?.width,
       height: canvasSize?.height,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [canvasSize]);
 
   // canvas visibility change
@@ -101,7 +101,7 @@ export function SharedArrayCanvas({ ariaLabel }: { ariaLabel?: string }) {
         type: "start",
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [canvasVisible]);
 
   // qualityMode from store
@@ -115,7 +115,7 @@ export function SharedArrayCanvas({ ariaLabel }: { ariaLabel?: string }) {
       points: qualityMode === "low" ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
       qualityMode,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [qualityMode]);
 
   // initiate

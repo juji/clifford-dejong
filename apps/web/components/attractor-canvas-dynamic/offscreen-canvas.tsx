@@ -73,7 +73,7 @@ export function OffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
       width: canvasSize?.width,
       height: canvasSize?.height,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [canvasSize]);
 
   // canvas visibility change
@@ -83,7 +83,7 @@ export function OffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
         type: "start",
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [canvasVisible]);
 
   // qualityMode from store
@@ -97,7 +97,7 @@ export function OffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
       points: qualityMode === "low" ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
       qualityMode,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [qualityMode]);
 
   // initiate
