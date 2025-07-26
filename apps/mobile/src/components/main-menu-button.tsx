@@ -13,7 +13,7 @@ const MainMenuButton = ({ onPress }: { onPress?: () => void }) => (
     activeOpacity={0.8}
     onPress={onPress}
   >
-    <LucideIcon name="menu" color="#fff" size={28} />
+    <LucideIcon name="menu" color="#fff" size={18} />
   </TouchableOpacity>
 );
 
