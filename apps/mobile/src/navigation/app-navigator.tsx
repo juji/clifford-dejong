@@ -19,11 +19,13 @@ import { RootStackParamList } from './types';
 
 // Import default theme for NavigationContainer
 import { DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { useGlobalStore } from '@/store/global-store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator() {
   const isDarkMode = useColorScheme() === 'dark';
+  const setMenuOpen = useGlobalStore(s => s.setMenuOpen);
 
   // Custom theme with transparent backgrounds to allow Tailwind classes to show through
   const customLightTheme = {
@@ -50,6 +52,7 @@ function AppNavigator() {
     <View style={{ flex: 1 }}>
       <NavigationContainer
         theme={isDarkMode ? customDarkTheme : customLightTheme}
+        onStateChange={() => setMenuOpen(false)}
       >
         <Stack.Navigator
           initialRouteName="Home"
