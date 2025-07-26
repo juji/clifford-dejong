@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "eslint-fix-all",
+			"command": "pnpm exec eslint . --fix",
+			"group": "build"
+		}
+	]
+}

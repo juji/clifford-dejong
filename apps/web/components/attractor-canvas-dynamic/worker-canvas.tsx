@@ -63,6 +63,7 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
     if(type === "done" && canvasRef.current && qualityMode === "high") {
       setImageUrl(canvasRef.current.toDataURL("image/png"));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[canvasSize])
 
   // handle parameters change
@@ -123,7 +124,7 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
         type: 'stop'
       })
     })
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [benchmarkResult, attractorParameters, canvasSize, handleWorkerMessage]);
 
   useEffect(() => {
@@ -134,6 +135,7 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
         workerRef.current = null
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[])
 
   
