@@ -21,7 +21,7 @@ export interface UIState {
   canvasSize: CanvasSize | null;
   canvasVisible: boolean;
   onInitResize?: () => void; // callback for initial resize
-  benchmarkResult: AttractorBenchmarkResult | null;
+  benchmarkResult: number | null;
 }
 
 export interface UIActions {
@@ -38,7 +38,7 @@ export interface UIActions {
   setCanvasSize: (size: CanvasSize) => void;
   setCanvasVisible: (visible: boolean) => void;
   setOnInitResize: (callback: () => void) => void;
-  setBenchmarkResult: (result: AttractorBenchmarkResult | null) => void;
+  setBenchmarkResult: (result: number | null) => void;
 }
 
 export const useUIStore = create<UIState & UIActions>()(

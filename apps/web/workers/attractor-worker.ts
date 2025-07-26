@@ -11,8 +11,12 @@
 //   This is set dynamically by the main thread based on device performance.
 
 import { clifford, dejong } from "@repo/core";
-import { getColorData, hsv2rgb } from "@repo/core/color";
 import type { AttractorParameters } from "@repo/core/types";
+import {
+  calculateAttractorPoints,
+  getBatchSize,
+  getInterval
+} from "./shared/attractor-core";
 
 type Params = {
   params: AttractorParameters;
@@ -168,55 +172,55 @@ function runAttractor({
   brightness,
   background,
 }: any) {
-  let x = 0,
-    y = 0;
-  const pixels = new Uint32Array(width * height);
-  let maxDensity = 0;
-  const interval = Math.max(1, Math.floor(points * (progressInterval / 100)));
-  const batchSize =
-    qualityMode === "low"
-      ? Math.max(10000, Math.floor(points / 10))
-      : Math.max(1000, Math.floor(points / 1000));
-  let i = 0;
   shouldStop = false;
-  function smoothing(num: number, scale: number) {
-    return num + (Math.random() < 0.5 ? -0.2 : 0.2) * (1 / scale);
-  }
-  function processBatch() {
-    if (shouldStop) return;
-    const end = Math.min(i + batchSize, points);
-    for (; i < end; i++) {
-      const [nxRaw, nyRaw] = attractorFn(x, y, a, b, c, d) as [number, number];
-      let nx = smoothing(nxRaw, scale);
-      let ny = smoothing(nyRaw, scale);
-      x = nx;
-      y = ny;
-      const screenX = Math.round(x * scale);
-      const screenY = Math.round(y * scale);
-      const px = Math.floor(screenX + width / 2 + left * width);
-      const py = Math.floor(screenY + height / 2 + top * height);
-      if (px >= 0 && px < width && py >= 0 && py < height) {
-        const idx = px + py * width;
-        pixels[idx] = (pixels[idx] || 0) + 1;
-        if (pixels[idx] > maxDensity) maxDensity = pixels[idx];
-      }
-      if ((i > 0 && i % interval === 0) || i === points - 1) {
+  const batchSize = getBatchSize(points, qualityMode);
+  const interval = getInterval(points, progressInterval);
+  let i = 0;
+  let lastProgress = 0;
+  const {
+    processBatch,
+    pixels,
+    maxDensity
+  } = calculateAttractorPoints({
+    attractorFn,
+    a,
+    b,
+    c,
+    d,
+    points,
+    width,
+    height,
+    scale,
+    left,
+    top,
+    batchSize,
+    interval,
+    onBatchProgress: (idx, pxs, maxD, isDone) => {
+      if (shouldStop) return;
+      const progress = Math.round((idx / (points - 1)) * 100);
+      if (progress !== lastProgress || isDone) {
         self.postMessage({
-          type: i === points - 1 ? "done" : "preview",
-          pixels: pixels.slice(0),
-          maxDensity,
-          progress: Math.round((i / (points - 1)) * 100),
-          batch: i,
+          type: isDone ? "done" : "preview",
+          pixels: pxs.slice(0),
+          maxDensity: maxD,
+          progress,
+          batch: idx,
           qualityMode,
           attractorParameters: parameters?.params,
         });
+        lastProgress = progress;
       }
-    }
-    if (i < points && !shouldStop) {
-      rafHandle = self.requestAnimationFrame(processBatch);
+    },
+  });
+
+  function step() {
+    if (shouldStop) return;
+    processBatch();
+    if (!shouldStop && lastProgress < 100) {
+      rafHandle = self.requestAnimationFrame(step);
     }
   }
-  rafHandle = self.requestAnimationFrame(processBatch);
+  rafHandle = self.requestAnimationFrame(step);
 }
 
 function reportError(err: unknown) {

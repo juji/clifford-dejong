@@ -17,24 +17,30 @@ export function AttractorCanvasDynamic({ ariaLabel }: { ariaLabel?: string }) {
   // Run the benchmark on component mount and store the result
   useEffect(() => {
 
+    console.log('Running attractor benchmark...')
     ;(async () => {
+      let result;
       try {
-        const result = await runAttractorBenchmark(100000, 3);
-        setBenchmarkResult(result);
+        result = await runAttractorBenchmark(100000, 3);
       } catch (error) {
         console.error('Benchmark failed:', error);
         console.error('Falling back to a slowed down benchmark result');
-        setBenchmarkResult({ 
+        result = { 
           points: 100000, runs: 3, 
           avgMs: 21.199999968210857, 
           msPer100k: 21.199999968210857
-        });
+        }
       }
+      let interval;
+      if (result.msPer100k < 10) interval = 0.5;
+      else if (result.msPer100k < 30) interval = 1;
+      else interval = 2.5;
+      setBenchmarkResult(interval);
     })();
     
   }, [setBenchmarkResult]);
 
-  console.log('workerSupport', workerSupport)
+  // console.log('workerSupport', workerSupport)
 
   return workerSupport === 'none' ? (
     <PlainCanvas ariaLabel={ariaLabel} />
