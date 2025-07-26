@@ -143,7 +143,6 @@ function handleStop() {
     self.cancelAnimationFrame(rafHandle);
     rafHandle = null;
   }
-  self.postMessage({ type: "stopped" });
 }
 
 function parseParams(data: any) {

@@ -25,6 +25,24 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
 
   const handleWorkerMessage = useCallback((e: MessageEvent) => {
     const { type, pixels, maxDensity, progress, qualityMode, attractorParameters: params } = e.data;
+
+    if(!canvasRef.current) return;
+    if(!workerRef.current) return;
+    if(!canvasSize) return;
+
+    if(type === "ready") {
+      workerRef.current.postMessage({
+        type: "init",
+        params: attractorParameters,
+        width: canvasSize.width,
+        height: canvasSize.height,
+        progressInterval: qualityMode === "low" ? LOW_QUALITY_INTERVAL : 1,
+        qualityMode,
+        points: qualityMode === "low" ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
+        defaultScale: DEFAULT_SCALE,
+      });
+      return;
+    }
     
     setProgress(progress);
     if(!progress){
@@ -45,7 +63,7 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
     if(type === "done" && canvasRef.current && qualityMode === "high") {
       setImageUrl(canvasRef.current.toDataURL("image/png"));
     }
-  },[])
+  },[canvasSize])
 
   // handle parameters change
   useEffect(() => {
@@ -82,22 +100,12 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
   const qualityMode = useUIStore((s) => s.qualityMode);
   useEffect(() => {
     if (!workerRef.current) return;
-    // on low quality mode change
-    if (qualityMode === "low") {
-      workerRef.current?.postMessage({
-        type: "update",
-        progressInterval: LOW_QUALITY_INTERVAL,
-        points: LOW_QUALITY_POINTS,
-        qualityMode: qualityMode,
-      });
-    } else {
-      workerRef.current?.postMessage({
-        type: "update",
-        progressInterval: benchmarkResult,
-        points: DEFAULT_POINTS,
-        qualityMode: qualityMode,
-      });
-    }
+    workerRef.current?.postMessage({
+      type: "update",
+      progressInterval: qualityMode === "low" ? LOW_QUALITY_INTERVAL : 1,
+      points: qualityMode === "low" ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
+      qualityMode,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qualityMode]);
 
@@ -108,17 +116,6 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
 
     const worker = new Worker(new URL("../../workers/attractor-worker.ts", import.meta.url), { type: "module" });
     workerRef.current = worker;
-
-    worker.postMessage({
-      type: "init",
-      params: attractorParameters,
-      width: canvasSize.width,
-      height: canvasSize.height,
-      progressInterval: benchmarkResult,
-      qualityMode: "high",
-      points: DEFAULT_POINTS,
-      defaultScale: DEFAULT_SCALE,
-    });
 
     worker.onmessage = handleWorkerMessage;
     setOnInitResize(() => {

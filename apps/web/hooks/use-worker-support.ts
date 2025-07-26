@@ -9,7 +9,7 @@ export type WorkerSupport =
   | null;
 
 export function useWorkerSupport() {
-  const [supported, setSupported] = useState<WorkerSupport>('none');
+  const [supported, setSupported] = useState<WorkerSupport>('shared-array');
 
   // useEffect(() => {
   //   // Check if offscreen canvas is supported
