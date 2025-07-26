@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useColorScheme } from 'react-native';
@@ -46,52 +47,54 @@ function AppNavigator() {
   };
 
   return (
-    <NavigationContainer
-      theme={isDarkMode ? customDarkTheme : customLightTheme}
-    >
-      <Stack.Navigator
-        initialRouteName="Home"
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
-          },
-          headerTintColor: isDarkMode ? '#FFFFFF' : '#000000',
-          contentStyle: {
-            backgroundColor: isDarkMode ? '#303030' : '#FFFFFF',
-          },
-        }}
+    <View style={{ flex: 1 }}>
+      <NavigationContainer
+        theme={isDarkMode ? customDarkTheme : customLightTheme}
       >
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            title: 'Clifford-deJong Attractor',
-            headerShown: false,
+        <Stack.Navigator
+          initialRouteName="Home"
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
+            },
+            headerTintColor: isDarkMode ? '#FFFFFF' : '#000000',
+            contentStyle: {
+              backgroundColor: isDarkMode ? '#303030' : '#FFFFFF',
+            },
           }}
-        />
-        <Stack.Screen
-          name="AttractorScreen"
-          component={AttractorScreen}
-          options={{
-            title: 'Attractor View',
-          }}
-        />
-        <Stack.Screen
-          name="AttractorDetail"
-          component={AttractorDetailScreen}
-          options={{
-            title: 'Attractor Detail',
-          }}
-        />
-        <Stack.Screen
-          name="Settings"
-          component={SettingsScreen}
-          options={{
-            title: 'Settings',
-          }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+        >
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{
+              title: 'Clifford-deJong Attractor',
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="AttractorScreen"
+            component={AttractorScreen}
+            options={{
+              title: 'Attractor View',
+            }}
+          />
+          <Stack.Screen
+            name="AttractorDetail"
+            component={AttractorDetailScreen}
+            options={{
+              title: 'Attractor Detail',
+            }}
+          />
+          <Stack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{
+              title: 'Settings',
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </View>
   );
 }
 

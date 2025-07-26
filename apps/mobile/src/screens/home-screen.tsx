@@ -12,6 +12,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppTheme } from '@/types';
 import { getThemeStyles } from '@/components/styles';
 import { TestComponent } from '@/components/test-component';
+import FabSettingsButton from '@/components/fab-settings-button';
 import { RootStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
@@ -22,61 +23,64 @@ function HomeScreen({ navigation }: Props) {
   const styles = getThemeStyles(isDarkMode);
 
   return (
-    <ScrollView className="p-4 flex-1">
-      <Text className="text-2xl font-bold mb-4 mt-4 text-text-light dark:text-text-dark">
-        Clifford-deJong Attractor
-      </Text>
-      <Text className="text-base mb-4 text-gray-600 dark:text-gray-400">
-        Current theme: {theme}
-      </Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView className="p-4 flex-1">
+        <Text className="text-2xl font-bold mb-4 mt-4 text-text-light dark:text-text-dark">
+          Clifford-deJong Attractor
+        </Text>
+        <Text className="text-base mb-4 text-gray-600 dark:text-gray-400">
+          Current theme: {theme}
+        </Text>
 
-      <Text className="text-base leading-6 mb-2 text-gray-600 dark:text-gray-400">
-        Welcome to the Clifford-deJong Attractor mobile application! This app
-        demonstrates beautiful mathematical visualizations based on the famous
-        strange attractor discovered by Clifford Pickover and Peter de Jong.
-      </Text>
+        <Text className="text-base leading-6 mb-2 text-gray-600 dark:text-gray-400">
+          Welcome to the Clifford-deJong Attractor mobile application! This app
+          demonstrates beautiful mathematical visualizations based on the famous
+          strange attractor discovered by Clifford Pickover and Peter de Jong.
+        </Text>
 
-      <Text className="text-base leading-6 mb-4 text-gray-600 dark:text-gray-400">
-        The Clifford-deJong attractor is a type of strange attractor that
-        creates mesmerizing patterns through iterative mathematical equations.
-        These attractors are known for their intricate, fractal-like structures
-        that emerge from simple mathematical rules.
-      </Text>
+        <Text className="text-base leading-6 mb-4 text-gray-600 dark:text-gray-400">
+          The Clifford-deJong attractor is a type of strange attractor that
+          creates mesmerizing patterns through iterative mathematical equations.
+          These attractors are known for their intricate, fractal-like
+          structures that emerge from simple mathematical rules.
+        </Text>
 
-      {/* Navigation Buttons */}
-      <View className="mt-6 mb-6 flex flex-col space-y-4">
-        <View
-          className="p-4 bg-blue-100 dark:bg-blue-900 rounded-lg items-center"
-          onTouchEnd={() => navigation.navigate('AttractorScreen')}
-        >
-          <Text className="text-lg font-bold text-blue-800 dark:text-blue-200">
-            Explore Attractor Visualization
-          </Text>
+        {/* Navigation Buttons */}
+        <View className="mt-6 mb-6 flex flex-col space-y-4">
+          <View
+            className="p-4 bg-blue-100 dark:bg-blue-900 rounded-lg items-center"
+            onTouchEnd={() => navigation.navigate('AttractorScreen')}
+          >
+            <Text className="text-lg font-bold text-blue-800 dark:text-blue-200">
+              Explore Attractor Visualization
+            </Text>
+          </View>
+
+          <View
+            className="p-4 bg-green-100 dark:bg-green-900 rounded-lg items-center"
+            onTouchEnd={() =>
+              navigation.navigate('AttractorDetail', { id: 'default' })
+            }
+          >
+            <Text className="text-lg font-bold text-green-800 dark:text-green-200">
+              View Default Attractor
+            </Text>
+          </View>
+
+          <View
+            className="p-4 bg-purple-100 dark:bg-purple-900 rounded-lg items-center"
+            onTouchEnd={() => navigation.navigate('Settings')}
+          >
+            <Text className="text-lg font-bold text-purple-800 dark:text-purple-200">
+              Settings
+            </Text>
+          </View>
         </View>
 
-        <View
-          className="p-4 bg-green-100 dark:bg-green-900 rounded-lg items-center"
-          onTouchEnd={() =>
-            navigation.navigate('AttractorDetail', { id: 'default' })
-          }
-        >
-          <Text className="text-lg font-bold text-green-800 dark:text-green-200">
-            View Default Attractor
-          </Text>
-        </View>
-
-        <View
-          className="p-4 bg-purple-100 dark:bg-purple-900 rounded-lg items-center"
-          onTouchEnd={() => navigation.navigate('Settings')}
-        >
-          <Text className="text-lg font-bold text-purple-800 dark:text-purple-200">
-            Settings
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.divider} />
-    </ScrollView>
+        <View style={styles.divider} />
+      </ScrollView>
+      <FabSettingsButton />
+    </View>
   );
 }
 
