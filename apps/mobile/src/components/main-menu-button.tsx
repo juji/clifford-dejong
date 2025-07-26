@@ -2,8 +2,10 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import ThemeAwareIcon from './theme-aware-icon';
 import clsx from 'clsx';
+import { useGlobalStore } from '@/store/global-store';
 
-const MainMenuButton = ({ onPress }: { onPress?: () => void }) => {
+const MainMenuButton = () => {
+  const setMenuOpen = useGlobalStore(s => s.setMenuOpen);
   return (
     <TouchableOpacity
       className={clsx(
@@ -13,7 +15,7 @@ const MainMenuButton = ({ onPress }: { onPress?: () => void }) => {
         justify-center shadow-lg`,
       )}
       activeOpacity={0.8}
-      onPress={onPress}
+      onPress={() => setMenuOpen(true)}
     >
       <ThemeAwareIcon name="menu" size={21} />
     </TouchableOpacity>
