@@ -1,10 +1,9 @@
 import React from 'react';
-import { TouchableOpacity, useColorScheme } from 'react-native';
-import LucideIcon from '@react-native-vector-icons/lucide';
+import { TouchableOpacity } from 'react-native';
+import ThemeAwareIcon from './theme-aware-icon';
 import clsx from 'clsx';
 
 const MainMenuButton = ({ onPress }: { onPress?: () => void }) => {
-  const isDark = useColorScheme() === 'dark';
   return (
     <TouchableOpacity
       className={clsx(
@@ -16,7 +15,7 @@ const MainMenuButton = ({ onPress }: { onPress?: () => void }) => {
       activeOpacity={0.8}
       onPress={onPress}
     >
-      <LucideIcon name="menu" color={isDark ? '#fff' : '#222'} size={24} />
+      <ThemeAwareIcon name="menu" size={24} />
     </TouchableOpacity>
   );
 };
