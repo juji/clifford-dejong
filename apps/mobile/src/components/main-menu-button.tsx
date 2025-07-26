@@ -15,7 +15,7 @@ const MainMenuButton = ({ onPress }: { onPress?: () => void }) => {
       activeOpacity={0.8}
       onPress={onPress}
     >
-      <ThemeAwareIcon name="menu" size={24} />
+      <ThemeAwareIcon name="menu" size={21} />
     </TouchableOpacity>
   );
 };
