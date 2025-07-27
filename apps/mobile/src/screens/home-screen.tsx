@@ -56,6 +56,7 @@ function HomeScreen({ navigation }: Props) {
         {/* Navigation Buttons */}
         <View className="mt-6 mb-6 flex flex-col space-y-4">
           <View
+            testID="AttractorScreenButton"
             className="p-4 bg-blue-100 dark:bg-blue-900 rounded-lg items-center"
             onTouchEnd={() => navigation.navigate('AttractorScreen')}
           >

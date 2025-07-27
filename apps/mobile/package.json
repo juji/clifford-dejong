@@ -14,7 +14,9 @@
     "setup": "./setup.sh",
     "build": "pnpm run build:android && pnpm run build:ios",
     "build:android": "cd android && ./gradlew assembleRelease",
-    "build:ios": "cd ios && xcodebuild -workspace mobile.xcworkspace -scheme mobile -configuration Release -sdk iphoneos -quiet"
+    "build:ios": "cd ios && xcodebuild -workspace mobile.xcworkspace -scheme mobile -configuration Release -sdk iphoneos -quiet",
+    "prescreenshot:ios": "react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle --assets-dest ios",
+    "screenshot:ios": "cd ios && fastlane screenshots"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
