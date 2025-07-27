@@ -10,7 +10,6 @@ import {
   Open_Sans,
   Playwrite_NG_Modern,
   Shantell_Sans,
-  Winky_Rough,
 } from "next/font/google";
 
 // Array of Google Fonts from the provided selection
@@ -23,7 +22,6 @@ const nunito = Nunito({ subsets: ["latin"] });
 const open_sans = Open_Sans({ subsets: ["latin"] });
 const playwrite_ng_modern = Playwrite_NG_Modern({ weight: "400" });
 const shantell_sans = Shantell_Sans({ subsets: ["latin"] });
-const winky_rough = Winky_Rough({ subsets: ["latin"] });
 
 const fonts = [
   alegreya,
@@ -35,7 +33,6 @@ const fonts = [
   open_sans,
   playwrite_ng_modern,
   shantell_sans,
-  winky_rough,
 ];
 
 // Function to get a random font from the array
