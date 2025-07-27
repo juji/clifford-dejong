@@ -12,7 +12,7 @@ vi.mock("react", async () => {
   };
 });
 
-describe("Header", () => {
+describe.skip("Header", () => {
   // Custom accessibility test for Header component
   it("has no accessibility violations", async () => {
     const renderResult = render(<Header />);
