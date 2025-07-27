@@ -9,6 +9,7 @@ export type RootStackParamList = {
   AttractorDetail: { id: string };
   Settings: undefined;
   About: undefined;
+  TamaguiShowcase: undefined;
 };
 
 // Previous bottom tab types (keeping for reference)

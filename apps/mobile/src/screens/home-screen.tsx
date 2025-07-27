@@ -14,6 +14,7 @@ import { getThemeStyles } from '@/components/styles';
 import { TestComponent } from '@/components/test-component';
 import MainMenuButton from '@/components/main-menu-button';
 import { RootStackParamList } from '@/navigation/types';
+import { Button } from 'tamagui';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -25,6 +26,13 @@ function HomeScreen({ navigation }: Props) {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView className="p-4 flex-1">
+        <Button
+          onPress={() => navigation.navigate('TamaguiShowcase')}
+          size="$4"
+          mb="$4"
+        >
+          Tamagui Showcase
+        </Button>
         <Text className="text-2xl font-bold mb-4 mt-4 text-text-light dark:text-text-dark">
           Clifford-deJong Attractor
         </Text>

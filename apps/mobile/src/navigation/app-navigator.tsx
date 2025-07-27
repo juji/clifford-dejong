@@ -13,6 +13,7 @@ import HomeScreen from '@/screens/home-screen';
 import AttractorScreen from '@/screens/attractor-screen';
 import AttractorDetailScreen from '@/screens/attractor-detail-screen';
 import SettingsScreen from '@/screens/settings-screen';
+import TamaguiShowcaseScreen from '@/screens/tamagui-showcase-screen';
 
 // Import types
 import { RootStackParamList } from './types';
@@ -93,6 +94,13 @@ function AppNavigator() {
             component={SettingsScreen}
             options={{
               title: 'Settings',
+            }}
+          />
+          <Stack.Screen
+            name="TamaguiShowcase"
+            component={TamaguiShowcaseScreen}
+            options={{
+              title: 'Tamagui Showcase',
             }}
           />
         </Stack.Navigator>

@@ -16,18 +16,21 @@ import {
 // Import using path aliases
 // import { AppTheme } from '@/types';
 import AppNavigator from '@/navigation/app-navigator';
+import { TamaguiConfig } from './tamagui-config';
 
 function Main() {
   const isDarkMode = useColorScheme() === 'dark';
   // const theme: AppTheme = isDarkMode ? 'dark' : 'light';
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <View className="flex-1">
-        <AppNavigator />
-      </View>
-    </SafeAreaView>
+    <TamaguiConfig>
+      <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <View className="flex-1">
+          <AppNavigator />
+        </View>
+      </SafeAreaView>
+    </TamaguiConfig>
   );
 }
 
