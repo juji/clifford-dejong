@@ -11,8 +11,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 // Import using path aliases
 import { AppTheme } from '@/types';
 import { getThemeStyles } from '@/components/styles';
-import { TestComponent } from '@/components/test-component';
 import MainMenuButton from '@/components/main-menu-button';
+import { MainMenu } from '@/components/main-menu';
 import { RootStackParamList } from '@/navigation/types';
 import { Button } from 'tamagui';
 
@@ -89,6 +89,7 @@ function HomeScreen({ navigation }: Props) {
         <View style={styles.divider} />
       </ScrollView>
       <MainMenuButton />
+      <MainMenu />
     </View>
   );
 }
