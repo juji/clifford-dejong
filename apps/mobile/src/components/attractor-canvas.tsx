@@ -151,88 +151,37 @@ export function makeSkiaImage(
   return img;
 }
 
-// useAttractorTiles divides the screen into tiles for memory-safe, crisp rendering.
-// - maxTileSize: controls the largest tile size (adjust for memory/performance)
-// - cols/rows: number of tiles horizontally/vertically
-// - All tile sizes and offsets are rounded to integers for Skia compatibility
-// - This avoids JS array property/memory limits on mobile
-function useAttractorTiles() {
-  // React Native's Dimensions.get('window') can return fractional values due to device pixel ratio/scaling.
-  // Always round to integers for pixel-based APIs!
+// Non-tiled: render the full attractor image in a single buffer
+function useFullAttractorImage() {
   const { width, height } = Dimensions.get('window');
-  const maxTileSize = 512;
-  const cols = Math.ceil(width / maxTileSize);
-  const rows = Math.ceil(height / maxTileSize);
-  const [tiles, setTiles] = useState<
-    Array<{
-      image: SkImage;
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    }>
-  >([]);
   const attractorParameters = useAttractorStore(s => s.attractorParameters);
+  const [image, setImage] = useState<SkImage | null>(null);
 
   useEffect(() => {
-    const newTiles = [];
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        let offsetX = Math.round(col * maxTileSize);
-        let offsetY = Math.round(row * maxTileSize);
-        let tileWidth, tileHeight;
-        if (col === cols - 1) {
-          tileWidth = Math.round(width - offsetX);
-        } else {
-          tileWidth = Math.round(maxTileSize);
-        }
-        if (row === rows - 1) {
-          tileHeight = Math.round(height - offsetY);
-        } else {
-          tileHeight = Math.round(maxTileSize);
-        }
-        tileWidth = Math.max(1, tileWidth);
-        tileHeight = Math.max(1, tileHeight);
-        offsetX = Math.max(0, offsetX);
-        offsetY = Math.max(0, offsetY);
-        // Generate the tile's pixel data for its region of the full image using attractorParameters
-        const imageData = createAttractorTile(
-          tileWidth,
-          tileHeight,
-          offsetX,
-          offsetY,
-          Math.round(width),
-          Math.round(height),
-          attractorParameters,
-        );
-        const img = makeSkiaImage(imageData, tileWidth, tileHeight);
-        if (!img) {
-          console.warn(`Skia image creation failed for tile [${row},${col}]`);
-        }
-        newTiles.push({
-          image: img as SkImage,
-          x: offsetX,
-          y: offsetY,
-          width: tileWidth,
-          height: tileHeight,
-        });
-      }
-    }
-    setTiles(newTiles);
-    return () => setTiles([]);
+    // Compute the full density buffer and colorize
+    const imageData = createAttractorTile(
+      Math.round(width),
+      Math.round(height),
+      0,
+      0,
+      Math.round(width),
+      Math.round(height),
+      attractorParameters,
+    );
+    const img = makeSkiaImage(imageData, Math.round(width), Math.round(height));
+    setImage(img);
   }, [width, height, attractorParameters]);
-  return tiles;
+  return image;
 }
 
 // AttractorCanvas: renders the attractor using tiling for memory safety and crispness on all devices.
 // - The yellow background is for debugging; remove or change as needed.
 // - Each tile is rendered in its correct position, filling the screen seamlessly.
+
 export function AttractorCanvas() {
   const { width, height } = Dimensions.get('window');
-  const {
-    attractorParameters: { background },
-  } = useAttractorStore();
-  const tiles = useAttractorTiles();
+  const background = useAttractorStore(s => s.attractorParameters.background);
+  const image = useFullAttractorImage();
 
   // Convert [r,g,b,a] (0-255) to rgba() string for Skia
   const bgColor = `rgba(${background[0]},${background[1]},${background[2]},${background[3] / 255})`;
@@ -245,37 +194,17 @@ export function AttractorCanvas() {
       }}
     >
       <Canvas style={{ flex: 1, width, height }}>
-        {/* 
-          Fill the canvas with the attractor background color 
-          To ensure the backround will fully cover the canvas
-          This is important for cases where tiles do not fill the entire screen.
-          (some screens have fractional dimensions)
-        */}
         <Rect x={0} y={0} width={width} height={height} color={bgColor} />
-        {tiles.map((tile, idx) => (
-          <>
-            <Image
-              key={`tile-img-${idx}`}
-              image={tile.image}
-              fit="fill"
-              x={tile.x}
-              y={tile.y}
-              width={tile.width}
-              height={tile.height}
-            />
-            {/* Draw a red border around each tile for debugging */}
-            <Rect
-              key={`tile-border-${idx}`}
-              x={tile.x}
-              y={tile.y}
-              width={tile.width}
-              height={tile.height}
-              color="red"
-              style="stroke"
-              strokeWidth={2}
-            />
-          </>
-        ))}
+        {image && (
+          <Image
+            image={image}
+            fit="fill"
+            x={0}
+            y={0}
+            width={width}
+            height={height}
+          />
+        )}
       </Canvas>
     </View>
   );
