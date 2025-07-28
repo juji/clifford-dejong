@@ -3,6 +3,7 @@ import { Canvas, Image, Rect } from '@shopify/react-native-skia';
 // AttractorCanvas renders a full-screen attractor image in a single buffer.
 
 import { useAttractorStore } from '@repo/state/attractor-store';
+import type { AttractorParameters } from '@repo/core/types';
 import { clifford, dejong } from '@repo/core';
 import { getColorData } from '@repo/core/color';
 import { useEffect, useState } from 'react';
@@ -10,11 +11,14 @@ import { Dimensions } from 'react-native';
 import type { SkImage } from '@shopify/react-native-skia';
 import { Skia, AlphaType, ColorType } from '@shopify/react-native-skia';
 
+const POINTS = 3000000; // Default points for attractor
+const SCALE = 100;
+
 // Minimal, single-buffer attractor image generator
 function createAttractorImage(
   width: number,
   height: number,
-  attractorParameters: any,
+  attractorParameters: AttractorParameters,
 ): Uint32Array {
   const {
     attractor = 'clifford',
@@ -25,7 +29,6 @@ function createAttractorImage(
     scale = 1,
     left = 0,
     top = 0,
-    points = 3000000,
     hue = 120,
     saturation = 100,
     brightness = 100,
@@ -34,12 +37,12 @@ function createAttractorImage(
   const fn = attractor === 'clifford' ? clifford : dejong;
   const cx = width / 2 + left;
   const cy = height / 2 + top;
-  const s = scale * 120;
+  const s = scale * SCALE;
   const density = new Uint32Array(width * height);
   let maxDensity = 1;
   let x = 0,
     y = 0;
-  for (let i = 0; i < points; i++) {
+  for (let i = 0; i < POINTS; i++) {
     [x, y] = fn(x, y, a, b, c, d);
     const sx = x * s;
     const sy = y * s;
