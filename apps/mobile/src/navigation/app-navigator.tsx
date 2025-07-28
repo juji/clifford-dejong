@@ -27,7 +27,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 function AppNavigator() {
   const isDarkMode = useColorScheme() === 'dark';
   const setMenuOpen = useGlobalStore(s => s.setMenuOpen);
-  const setAttractoMenuOpen = useGlobalStore(s => s.setAttractoMenuOpen);
+  const setAttractorMenuOpen = useGlobalStore(s => s.setAttractorMenuOpen);
 
   // Custom theme with transparent backgrounds to allow Tailwind classes to show through
   const customLightTheme = {
@@ -56,7 +56,7 @@ function AppNavigator() {
         theme={isDarkMode ? customDarkTheme : customLightTheme}
         onStateChange={() => {
           setMenuOpen(false);
-          setAttractoMenuOpen(false);
+          setAttractorMenuOpen(false);
         }}
       >
         <Stack.Navigator
