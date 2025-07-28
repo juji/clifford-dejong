@@ -22,6 +22,7 @@ import { Skia, AlphaType, ColorType } from '@shopify/react-native-skia';
 let globalDensityBuffer: Uint32Array | null = null;
 let globalMaxDensity: number = 1;
 let globalDensityParams: string = '';
+const SCALE = 120;
 
 function computeGlobalDensityBuffer(
   fullWidth: number,
@@ -41,7 +42,6 @@ function computeGlobalDensityBuffer(
     points = 3000000,
   } = attractorParameters;
   const fn = attractor === 'clifford' ? clifford : dejong;
-  const SCALE = 120;
   const cx = fullWidth / 2 + left;
   const cy = fullHeight / 2 + top;
   const s = scale * SCALE;
