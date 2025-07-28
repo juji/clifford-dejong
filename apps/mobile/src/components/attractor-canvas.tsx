@@ -1,7 +1,6 @@
 import { View } from 'tamagui';
 import { Canvas, Image, Rect } from '@shopify/react-native-skia';
 // AttractorCanvas renders a full-screen attractor image in a single buffer.
-// No tiling is used; the entire image is generated and rendered at once.
 
 import { useAttractorStore } from '@repo/state/attractor-store';
 import { clifford, dejong } from '@repo/core';
