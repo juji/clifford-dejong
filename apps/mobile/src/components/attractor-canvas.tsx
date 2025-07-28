@@ -1,8 +1,7 @@
 import { View } from 'tamagui';
 import { Canvas, Image, Rect } from '@shopify/react-native-skia';
-// AttractorCanvas renders a full-screen attractor image using tiling to avoid memory/property limits on mobile devices.
-// Tiling is necessary because allocating a single large image buffer (width * height) can exceed JS engine limits on mobile.
-// Each tile is generated and rendered separately, but the result is visually seamless.
+// AttractorCanvas renders a full-screen attractor image in a single buffer.
+// No tiling is used; the entire image is generated and rendered at once.
 
 import { useAttractorStore } from '@repo/state/attractor-store';
 import { clifford, dejong } from '@repo/core';
@@ -12,26 +11,14 @@ import { Dimensions } from 'react-native';
 import type { SkImage } from '@shopify/react-native-skia';
 import { Skia, AlphaType, ColorType } from '@shopify/react-native-skia';
 
-// Generate a tile of the attractor image.
-// width, height: tile size in pixels (must be integers)
-// offsetX, offsetY: position of the tile in the full image
-// fullWidth, fullHeight: full image size (for centering the box)
-// Returns a Uint32Array (1 int per pixel, RGBA packed)
-// Generate a tile of the attractor image using canonical attractor/color code and attractorParameters from store
-// Global density buffer for seamless tiling
-let globalDensityBuffer: Uint32Array | null = null;
-let globalMaxDensity: number = 1;
-let globalDensityParams: string = '';
-const SCALE = 120;
-
-function computeGlobalDensityBuffer(
-  fullWidth: number,
-  fullHeight: number,
+// Minimal, single-buffer attractor image generator
+function createAttractorImage(
+  width: number,
+  height: number,
   attractorParameters: any,
-) {
-  // Unpack parameters
+): Uint32Array {
   const {
-    attractor,
+    attractor = 'clifford',
     a,
     b,
     c,
@@ -40,12 +27,16 @@ function computeGlobalDensityBuffer(
     left = 0,
     top = 0,
     points = 3000000,
+    hue = 120,
+    saturation = 100,
+    brightness = 100,
+    background = [0, 0, 0, 255],
   } = attractorParameters;
   const fn = attractor === 'clifford' ? clifford : dejong;
-  const cx = fullWidth / 2 + left;
-  const cy = fullHeight / 2 + top;
-  const s = scale * SCALE;
-  const density = new Uint32Array(fullWidth * fullHeight);
+  const cx = width / 2 + left;
+  const cy = height / 2 + top;
+  const s = scale * 120;
+  const density = new Uint32Array(width * height);
   let maxDensity = 1;
   let x = 0,
     y = 0;
@@ -55,75 +46,30 @@ function computeGlobalDensityBuffer(
     const sy = y * s;
     const px = Math.floor(cx + sx);
     const py = Math.floor(cy + sy);
-    if (px >= 0 && px < fullWidth && py >= 0 && py < fullHeight) {
-      const idx = py * fullWidth + px;
+    if (px >= 0 && px < width && py >= 0 && py < height) {
+      const idx = py * width + px;
       density[idx] = (density[idx] || 0) + 1;
       if (density[idx] > maxDensity) maxDensity = density[idx];
     }
   }
-  globalDensityBuffer = density;
-  globalMaxDensity = maxDensity;
-  globalDensityParams = JSON.stringify({
-    fullWidth,
-    fullHeight,
-    ...attractorParameters,
-  });
-}
-
-function createAttractorTile(
-  width: number,
-  height: number,
-  offsetX: number,
-  offsetY: number,
-  fullWidth: number,
-  fullHeight: number,
-  attractorParameters: any,
-): Uint32Array {
-  // Ensure global density buffer is up to date
-  const paramKey = JSON.stringify({
-    fullWidth,
-    fullHeight,
-    ...attractorParameters,
-  });
-  if (!globalDensityBuffer || globalDensityParams !== paramKey) {
-    computeGlobalDensityBuffer(fullWidth, fullHeight, attractorParameters);
-  }
-  const {
-    hue = 120,
-    saturation = 100,
-    brightness = 100,
-    background = [0, 0, 0, 255],
-  } = attractorParameters;
   const imageData = new Uint32Array(width * height);
-  // Copy region from global density buffer and colorize
-  for (let ty = 0; ty < height; ty++) {
-    for (let tx = 0; tx < width; tx++) {
-      const gx = offsetX + tx;
-      const gy = offsetY + ty;
-      const gidx = gy * fullWidth + gx;
-      const d =
-        globalDensityBuffer && globalDensityBuffer[gidx]
-          ? globalDensityBuffer[gidx]
-          : 0;
-      const idx = ty * width + tx;
-      if (d > 0) {
-        imageData[idx] = getColorData(
-          d,
-          globalMaxDensity,
-          hue,
-          saturation,
-          brightness,
-          1,
-          background,
-        );
-      } else {
-        imageData[idx] =
-          (background[3] << 24) |
+  for (let i = 0; i < width * height; i++) {
+    const d = density[i] ?? 0;
+    imageData[i] =
+      d > 0
+        ? getColorData(
+            d,
+            maxDensity,
+            hue,
+            saturation,
+            brightness,
+            1,
+            background,
+          )
+        : (background[3] << 24) |
           (background[2] << 16) |
           (background[1] << 8) |
           background[0];
-      }
-    }
   }
   return imageData;
 }
@@ -135,7 +81,6 @@ export function makeSkiaImage(
   width: number = 256,
   height: number = 256,
 ) {
-  // Skia expects Uint8Array for pixel data
   const pixels = new Uint8Array(imageData.buffer);
   const data = Skia.Data.fromBytes(pixels);
   const img = Skia.Image.MakeImage(
@@ -151,19 +96,14 @@ export function makeSkiaImage(
   return img;
 }
 
-// Non-tiled: render the full attractor image in a single buffer
+// Render the full attractor image in a single buffer
 function useFullAttractorImage() {
   const { width, height } = Dimensions.get('window');
   const attractorParameters = useAttractorStore(s => s.attractorParameters);
   const [image, setImage] = useState<SkImage | null>(null);
 
   useEffect(() => {
-    // Compute the full density buffer and colorize
-    const imageData = createAttractorTile(
-      Math.round(width),
-      Math.round(height),
-      0,
-      0,
+    const imageData = createAttractorImage(
       Math.round(width),
       Math.round(height),
       attractorParameters,
@@ -174,27 +114,21 @@ function useFullAttractorImage() {
   return image;
 }
 
-// AttractorCanvas: renders the attractor using tiling for memory safety and crispness on all devices.
-// - The yellow background is for debugging; remove or change as needed.
-// - Each tile is rendered in its correct position, filling the screen seamlessly.
+// AttractorCanvas: renders the attractor using a single image buffer for the entire screen.
+// The yellow background is for debugging; remove or change as needed.
 
 export function AttractorCanvas() {
   const { width, height } = Dimensions.get('window');
-  const background = useAttractorStore(s => s.attractorParameters.background);
   const image = useFullAttractorImage();
-
-  // Convert [r,g,b,a] (0-255) to rgba() string for Skia
-  const bgColor = `rgba(${background[0]},${background[1]},${background[2]},${background[3] / 255})`;
 
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: 'yellow', // For debugging: shows if any tile is missing
+        backgroundColor: 'yellow',
       }}
     >
       <Canvas style={{ flex: 1, width, height }}>
-        <Rect x={0} y={0} width={width} height={height} color={bgColor} />
         {image && (
           <Image
             image={image}
