@@ -34,6 +34,9 @@ function MenuButton({
 export function MainMenu() {
   const open = useGlobalStore(state => state.isMenuOpen);
   const setMenuOpen = useGlobalStore(state => state.setMenuOpen);
+  const setAttractorMenuOpen = useGlobalStore(
+    state => state.setAttractorMenuOpen,
+  );
   const navigation = useNavigation();
 
   const [isOpen, setIsOpen] = useState(open);
@@ -83,6 +86,14 @@ export function MainMenu() {
               opacity={0.6}
               onPress={() => setIsOpen(false)}
             />
+            <MenuButton
+              onPress={() => {
+                setIsOpen(false);
+                setAttractorMenuOpen(true);
+              }}
+            >
+              Attractor Menu
+            </MenuButton>
             <MenuButton
               onPress={() => {
                 setIsOpen(false);
