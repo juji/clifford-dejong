@@ -47,6 +47,7 @@ function useIterativeAttractorImage(
 
   useEffect(() => {
     let cancelled = false;
+    // Double points per iteration for faster chunking
     const totalAttractorPoints = highQuality ? POINTS : LOW_RES_POINTS;
     const attractorPointPerIteration = highQuality
       ? POINTS_PER_ITTERATION
@@ -72,13 +73,17 @@ function useIterativeAttractorImage(
     const cy = height / 2 + top;
     const s = scale * SCALE;
     const density = new Uint32Array(width * height);
+    const imageData = new Uint32Array(width * height);
     let maxDensity = 1;
     let x = 0,
       y = 0;
     let totalPoints = 0;
+    const drawIteration = 10; // Number of iterations to draw in each chunk
+    let currentItteration = 0;
 
     function drawChunk() {
       if (cancelled) return;
+
       for (
         let i = 0;
         i < attractorPointPerIteration && totalPoints < totalAttractorPoints;
@@ -95,35 +100,67 @@ function useIterativeAttractorImage(
           if (density[idx] > maxDensity) maxDensity = density[idx];
         }
       }
+
       // Update progress in Zustand
-      setAttractorProgress(Math.min(1, totalPoints / totalAttractorPoints));
-      // Update image after each chunk
-      const imageData = new Uint32Array(width * height);
-      for (let i = 0; i < width * height; i++) {
-        const d = density[i] ?? 0;
-        imageData[i] =
-          d > 0
-            ? highQuality
-              ? getColorData(
-                  d,
-                  maxDensity,
-                  hue,
-                  saturation,
-                  brightness,
-                  1,
-                  background,
-                )
-              : getLowQualityPoint(hue, saturation, brightness)
-            : (background[3] << 24) |
-              (background[2] << 16) |
-              (background[1] << 8) |
-              background[0];
+      const progress = Math.min(1, totalPoints / totalAttractorPoints);
+      setAttractorProgress(progress);
+
+      currentItteration++;
+      // Only update image if progress increased by at least 5% or finished
+      if (
+        currentItteration === 1 ||
+        currentItteration % drawIteration === 0 ||
+        progress === 1
+      ) {
+        for (let i = 0; i < width * height; i++) {
+          const d = density[i] ?? 0;
+          imageData[i] =
+            d > 0
+              ? highQuality
+                ? getColorData(
+                    d,
+                    maxDensity,
+                    hue,
+                    saturation,
+                    brightness,
+                    1,
+                    background,
+                  )
+                : getLowQualityPoint(hue, saturation, brightness)
+              : (background[3] << 24) |
+                (background[2] << 16) |
+                (background[1] << 8) |
+                background[0];
+        }
+
+        setImage(makeSkiaImage(imageData, width, height));
       }
-      setImage(makeSkiaImage(imageData, width, height));
       if (totalPoints < totalAttractorPoints) {
         requestAnimationFrame(drawChunk);
       } else {
         setAttractorProgress(1);
+        // Final image update
+        for (let i = 0; i < width * height; i++) {
+          const d = density[i] ?? 0;
+          imageData[i] =
+            d > 0
+              ? highQuality
+                ? getColorData(
+                    d,
+                    maxDensity,
+                    hue,
+                    saturation,
+                    brightness,
+                    1,
+                    background,
+                  )
+                : getLowQualityPoint(hue, saturation, brightness)
+              : (background[3] << 24) |
+                (background[2] << 16) |
+                (background[1] << 8) |
+                background[0];
+        }
+        setImage(makeSkiaImage(imageData, width, height));
       }
     }
     setImage(null);
@@ -164,7 +201,7 @@ export function makeSkiaImage(
 export function AttractorCanvas() {
   const { width, height } = Dimensions.get('window');
   const attractorParameters = useAttractorStore(s => s.attractorParameters);
-  const [highQuality] = useState(false);
+  const [highQuality] = useState(true);
   const image = useIterativeAttractorImage(
     Math.round(width),
     Math.round(height),
