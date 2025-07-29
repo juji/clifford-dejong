@@ -5,7 +5,7 @@ import { Canvas, Image } from '@shopify/react-native-skia';
 import { useAttractorStore } from '@repo/state/attractor-store';
 import type { AttractorParameters } from '@repo/core/types';
 import { clifford, dejong } from '@repo/core';
-import { getColorData } from '@repo/core/color';
+import { getColorData, hsv2rgb } from '@repo/core/color';
 import { useEffect, useState, useRef } from 'react';
 import { Dimensions } from 'react-native';
 import type { SkImage } from '@shopify/react-native-skia';
@@ -17,8 +17,17 @@ const LOW_RES_POINTS = 2000000; // Points for low-res attractor
 const LOW_RES_POINTS_PER_ITTERATION = 1000000; // Points to generate per
 const SCALE = 150;
 
-export function smoothing(num: number, scale: number): number {
+function smoothing(num: number, scale: number): number {
   return num + (Math.random() < 0.5 ? -0.2 : 0.2) * (1 / scale);
+}
+
+function getLowQualityPoint(
+  hue: number,
+  saturation: number,
+  brightness: number,
+) {
+  const [r, g, b] = hsv2rgb(hue || 120, saturation || 100, brightness || 100);
+  return (255 << 24) | (b << 16) | (g << 8) | r;
 }
 
 // Iterative, chunked attractor image generator using requestAnimationFrame
@@ -87,15 +96,17 @@ function useIterativeAttractorImage(
         const d = density[i] ?? 0;
         imageData[i] =
           d > 0
-            ? getColorData(
-                d,
-                maxDensity,
-                hue,
-                saturation,
-                brightness,
-                1,
-                background,
-              )
+            ? highQuality
+              ? getColorData(
+                  d,
+                  maxDensity,
+                  hue,
+                  saturation,
+                  brightness,
+                  1,
+                  background,
+                )
+              : getLowQualityPoint(hue, saturation, brightness)
             : (background[3] << 24) |
               (background[2] << 16) |
               (background[1] << 8) |
