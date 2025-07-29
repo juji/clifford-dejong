@@ -1,8 +1,10 @@
 import { View } from 'tamagui';
 import { Canvas, Image } from '@shopify/react-native-skia';
+import { ProgressBar } from './progress-bar';
 // AttractorCanvas renders a full-screen attractor image in a single buffer.
 
 import { useAttractorStore } from '@repo/state/attractor-store';
+import { useGlobalStore } from '../store/global-store';
 import type { AttractorParameters } from '@repo/core/types';
 import { clifford, dejong } from '@repo/core';
 import { getColorData, hsv2rgb } from '@repo/core/color';
@@ -31,6 +33,7 @@ function getLowQualityPoint(
 }
 
 // Iterative, chunked attractor image generator using requestAnimationFrame
+
 function useIterativeAttractorImage(
   width: number,
   height: number,
@@ -38,6 +41,7 @@ function useIterativeAttractorImage(
   highQuality: boolean,
 ) {
   const [image, setImage] = useState<SkImage | null>(null);
+  const setAttractorProgress = useGlobalStore(s => s.setAttractorProgress);
   const paramsRef = useRef(attractorParameters);
   paramsRef.current = attractorParameters;
 
@@ -47,6 +51,7 @@ function useIterativeAttractorImage(
     const attractorPointPerIteration = highQuality
       ? POINTS_PER_ITTERATION
       : LOW_RES_POINTS_PER_ITTERATION;
+    setAttractorProgress(0);
 
     const {
       attractor = 'clifford',
@@ -90,6 +95,8 @@ function useIterativeAttractorImage(
           if (density[idx] > maxDensity) maxDensity = density[idx];
         }
       }
+      // Update progress in Zustand
+      setAttractorProgress(Math.min(1, totalPoints / totalAttractorPoints));
       // Update image after each chunk
       const imageData = new Uint32Array(width * height);
       for (let i = 0; i < width * height; i++) {
@@ -115,9 +122,12 @@ function useIterativeAttractorImage(
       setImage(makeSkiaImage(imageData, width, height));
       if (totalPoints < totalAttractorPoints) {
         requestAnimationFrame(drawChunk);
+      } else {
+        setAttractorProgress(1);
       }
     }
     setImage(null);
+    setAttractorProgress(0);
     requestAnimationFrame(drawChunk);
     return () => {
       cancelled = true;
@@ -169,6 +179,7 @@ export function AttractorCanvas() {
         backgroundColor: 'yellow',
       }}
     >
+      <ProgressBar />
       <Canvas style={{ flex: 1, width, height }}>
         {image && (
           <Image
