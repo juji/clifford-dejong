@@ -13,8 +13,8 @@ import { Skia, AlphaType, ColorType } from '@shopify/react-native-skia';
 
 const POINTS = 20000000; // Default points for attractor
 const POINTS_PER_ITTERATION = 1000000; // Points to generate per
-const LOW_RES_POINTS = 2000000; // Points for low-res attractor
-const LOW_RES_POINTS_PER_ITTERATION = 1000000; // Points to generate per
+const LOW_RES_POINTS = 200000; // Points for low-res attractor
+const LOW_RES_POINTS_PER_ITTERATION = 100000; // Points to generate per
 const SCALE = 150;
 
 function smoothing(num: number, scale: number): number {
@@ -154,7 +154,7 @@ export function makeSkiaImage(
 export function AttractorCanvas() {
   const { width, height } = Dimensions.get('window');
   const attractorParameters = useAttractorStore(s => s.attractorParameters);
-  const [highQuality] = useState(true);
+  const [highQuality] = useState(false);
   const image = useIterativeAttractorImage(
     Math.round(width),
     Math.round(height),
