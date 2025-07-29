@@ -1,7 +1,39 @@
 // Color utilities for attractor rendering
 // Includes HSV to RGB conversion and color mapping with Bezier curves
 
-import BezierEasing from "bezier-easing";
+// Inlined BezierEasing implementation (MIT, adapted from bezier-easing npm)
+function BezierEasing(p0: number, p1: number, p2: number, p3: number) {
+  function A(aA1: number, aA2: number) {
+    return 1.0 - 3.0 * aA2 + 3.0 * aA1;
+  }
+  function B(aA1: number, aA2: number) {
+    return 3.0 * aA2 - 6.0 * aA1;
+  }
+  function C(aA1: number) {
+    return 3.0 * aA1;
+  }
+  function calcBezier(t: number, aA1: number, aA2: number) {
+    return ((A(aA1, aA2) * t + B(aA1, aA2)) * t + C(aA1)) * t;
+  }
+  function getSlope(t: number, aA1: number, aA2: number) {
+    return 3.0 * A(aA1, aA2) * t * t + 2.0 * B(aA1, aA2) * t + C(aA1);
+  }
+  function getTforX(aX: number) {
+    let aGuessT = aX;
+    for (let i = 0; i < 4; ++i) {
+      let currentSlope = getSlope(aGuessT, p0, p2);
+      if (currentSlope === 0.0) return aGuessT;
+      let currentX = calcBezier(aGuessT, p0, p2) - aX;
+      aGuessT -= currentX / currentSlope;
+    }
+    return aGuessT;
+  }
+  return function (x: number) {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    return calcBezier(getTforX(x), p1, p3);
+  };
+}
 
 export function hsv2rgb(
   h: number,
