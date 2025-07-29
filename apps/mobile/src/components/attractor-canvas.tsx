@@ -78,8 +78,10 @@ function useIterativeAttractorImage(
     let x = 0,
       y = 0;
     let totalPoints = 0;
-    const drawIteration = 10; // Number of iterations to draw in each chunk
+    const drawIteration = 10;
     let currentItteration = 0;
+    const startTime = Date.now();
+    let lastDrawTime = startTime;
 
     function drawChunk() {
       if (cancelled) return;
@@ -134,6 +136,11 @@ function useIterativeAttractorImage(
         }
 
         setImage(makeSkiaImage(imageData, width, height));
+        const now = Date.now();
+        const elapsed = now - lastDrawTime;
+        lastDrawTime = now;
+        // eslint-disable-next-line no-console
+        console.log(`[AttractorCanvas] Elapsed time after draw: ${elapsed}ms`);
       }
       if (totalPoints < totalAttractorPoints) {
         requestAnimationFrame(drawChunk);
@@ -161,6 +168,9 @@ function useIterativeAttractorImage(
                 background[0];
         }
         setImage(makeSkiaImage(imageData, width, height));
+        const totalElapsed = Date.now() - startTime;
+        // eslint-disable-next-line no-console
+        console.log(`[AttractorCanvas] Total render time: ${totalElapsed}ms`);
       }
     }
     setImage(null);
