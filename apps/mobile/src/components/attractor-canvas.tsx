@@ -123,7 +123,7 @@ function useIterativeAttractorImage(
                     hue,
                     saturation,
                     brightness,
-                    1,
+                    progress,
                     background,
                   )
                 : getLowQualityPoint(hue, saturation, brightness)
@@ -213,7 +213,7 @@ export function AttractorCanvas() {
     <View
       style={{
         flex: 1,
-        backgroundColor: 'yellow',
+        backgroundColor: 'darkslateblue',
       }}
     >
       <ProgressBar />
