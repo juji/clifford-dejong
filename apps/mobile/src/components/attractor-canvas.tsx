@@ -1,79 +1,118 @@
 import { View } from 'tamagui';
-import { Canvas, Image, Rect } from '@shopify/react-native-skia';
+import { Canvas, Image } from '@shopify/react-native-skia';
 // AttractorCanvas renders a full-screen attractor image in a single buffer.
 
 import { useAttractorStore } from '@repo/state/attractor-store';
 import type { AttractorParameters } from '@repo/core/types';
 import { clifford, dejong } from '@repo/core';
 import { getColorData } from '@repo/core/color';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Dimensions } from 'react-native';
 import type { SkImage } from '@shopify/react-native-skia';
 import { Skia, AlphaType, ColorType } from '@shopify/react-native-skia';
 
-const POINTS = 3000000; // Default points for attractor
-const SCALE = 100;
+const POINTS = 20000000; // Default points for attractor
+const POINTS_PER_ITTERATION = 1000000; // Points to generate per
+const LOW_RES_POINTS = 2000000; // Points for low-res attractor
+const LOW_RES_POINTS_PER_ITTERATION = 1000000; // Points to generate per
+const SCALE = 150;
 
-// Minimal, single-buffer attractor image generator
-function createAttractorImage(
+export function smoothing(num: number, scale: number): number {
+  return num + (Math.random() < 0.5 ? -0.2 : 0.2) * (1 / scale);
+}
+
+// Iterative, chunked attractor image generator using requestAnimationFrame
+function useIterativeAttractorImage(
   width: number,
   height: number,
   attractorParameters: AttractorParameters,
-): Uint32Array {
-  const {
-    attractor = 'clifford',
-    a,
-    b,
-    c,
-    d,
-    scale = 1,
-    left = 0,
-    top = 0,
-    hue = 120,
-    saturation = 100,
-    brightness = 100,
-    background = [0, 0, 0, 255],
-  } = attractorParameters;
-  const fn = attractor === 'clifford' ? clifford : dejong;
-  const cx = width / 2 + left;
-  const cy = height / 2 + top;
-  const s = scale * SCALE;
-  const density = new Uint32Array(width * height);
-  let maxDensity = 1;
-  let x = 0,
-    y = 0;
-  for (let i = 0; i < POINTS; i++) {
-    [x, y] = fn(x, y, a, b, c, d);
-    const sx = x * s;
-    const sy = y * s;
-    const px = Math.floor(cx + sx);
-    const py = Math.floor(cy + sy);
-    if (px >= 0 && px < width && py >= 0 && py < height) {
-      const idx = py * width + px;
-      density[idx] = (density[idx] || 0) + 1;
-      if (density[idx] > maxDensity) maxDensity = density[idx];
+  highQuality: boolean,
+) {
+  const [image, setImage] = useState<SkImage | null>(null);
+  const paramsRef = useRef(attractorParameters);
+  paramsRef.current = attractorParameters;
+
+  useEffect(() => {
+    let cancelled = false;
+    const totalAttractorPoints = highQuality ? POINTS : LOW_RES_POINTS;
+    const attractorPointPerIteration = highQuality
+      ? POINTS_PER_ITTERATION
+      : LOW_RES_POINTS_PER_ITTERATION;
+
+    const {
+      attractor = 'clifford',
+      a,
+      b,
+      c,
+      d,
+      scale = 1,
+      left = 0,
+      top = 0,
+      hue = 120,
+      saturation = 100,
+      brightness = 100,
+      background = [0, 0, 0, 255],
+    } = paramsRef.current;
+    const fn = attractor === 'clifford' ? clifford : dejong;
+    const cx = width / 2 + left;
+    const cy = height / 2 + top;
+    const s = scale * SCALE;
+    const density = new Uint32Array(width * height);
+    let maxDensity = 1;
+    let x = 0,
+      y = 0;
+    let totalPoints = 0;
+
+    function drawChunk() {
+      if (cancelled) return;
+      for (
+        let i = 0;
+        i < attractorPointPerIteration && totalPoints < totalAttractorPoints;
+        i++, totalPoints++
+      ) {
+        [x, y] = fn(x, y, a, b, c, d);
+        const sx = smoothing(x * s, s);
+        const sy = smoothing(y * s, s);
+        const px = Math.floor(cx + sx);
+        const py = Math.floor(cy + sy);
+        if (px >= 0 && px < width && py >= 0 && py < height) {
+          const idx = py * width + px;
+          density[idx] = (density[idx] || 0) + 1;
+          if (density[idx] > maxDensity) maxDensity = density[idx];
+        }
+      }
+      // Update image after each chunk
+      const imageData = new Uint32Array(width * height);
+      for (let i = 0; i < width * height; i++) {
+        const d = density[i] ?? 0;
+        imageData[i] =
+          d > 0
+            ? getColorData(
+                d,
+                maxDensity,
+                hue,
+                saturation,
+                brightness,
+                1,
+                background,
+              )
+            : (background[3] << 24) |
+              (background[2] << 16) |
+              (background[1] << 8) |
+              background[0];
+      }
+      setImage(makeSkiaImage(imageData, width, height));
+      if (totalPoints < totalAttractorPoints) {
+        requestAnimationFrame(drawChunk);
+      }
     }
-  }
-  const imageData = new Uint32Array(width * height);
-  for (let i = 0; i < width * height; i++) {
-    const d = density[i] ?? 0;
-    imageData[i] =
-      d > 0
-        ? getColorData(
-            d,
-            maxDensity,
-            hue,
-            saturation,
-            brightness,
-            1,
-            background,
-          )
-        : (background[3] << 24) |
-          (background[2] << 16) |
-          (background[1] << 8) |
-          background[0];
-  }
-  return imageData;
+    setImage(null);
+    requestAnimationFrame(drawChunk);
+    return () => {
+      cancelled = true;
+    };
+  }, [width, height, attractorParameters, highQuality]);
+  return image;
 }
 
 // Convert a Uint32Array RGBA buffer to a Skia image.
@@ -98,30 +137,19 @@ export function makeSkiaImage(
   return img;
 }
 
-// Render the full attractor image in a single buffer
-function useFullAttractorImage() {
-  const { width, height } = Dimensions.get('window');
-  const attractorParameters = useAttractorStore(s => s.attractorParameters);
-  const [image, setImage] = useState<SkImage | null>(null);
-
-  useEffect(() => {
-    const imageData = createAttractorImage(
-      Math.round(width),
-      Math.round(height),
-      attractorParameters,
-    );
-    const img = makeSkiaImage(imageData, Math.round(width), Math.round(height));
-    setImage(img);
-  }, [width, height, attractorParameters]);
-  return image;
-}
-
 // AttractorCanvas: renders the attractor using a single image buffer for the entire screen.
 // The yellow background is for debugging; remove or change as needed.
 
 export function AttractorCanvas() {
   const { width, height } = Dimensions.get('window');
-  const image = useFullAttractorImage();
+  const attractorParameters = useAttractorStore(s => s.attractorParameters);
+  const [highQuality] = useState(true);
+  const image = useIterativeAttractorImage(
+    Math.round(width),
+    Math.round(height),
+    attractorParameters,
+    highQuality,
+  );
 
   return (
     <View
