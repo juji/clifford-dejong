@@ -110,6 +110,14 @@ export function MainMenu() {
             >
               Tamagui Showcase
             </MenuButton>
+            <MenuButton
+              onPress={() => {
+                setIsOpen(false);
+                navigation.navigate('WorkletDemoScreen');
+              }}
+            >
+              Worklet Demo
+            </MenuButton>
           </>
         ) : null}
       </AnimatePresence>

@@ -15,6 +15,7 @@ import AttractorDetailScreen from '@/screens/attractor-detail-screen';
 import SettingsScreen from '@/screens/settings-screen';
 import TamaguiShowcaseScreen from '@/screens/tamagui-showcase-screen';
 
+import WorkletDemoScreen from '@/screens/worklet-demo-screen';
 // Import types
 import { RootStackParamList } from './types';
 
@@ -105,6 +106,13 @@ function AppNavigator() {
             component={TamaguiShowcaseScreen}
             options={{
               title: 'Tamagui Showcase',
+            }}
+          />
+          <Stack.Screen
+            name="WorkletDemoScreen"
+            component={WorkletDemoScreen}
+            options={{
+              title: 'Worklet Demo',
             }}
           />
         </Stack.Navigator>
