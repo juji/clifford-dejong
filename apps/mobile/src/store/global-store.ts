@@ -6,8 +6,10 @@ export type GlobalState = {
   setMenuOpen: (open: boolean) => void;
   isAttractorMenuOpen: boolean; // Optional, can be added later
   setAttractorMenuOpen: (open: boolean) => void; // Optional, can be added later
-  // Add more state properties as needed
-  // Add more global state/actions here as needed
+  attractorQuality: 'high' | 'low'; // New state for attractor quality
+  setAttractorQuality: (quality: 'high' | 'low') => void;
+  attractorProgress: number; // Optional, can be added later
+  setAttractorProgress: (progress: number) => void; // Optional, can be added later
 };
 
 export const useGlobalStore = create<GlobalState>(set => ({
@@ -15,4 +17,8 @@ export const useGlobalStore = create<GlobalState>(set => ({
   setMenuOpen: open => set({ isMenuOpen: open }),
   isAttractorMenuOpen: false,
   setAttractorMenuOpen: open => set({ isAttractorMenuOpen: open }),
+  attractorQuality: 'high', // Default to high quality
+  setAttractorQuality: quality => set({ attractorQuality: quality }),
+  attractorProgress: 0, // Default progress
+  setAttractorProgress: progress => set({ attractorProgress: progress }),
 }));
