@@ -8,13 +8,18 @@ import { useGlobalStore } from '../store/global-store';
 import type { AttractorParameters } from '@repo/core/types';
 
 import { useEffect, useState, useRef } from 'react';
-import { runOnUI, runOnJS } from 'react-native-reanimated';
+import {
+  runOnJS,
+  useSharedValue,
+  runOnRuntime,
+  createWorkletRuntime,
+} from 'react-native-reanimated';
 import { Dimensions } from 'react-native';
 import type { SkImage } from '@shopify/react-native-skia';
 import { Skia, AlphaType, ColorType } from '@shopify/react-native-skia';
 
 const POINTS = 20000000; // Default points for attractor
-const POINTS_PER_ITTERATION = 1000000; // Points to generate per chunk
+const POINTS_PER_ITTERATION = 500000; // Points to generate per chunk
 const LOW_RES_POINTS = 200000; // Points for low-res attractor
 const LOW_RES_POINTS_PER_ITTERATION = 100000; // Points to generate per chunk (low res)
 const SCALE = 150;
@@ -31,11 +36,27 @@ function useIterativeAttractorImage(
   const setAttractorProgress = useGlobalStore(s => s.setAttractorProgress);
   const paramsRef = useRef(attractorParameters);
   paramsRef.current = attractorParameters;
+  const attractorRuntime = createWorkletRuntime('attractor-calc');
+
+  // shared
+  const density = useSharedValue(new Uint32Array(width * height));
+  const x = useSharedValue(0);
+  const y = useSharedValue(0);
+  const totalPoints = useSharedValue(0);
+  const totalItteration = useSharedValue(0);
+  const maxDensity = useSharedValue(1);
+  const running = useSharedValue(true);
 
   // Calculate attractor on UI thread using a worklet
   useEffect(() => {
-    setImage(null);
+    setMainImage(null);
     setAttractorProgress(0);
+    density.set(new Uint32Array(width * height));
+    x.set(0);
+    y.set(0);
+    totalPoints.set(0);
+    totalItteration.set(0);
+    maxDensity.set(0);
 
     const then = new Date();
 
@@ -47,8 +68,15 @@ function useIterativeAttractorImage(
       );
     }
 
+    const totalAttractorPoints: number = highQuality ? POINTS : LOW_RES_POINTS;
+    const pointsPerIteration: number = highQuality
+      ? POINTS_PER_ITTERATION
+      : LOW_RES_POINTS_PER_ITTERATION;
+
     function calculateAttractorWorklet() {
       'worklet';
+
+      if (!running.get()) return;
 
       // --- Fully inlined helpers and logic ---
       function BezierEasing(
@@ -252,82 +280,100 @@ function useIterativeAttractorImage(
       const cx = width / 2 + left;
       const cy = height / 2 + top;
       const s = scale * SCALE;
-      const density = new Uint32Array(width * height);
-      const imageData = new Uint32Array(width * height);
-      let maxDensity = 1;
-      let x = 0,
-        y = 0;
-      let totalPoints = 0;
-      const totalAttractorPoints: number = highQuality
-        ? POINTS
-        : LOW_RES_POINTS;
-      const pointsPerIteration: number = highQuality
-        ? POINTS_PER_ITTERATION
-        : LOW_RES_POINTS_PER_ITTERATION;
-      let totalItteration = 0;
-      const drawAt = 5;
+      const drawAt = 10;
 
-      runOnJS(setMainImage)(null);
+      let densityValue = density.get();
+      let maxDensityVal = maxDensity.get();
+      let tp = totalPoints.get();
+      let ti = totalItteration.get() + 1;
+      let xVal = x.get();
+      let yVal = y.get();
 
-      requestAnimationFrame(function calc() {
-        totalItteration++;
-        // calculate density for the current iteration
-        for (let i = 0; i < pointsPerIteration; i++, totalPoints++) {
-          [x, y] = fn(x, y, a, b, c, d);
-          const sx = smoothing(x, s);
-          const sy = smoothing(y, s);
-          const screenX = sx * s;
-          const screenY = sy * s;
-          const px = Math.floor(cx + screenX);
-          const py = Math.floor(cy + screenY);
-          if (px >= 0 && px < width && py >= 0 && py < height) {
-            const idx = py * width + px;
-            density[idx] = (density[idx] || 0) + 1;
-            if (density[idx] > maxDensity) maxDensity = density[idx];
-          }
+      if (!running.get()) return;
+
+      // calculate density for the current iteration
+      for (
+        let i = 0;
+        i < pointsPerIteration && tp < totalAttractorPoints;
+        i++, tp++
+      ) {
+        if (!running.get()) return;
+
+        [xVal, yVal] = fn(xVal, yVal, a, b, c, d);
+        const sx = smoothing(xVal, s);
+        const sy = smoothing(yVal, s);
+        const screenX = sx * s;
+        const screenY = sy * s;
+        const px = Math.floor(cx + screenX);
+        const py = Math.floor(cy + screenY);
+        if (px >= 0 && px < width && py >= 0 && py < height) {
+          const idx = py * width + px;
+          densityValue[idx] = (densityValue[idx] || 0) + 1;
+          if (densityValue[idx] > maxDensityVal)
+            maxDensityVal = densityValue[idx];
+        }
+      }
+
+      // if we have enough points, draw the image
+      if (ti === 2 || ti % drawAt === 0 || tp === totalAttractorPoints) {
+        if (!running.get()) return;
+
+        console.log('Drawing image');
+        const imageData = new Uint32Array(width * height);
+        for (let i = 0; i < width * height; i++) {
+          if (!running.get()) return;
+
+          const dval = densityValue[i] || 0;
+          imageData[i] =
+            dval > 0
+              ? highQuality
+                ? getColorData(
+                    dval,
+                    maxDensity.get(),
+                    hue,
+                    saturation,
+                    brightness,
+                    1,
+                    background,
+                  )
+                : getLowQualityPoint(hue, saturation, brightness)
+              : (((background && background[3]) || 0) << 24) |
+                (((background && background[2]) || 0) << 16) |
+                (((background && background[1]) || 0) << 8) |
+                ((background && background[0]) || 0);
         }
 
-        runOnJS(setAttractorProgress)(totalPoints / totalAttractorPoints);
+        if (!running.get()) return;
+        runOnJS(setMainImage)(new Uint8Array(imageData.buffer).join(','));
+      }
 
-        if (
-          totalItteration === 1 ||
-          totalItteration % drawAt === 0 ||
-          totalPoints === totalAttractorPoints
-        ) {
-          for (let i = 0; i < width * height; i++) {
-            const dval = density[i] || 0;
-            imageData[i] =
-              dval > 0
-                ? highQuality
-                  ? getColorData(
-                      dval,
-                      maxDensity,
-                      hue,
-                      saturation,
-                      brightness,
-                      1,
-                      background,
-                    )
-                  : getLowQualityPoint(hue, saturation, brightness)
-                : (((background && background[3]) || 0) << 24) |
-                  (((background && background[2]) || 0) << 16) |
-                  (((background && background[1]) || 0) << 8) |
-                  ((background && background[0]) || 0);
-          }
+      if (!running.get()) return;
+      runOnJS(setAttractorProgress)(tp / totalAttractorPoints);
+      runOnJS(afterCalc)(tp);
 
-          // join is faster than json.stringify for large arrays
-          runOnJS(setMainImage)(imageData.join(','));
-        }
-
-        if (totalPoints < totalAttractorPoints) {
-          requestAnimationFrame(calc);
-        } else {
-          runOnJS(onDone)();
-        }
-      });
+      totalPoints.set(tp);
+      totalItteration.set(ti);
+      maxDensity.set(maxDensityVal);
+      x.set(xVal);
+      y.set(yVal);
+      density.set(densityValue);
     }
 
-    runOnUI(calculateAttractorWorklet)();
+    function afterCalc(total: number) {
+      if (total < totalAttractorPoints) {
+        console.log('Running attractor calculation again');
+        runOnRuntime(attractorRuntime, calculateAttractorWorklet)();
+      } else {
+        onDone();
+      }
+    }
+
+    runOnRuntime(attractorRuntime, calculateAttractorWorklet)();
+
+    return () => {
+      running.set(false);
+    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [width, height, attractorParameters, highQuality]);
 
@@ -340,7 +386,7 @@ function useIterativeAttractorImage(
     // setImage(makeSkiaImage(buffer, width, height));
     setImage(
       makeSkiaImage(
-        new Uint32Array(buffer.split(',').map(Number)),
+        new Uint8Array(buffer.split(',').map(Number)),
         width,
         height,
       ),
@@ -353,12 +399,11 @@ function useIterativeAttractorImage(
 // Convert a Uint32Array RGBA buffer to a Skia image.
 // Skia requires width/height to be integers, and stride = width * 4 bytes.
 export function makeSkiaImage(
-  imageData: Uint32Array,
+  imageData: Uint8Array,
   width: number = 256,
   height: number = 256,
 ) {
-  const pixels = new Uint8Array(imageData.buffer);
-  const data = Skia.Data.fromBytes(pixels);
+  const data = Skia.Data.fromBytes(imageData);
   const img = Skia.Image.MakeImage(
     {
       width,

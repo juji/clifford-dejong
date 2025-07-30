@@ -18,7 +18,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AttractorScreen'>;
 
 function AttractorScreen({ navigation }: Props) {
   const isDarkMode = useColorScheme() === 'dark';
-  const theme: AppTheme = isDarkMode ? 'dark' : 'light';
+  // const theme: AppTheme = isDarkMode ? 'dark' : 'light';
   const styles = getThemeStyles(isDarkMode);
 
   return (
