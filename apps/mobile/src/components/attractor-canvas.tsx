@@ -312,6 +312,7 @@ function useIterativeAttractorImage(
                   ((background && background[0]) || 0);
           }
 
+          // join is faster than json.stringify for large arrays
           runOnJS(setMainImage)(imageData.join(','));
         }
 
