@@ -49,6 +49,8 @@ function useIterativeAttractorImage(
 
   // Calculate attractor on UI thread using a worklet
   useEffect(() => {
+    if (!running.get()) return;
+
     setMainImage(null);
     setAttractorProgress(0);
     density.set(new Uint32Array(width * height));
@@ -292,11 +294,8 @@ function useIterativeAttractorImage(
       if (!running.get()) return;
 
       // calculate density for the current iteration
-      for (
-        let i = 0;
-        i < pointsPerIteration && tp < totalAttractorPoints;
-        i++, tp++
-      ) {
+      let i = 0;
+      while (i < pointsPerIteration && tp < totalAttractorPoints) {
         if (!running.get()) return;
 
         [xVal, yVal] = fn(xVal, yVal, a, b, c, d);
@@ -312,6 +311,9 @@ function useIterativeAttractorImage(
           if (densityValue[idx] > maxDensityVal)
             maxDensityVal = densityValue[idx];
         }
+
+        i++;
+        tp++;
       }
 
       // if we have enough points, draw the image
@@ -320,7 +322,8 @@ function useIterativeAttractorImage(
 
         console.log('Drawing image');
         const imageData = new Uint32Array(width * height);
-        for (let i = 0; i < width * height; i++) {
+        let i = 0;
+        while (i < width * height) {
           if (!running.get()) return;
 
           const dval = densityValue[i] || 0;
@@ -341,6 +344,7 @@ function useIterativeAttractorImage(
                 (((background && background[2]) || 0) << 16) |
                 (((background && background[1]) || 0) << 8) |
                 ((background && background[0]) || 0);
+          i++;
         }
 
         if (!running.get()) return;
