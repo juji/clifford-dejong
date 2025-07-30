@@ -203,7 +203,8 @@ function useIterativeAttractorImage(
         return (255 << 24) | (b << 16) | (g << 8) | r;
       }
       function smoothing(num: number, scale: number): number {
-        return num + (Math.random() < 0.5 ? -0.2 : 0.2) * (1 / scale);
+        const factor = 0.2;
+        return num + (Math.random() < 0.5 ? -factor : factor) * (1 / scale);
       }
       function clifford(
         x: number,
@@ -273,10 +274,12 @@ function useIterativeAttractorImage(
         // calculate density for the current iteration
         for (let i = 0; i < pointsPerIteration; i++, totalPoints++) {
           [x, y] = fn(x, y, a, b, c, d);
-          const sx = smoothing(x * s, s);
-          const sy = smoothing(y * s, s);
-          const px = Math.floor(cx + sx);
-          const py = Math.floor(cy + sy);
+          const sx = smoothing(x, s);
+          const sy = smoothing(y, s);
+          const screenX = sx * s;
+          const screenY = sy * s;
+          const px = Math.floor(cx + screenX);
+          const py = Math.floor(cy + screenY);
           if (px >= 0 && px < width && py >= 0 && py < height) {
             const idx = py * width + px;
             density[idx] = (density[idx] || 0) + 1;
