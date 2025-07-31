@@ -1,4 +1,5 @@
 import { View } from 'tamagui';
+import { Pressable, Text } from 'react-native';
 import { Canvas, Image } from '@shopify/react-native-skia';
 import { ProgressBar } from './progress-bar';
 // AttractorCanvas renders a full-screen attractor image in a single buffer.
@@ -7,7 +8,7 @@ import { useAttractorStore } from '@repo/state/attractor-store';
 import { useGlobalStore } from '../store/global-store';
 import type { AttractorParameters } from '@repo/core/types';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import {
   runOnJS,
   useSharedValue,
@@ -34,53 +35,36 @@ function useIterativeAttractorImage(
 ) {
   const [image, setImage] = useState<SkImage | null>(null);
   const setAttractorProgress = useGlobalStore(s => s.setAttractorProgress);
-  const paramsRef = useRef(attractorParameters);
-  paramsRef.current = attractorParameters;
-  const attractorRuntime = createWorkletRuntime('attractor-calc');
+  const attractorRuntime = createWorkletRuntime(
+    Math.random().toString(36).substring(2, 15),
+  );
 
   // shared
   const density = useSharedValue(new Uint32Array(width * height));
+  const w = useSharedValue(width);
+  const h = useSharedValue(height);
   const x = useSharedValue(0);
   const y = useSharedValue(0);
   const totalPoints = useSharedValue(0);
   const totalItteration = useSharedValue(0);
   const maxDensity = useSharedValue(1);
-  const running = useSharedValue(true);
+  const attractorParams = useSharedValue(attractorParameters);
+  const hQuality = useSharedValue(highQuality);
+  const totalAttractorPoints = useSharedValue(
+    highQuality ? POINTS : LOW_RES_POINTS,
+  );
+  const pointsPerIteration = useSharedValue(
+    highQuality ? POINTS_PER_ITTERATION : LOW_RES_POINTS_PER_ITTERATION,
+  );
 
   // Calculate attractor on UI thread using a worklet
   useEffect(() => {
-    if (!running.get()) return;
-
-    setMainImage(null);
-    setAttractorProgress(0);
-    density.set(new Uint32Array(width * height));
-    x.set(0);
-    y.set(0);
-    totalPoints.set(0);
-    totalItteration.set(0);
-    maxDensity.set(0);
-
+    let isRunning = true;
     const then = new Date();
-
-    function onDone() {
-      console.log(
-        'Attractor calculation complete in',
-        new Date().valueOf() - then.valueOf(),
-        'ms',
-      );
-    }
-
-    const totalAttractorPoints: number = highQuality ? POINTS : LOW_RES_POINTS;
-    const pointsPerIteration: number = highQuality
-      ? POINTS_PER_ITTERATION
-      : LOW_RES_POINTS_PER_ITTERATION;
 
     function calculateAttractorWorklet() {
       'worklet';
 
-      if (!running.get()) return;
-
-      // --- Fully inlined helpers and logic ---
       function BezierEasing(
         p0: number,
         p1: number,
@@ -263,41 +247,45 @@ function useIterativeAttractorImage(
         ];
       }
 
-      const p = attractorParameters || {};
-      const attractor = p.attractor || 'clifford';
-      const a = typeof p.a === 'number' ? p.a : 1.7;
-      const b = typeof p.b === 'number' ? p.b : 1.7;
-      const c = typeof p.c === 'number' ? p.c : 0.6;
-      const d = typeof p.d === 'number' ? p.d : 1.2;
-      const scale = typeof p.scale === 'number' ? p.scale : 1;
-      const left = typeof p.left === 'number' ? p.left : 0;
-      const top = typeof p.top === 'number' ? p.top : 0;
-      const hue = typeof p.hue === 'number' ? p.hue : 120;
-      const saturation = typeof p.saturation === 'number' ? p.saturation : 100;
-      const brightness = typeof p.brightness === 'number' ? p.brightness : 100;
-      const background = Array.isArray(p.background)
-        ? p.background
-        : [0, 0, 0, 255];
-      const fn = attractor === 'clifford' ? clifford : dejong;
-      const cx = width / 2 + left;
-      const cy = height / 2 + top;
-      const s = scale * SCALE;
-      const drawAt = 10;
+      const {
+        attractor,
+        a,
+        b,
+        c,
+        d,
+        scale,
+        left,
+        top,
+        hue,
+        saturation,
+        brightness,
+        background,
+      } = attractorParams.get() || {};
 
-      let densityValue = density.get();
-      let maxDensityVal = maxDensity.get();
-      let tp = totalPoints.get();
-      let ti = totalItteration.get() + 1;
+      const densityVal = density.get();
+      const wVal = w.get();
+      const hVal = h.get();
       let xVal = x.get();
       let yVal = y.get();
+      let maxDensityVal = maxDensity.get();
+      let totalPointsVal = totalPoints.get();
+      const totalItterationVal = totalItteration.get() + 1;
+      const totalAttractorPointsVal = totalAttractorPoints.get();
+      const pointsPerIterationVal = pointsPerIteration.get();
+      const hQualityVal = hQuality.get();
 
-      if (!running.get()) return;
+      const fn = attractor === 'clifford' ? clifford : dejong;
+      const cx = wVal / 2 + left;
+      const cy = hVal / 2 + top;
+      const s = scale * SCALE;
+      const drawAt = hQualityVal ? 10 : 1;
 
       // calculate density for the current iteration
       let i = 0;
-      while (i < pointsPerIteration && tp < totalAttractorPoints) {
-        if (!running.get()) return;
-
+      while (
+        i < pointsPerIterationVal &&
+        totalPointsVal < totalAttractorPointsVal
+      ) {
         [xVal, yVal] = fn(xVal, yVal, a, b, c, d);
         const sx = smoothing(xVal, s);
         const sy = smoothing(yVal, s);
@@ -305,31 +293,29 @@ function useIterativeAttractorImage(
         const screenY = sy * s;
         const px = Math.floor(cx + screenX);
         const py = Math.floor(cy + screenY);
-        if (px >= 0 && px < width && py >= 0 && py < height) {
-          const idx = py * width + px;
-          densityValue[idx] = (densityValue[idx] || 0) + 1;
-          if (densityValue[idx] > maxDensityVal)
-            maxDensityVal = densityValue[idx];
+        if (px >= 0 && px < wVal && py >= 0 && py < hVal) {
+          const idx = py * wVal + px;
+          densityVal[idx] = (densityVal[idx] || 0) + 1;
+          if (densityVal[idx] > maxDensityVal) maxDensityVal = densityVal[idx];
         }
 
         i++;
-        tp++;
+        totalPointsVal++;
       }
 
       // if we have enough points, draw the image
-      if (ti === 2 || ti % drawAt === 0 || tp === totalAttractorPoints) {
-        if (!running.get()) return;
-
-        console.log('Drawing image');
-        const imageData = new Uint32Array(width * height);
+      if (
+        totalItterationVal === 2 ||
+        totalItterationVal % drawAt === 0 ||
+        totalPointsVal === totalAttractorPointsVal
+      ) {
+        const imageData = new Uint32Array(wVal * hVal);
         let i = 0;
-        while (i < width * height) {
-          if (!running.get()) return;
-
-          const dval = densityValue[i] || 0;
+        while (i < wVal * hVal) {
+          const dval = densityVal[i] || 0;
           imageData[i] =
             dval > 0
-              ? highQuality
+              ? hQualityVal
                 ? getColorData(
                     dval,
                     maxDensity.get(),
@@ -347,24 +333,23 @@ function useIterativeAttractorImage(
           i++;
         }
 
-        if (!running.get()) return;
-        runOnJS(setMainImage)(new Uint8Array(imageData.buffer).join(','));
+        runOnJS(setImage)(new Uint8Array(imageData.buffer).join(','));
       }
 
-      if (!running.get()) return;
-      runOnJS(setAttractorProgress)(tp / totalAttractorPoints);
-      runOnJS(afterCalc)(tp);
+      runOnJS(setProgress)(totalPointsVal / totalAttractorPointsVal);
+      runOnJS(afterCalc)(totalPointsVal < totalAttractorPointsVal);
 
-      totalPoints.set(tp);
-      totalItteration.set(ti);
+      density.set(densityVal);
+      totalPoints.set(totalPointsVal);
+      totalItteration.set(totalItterationVal);
       maxDensity.set(maxDensityVal);
       x.set(xVal);
       y.set(yVal);
-      density.set(densityValue);
     }
 
-    function afterCalc(total: number) {
-      if (total < totalAttractorPoints) {
+    function afterCalc(runAgain: boolean) {
+      if (!isRunning) return;
+      if (runAgain) {
         console.log('Running attractor calculation again');
         runOnRuntime(attractorRuntime, calculateAttractorWorklet)();
       } else {
@@ -372,14 +357,33 @@ function useIterativeAttractorImage(
       }
     }
 
+    function setProgress(num: number) {
+      if (!isRunning) return;
+      setAttractorProgress(num);
+    }
+
+    function setImage(buffer: string | null) {
+      if (!isRunning) return;
+      setMainImage(buffer);
+    }
+
+    function onDone() {
+      if (!isRunning) return;
+      console.log(
+        'Attractor calculation complete in',
+        new Date().valueOf() - then.valueOf(),
+        'ms',
+      );
+    }
+
     runOnRuntime(attractorRuntime, calculateAttractorWorklet)();
 
     return () => {
-      running.set(false);
+      isRunning = false;
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [width, height, attractorParameters, highQuality]);
+  }, []);
 
   function setMainImage(buffer: string | null) {
     if (buffer === null) {
@@ -421,19 +425,47 @@ export function makeSkiaImage(
   return img;
 }
 
-// AttractorCanvas: renders the attractor using a single image buffer for the entire screen.
-// The yellow background is for debugging; remove or change as needed.
-
-export function AttractorCanvas() {
-  const { width, height } = Dimensions.get('window');
-  const attractorParameters = useAttractorStore(s => s.attractorParameters);
-  const [highQuality] = useState(true);
+function AttractorCanvasImage({
+  width,
+  height,
+  attractorParameters,
+  highQuality,
+}: {
+  width: number;
+  height: number;
+  attractorParameters: AttractorParameters;
+  highQuality: boolean; // default is true
+}) {
   const image = useIterativeAttractorImage(
     Math.round(width),
     Math.round(height),
     attractorParameters,
     highQuality,
   );
+
+  return (
+    <Canvas style={{ flex: 1 }}>
+      {image && (
+        <Image
+          image={image}
+          fit="fill"
+          x={0}
+          y={0}
+          width={width}
+          height={height}
+        />
+      )}
+    </Canvas>
+  );
+}
+
+// AttractorCanvas: renders the attractor using a single image buffer for the entire screen.
+// The yellow background is for debugging; remove or change as needed.
+
+export function AttractorCanvas() {
+  const { width, height } = Dimensions.get('window');
+  const attractorParameters = useAttractorStore(s => s.attractorParameters);
+  const [highQuality, setHighQuality] = useState(true);
 
   return (
     <View
@@ -443,18 +475,30 @@ export function AttractorCanvas() {
       }}
     >
       <ProgressBar />
-      <Canvas style={{ flex: 1, width, height }}>
-        {image && (
-          <Image
-            image={image}
-            fit="fill"
-            x={0}
-            y={0}
-            width={width}
-            height={height}
-          />
-        )}
-      </Canvas>
+      <AttractorCanvasImage
+        key={JSON.stringify(attractorParameters) + (highQuality ? 'hq' : 'lq')}
+        width={width}
+        height={height}
+        attractorParameters={attractorParameters}
+        highQuality={highQuality}
+      />
+      <Pressable
+        onPress={() => setHighQuality(q => !q)}
+        style={{
+          position: 'absolute',
+          left: 16,
+          bottom: 24,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          borderRadius: 8,
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+        }}
+        accessibilityLabel="Toggle quality mode"
+      >
+        <Text style={{ color: 'white', fontWeight: 'bold' }}>
+          {highQuality ? 'High Quality' : 'Low Quality'}
+        </Text>
+      </Pressable>
     </View>
   );
 }

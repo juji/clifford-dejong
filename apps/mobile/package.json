@@ -37,12 +37,14 @@
     "prettier-plugin-tailwindcss": "^0.5.14",
     "react": "19.1.0",
     "react-native": "0.80.1",
+    "react-native-mmkv": "^3.3.0",
     "react-native-reanimated": "^3.18.0",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "^4.13.1",
     "react-native-svg": "^15.12.0",
     "tailwindcss": "^3.4.17",
-    "tamagui": "^1.132.15"
+    "tamagui": "^1.132.15",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -12,7 +12,7 @@ echo "📱 Running React Native platform-specific setup..."
 if [ "$(uname)" == "Darwin" ] && [ -d "./ios" ] && [ -f "./ios/Podfile" ]; then
   echo "🍎 Setting up iOS CocoaPods..."
   if command -v pod &> /dev/null; then
-    cd ./ios && pod install && cd ..
+    cd ./ios && RCT_NEW_ARCH_ENABLED=1 pod install && cd ..
   else
     echo "⚠️ CocoaPods not installed. Run 'gem install cocoapods' and try again."
   fi

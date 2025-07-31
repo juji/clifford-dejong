@@ -19,6 +19,9 @@ target 'mobile' do
 
   use_react_native!(
     :path => config[:reactNativePath],
+    # enable hermes and fabric for the new architecture
+    :hermes_enabled => true,
+    :fabric_enabled => true,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
