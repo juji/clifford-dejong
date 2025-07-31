@@ -278,7 +278,7 @@ function useIterativeAttractorImage(
       const cx = wVal / 2 + left;
       const cy = hVal / 2 + top;
       const s = scale * SCALE;
-      const drawAt = hQualityVal ? 10 : 1;
+      const drawAt = 10;
 
       // calculate density for the current iteration
       let i = 0;
@@ -303,6 +303,7 @@ function useIterativeAttractorImage(
         totalPointsVal++;
       }
 
+      console.log('Total iterations:', totalItterationVal);
       // if we have enough points, draw the image
       if (
         totalItterationVal === 2 ||
