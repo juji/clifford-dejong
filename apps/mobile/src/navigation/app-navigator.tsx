@@ -14,6 +14,7 @@ import AttractorScreen from '@/screens/attractor-screen';
 import AttractorDetailScreen from '@/screens/attractor-detail-screen';
 import SettingsScreen from '@/screens/settings-screen';
 import TamaguiShowcaseScreen from '@/screens/tamagui-showcase-screen';
+import NativeModuleExample from '@/screens/native-module-example';
 
 // Import types
 import { RootStackParamList } from './types';
@@ -105,6 +106,13 @@ function AppNavigator() {
             component={TamaguiShowcaseScreen}
             options={{
               title: 'Tamagui Showcase',
+            }}
+          />
+          <Stack.Screen
+            name="NativeModuleExample"
+            component={NativeModuleExample}
+            options={{
+              title: 'NativeModuleExample',
             }}
           />
         </Stack.Navigator>

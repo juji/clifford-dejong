@@ -12,6 +12,8 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		AB3E230B2E3C535600E10207 /* MativeSampleModule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3E23082E3C535600E10207 /* MativeSampleModule.cpp */; };
+		AB3E230E2E3C53EB00E10207 /* NativeSampleModuleProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB3E230D2E3C53EB00E10207 /* NativeSampleModuleProvider.mm */; };
 		ABDB47BC2E361A990048205B /* og-image.png in Resources */ = {isa = PBXBuildFile; fileRef = ABDB47BB2E361A990048205B /* og-image.png */; };
 /* End PBXBuildFile section */
 
@@ -25,6 +27,10 @@
 		5DCACB8F33CDC322A6C60F78 /* libPods-mobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-mobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = mobile/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = mobile/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		AB3E23082E3C535600E10207 /* MativeSampleModule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MativeSampleModule.cpp; sourceTree = "<group>"; };
+		AB3E23092E3C535600E10207 /* NativeSampleModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NativeSampleModule.h; sourceTree = "<group>"; };
+		AB3E230C2E3C53EB00E10207 /* NativeSampleModuleProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NativeSampleModuleProvider.h; sourceTree = "<group>"; };
+		AB3E230D2E3C53EB00E10207 /* NativeSampleModuleProvider.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = NativeSampleModuleProvider.mm; sourceTree = "<group>"; };
 		ABDB47BB2E361A990048205B /* og-image.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "og-image.png"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -83,6 +89,9 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				AB3E230C2E3C53EB00E10207 /* NativeSampleModuleProvider.h */,
+				AB3E230D2E3C53EB00E10207 /* NativeSampleModuleProvider.mm */,
+				AB3E230A2E3C535600E10207 /* shared */,
 				13B07FAE1A68108700A75B9A /* mobile */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				AB4CCA052E35E1F600F10F72 /* mobilUiTests */,
@@ -102,6 +111,16 @@
 			);
 			name = Products;
 			sourceTree = "<group>";
+		};
+		AB3E230A2E3C535600E10207 /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				AB3E23082E3C535600E10207 /* MativeSampleModule.cpp */,
+				AB3E23092E3C535600E10207 /* NativeSampleModule.h */,
+			);
+			name = shared;
+			path = ../shared;
+			sourceTree = SOURCE_ROOT;
 		};
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
@@ -264,6 +283,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				AB3E230E2E3C53EB00E10207 /* NativeSampleModuleProvider.mm in Sources */,
+				AB3E230B2E3C535600E10207 /* MativeSampleModule.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

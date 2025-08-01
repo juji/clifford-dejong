@@ -437,12 +437,13 @@ function AttractorCanvasImage({
   attractorParameters: AttractorParameters;
   highQuality: boolean; // default is true
 }) {
-  const image = useIterativeAttractorImage(
-    Math.round(width),
-    Math.round(height),
-    attractorParameters,
-    highQuality,
-  );
+  const image = null;
+  // useIterativeAttractorImage(
+  //   Math.round(width),
+  //   Math.round(height),
+  //   attractorParameters,
+  //   highQuality,
+  // );
 
   return (
     <Canvas style={{ flex: 1 }}>
