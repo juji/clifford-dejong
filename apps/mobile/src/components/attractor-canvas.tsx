@@ -25,8 +25,28 @@ const LOW_RES_POINTS = 200000; // Points for low-res attractor
 const LOW_RES_POINTS_PER_ITTERATION = 100000; // Points to generate per chunk (low res)
 const SCALE = 150;
 
-// Iterative, chunked attractor image generator using requestAnimationFrame
+// Convert a Uint8Array RGBA buffer to a Skia image.
+// Skia requires width/height to be integers, and stride = width * 4 bytes.
+export function makeSkiaImage(
+  imageData: Uint8Array,
+  width: number = 256,
+  height: number = 256,
+) {
+  const data = Skia.Data.fromBytes(imageData);
+  const img = Skia.Image.MakeImage(
+    {
+      width,
+      height,
+      alphaType: AlphaType.Opaque,
+      colorType: ColorType.RGBA_8888,
+    },
+    data,
+    width * 4,
+  );
+  return img;
+}
 
+// Iterative, chunked attractor image generator using requestAnimationFrame
 function useIterativeAttractorImage(
   width: number,
   height: number,
@@ -36,9 +56,10 @@ function useIterativeAttractorImage(
 ) {
   const [imageTimestamp, setImageTimestamp] = useState<string | null>(null);
   const setAttractorProgress = useGlobalStore(s => s.setAttractorProgress);
-  const attractorRuntime = createWorkletRuntime(
-    Math.random().toString(36).substring(2, 15),
-  );
+
+  // should be predetermined name
+  // if not, android can fail to load the worklet
+  const attractorRuntime = createWorkletRuntime('attractor-runtime');
 
   // shared
   const density = useSharedValue(new Uint32Array(width * height));
@@ -65,8 +86,6 @@ function useIterativeAttractorImage(
 
     function calculateAttractorWorklet() {
       'worklet';
-
-      console.log('Starting attractor calculation');
 
       function BezierEasing(
         p0: number,
@@ -306,19 +325,12 @@ function useIterativeAttractorImage(
         totalPointsVal++;
       }
 
-      console.log('Total iterations:', totalItterationVal);
       // if we have enough points, draw the image
       if (
         totalItterationVal === 2 ||
         totalItterationVal % drawAt === 0 ||
         totalPointsVal === totalAttractorPointsVal
       ) {
-        console.log(
-          'Drawing image with',
-          totalPointsVal,
-          'points, max density:',
-          maxDensityVal,
-        );
         const imageData = new Uint32Array(wVal * hVal);
 
         const loopLimit = Math.min(wVal * hVal, densityVal.length);
@@ -343,7 +355,6 @@ function useIterativeAttractorImage(
                 ((background && background[0]) || 0);
         }
 
-        console.log('Image data calculated, setting image');
         runOnJS(setImage)(new Uint8Array(imageData.buffer).join(','));
       }
 
@@ -361,7 +372,6 @@ function useIterativeAttractorImage(
     function afterCalc(runAgain: boolean) {
       if (!isRunning) return;
       if (runAgain) {
-        console.log('Running attractor calculation again');
         runOnRuntime(attractorRuntime, calculateAttractorWorklet)();
       } else {
         onDone();
@@ -402,8 +412,6 @@ function useIterativeAttractorImage(
       return;
     }
 
-    // setImage(makeSkiaImage(buffer, width, height));
-    console.log('Setting image from buffer');
     try {
       imageRef.current = makeSkiaImage(
         new Uint8Array(buffer.split(',').map(Number)),
@@ -419,29 +427,6 @@ function useIterativeAttractorImage(
   }
 
   return imageTimestamp;
-}
-
-// Convert a Uint32Array RGBA buffer to a Skia image.
-// Skia requires width/height to be integers, and stride = width * 4 bytes.
-export function makeSkiaImage(
-  imageData: Uint8Array,
-  width: number = 256,
-  height: number = 256,
-) {
-  console.log('Creating Skia data from buffer');
-  const data = Skia.Data.fromBytes(imageData);
-  console.log('Creating skia image');
-  const img = Skia.Image.MakeImage(
-    {
-      width,
-      height,
-      alphaType: AlphaType.Opaque,
-      colorType: ColorType.RGBA_8888,
-    },
-    data,
-    width * 4,
-  );
-  return img;
 }
 
 function AttractorCanvasImage({
