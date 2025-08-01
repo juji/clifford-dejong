@@ -126,14 +126,14 @@ export function MainMenu() {
             >
               Test Worklet Stop
             </MenuButton>
-            <MenuButton
+            {/* <MenuButton
               onPress={() => {
                 setIsOpen(false);
                 navigation.navigate('NativeModuleExample');
               }}
             >
               NativeModuleExample
-            </MenuButton>
+            </MenuButton> */}
           </>
         ) : null}
       </AnimatePresence>

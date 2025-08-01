@@ -8,7 +8,7 @@ import { useAttractorStore } from '@repo/state/attractor-store';
 import { useGlobalStore } from '../store/global-store';
 import type { AttractorParameters } from '@repo/core/types';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   runOnJS,
   useSharedValue,
@@ -32,8 +32,9 @@ function useIterativeAttractorImage(
   height: number,
   attractorParameters: AttractorParameters,
   highQuality: boolean,
+  imageRef: React.RefObject<SkImage | null>,
 ) {
-  const [image, setImage] = useState<SkImage | null>(null);
+  const [imageTimestamp, setImageTimestamp] = useState<string | null>(null);
   const setAttractorProgress = useGlobalStore(s => s.setAttractorProgress);
   const attractorRuntime = createWorkletRuntime(
     Math.random().toString(36).substring(2, 15),
@@ -64,6 +65,8 @@ function useIterativeAttractorImage(
 
     function calculateAttractorWorklet() {
       'worklet';
+
+      console.log('Starting attractor calculation');
 
       function BezierEasing(
         p0: number,
@@ -278,7 +281,7 @@ function useIterativeAttractorImage(
       const cx = wVal / 2 + left;
       const cy = hVal / 2 + top;
       const s = scale * SCALE;
-      const drawAt = 10;
+      const drawAt = 20;
 
       // calculate density for the current iteration
       let i = 0;
@@ -310,9 +313,16 @@ function useIterativeAttractorImage(
         totalItterationVal % drawAt === 0 ||
         totalPointsVal === totalAttractorPointsVal
       ) {
+        console.log(
+          'Drawing image with',
+          totalPointsVal,
+          'points, max density:',
+          maxDensityVal,
+        );
         const imageData = new Uint32Array(wVal * hVal);
-        let i = 0;
-        while (i < wVal * hVal) {
+
+        const loopLimit = Math.min(wVal * hVal, densityVal.length);
+        for (let i = 0; i < loopLimit; i++) {
           const dval = densityVal[i] || 0;
           imageData[i] =
             dval > 0
@@ -331,9 +341,9 @@ function useIterativeAttractorImage(
                 (((background && background[2]) || 0) << 16) |
                 (((background && background[1]) || 0) << 8) |
                 ((background && background[0]) || 0);
-          i++;
         }
 
+        console.log('Image data calculated, setting image');
         runOnJS(setImage)(new Uint8Array(imageData.buffer).join(','));
       }
 
@@ -388,21 +398,27 @@ function useIterativeAttractorImage(
 
   function setMainImage(buffer: string | null) {
     if (buffer === null) {
-      setImage(null);
+      setImageTimestamp(null);
       return;
     }
 
     // setImage(makeSkiaImage(buffer, width, height));
-    setImage(
-      makeSkiaImage(
+    console.log('Setting image from buffer');
+    try {
+      imageRef.current = makeSkiaImage(
         new Uint8Array(buffer.split(',').map(Number)),
         width,
         height,
-      ),
-    );
+      );
+      setImageTimestamp(new Date().toISOString());
+    } catch (e) {
+      console.error('Error setting image from buffer:', e);
+      setImageTimestamp(null);
+      return;
+    }
   }
 
-  return image;
+  return imageTimestamp;
 }
 
 // Convert a Uint32Array RGBA buffer to a Skia image.
@@ -412,7 +428,9 @@ export function makeSkiaImage(
   width: number = 256,
   height: number = 256,
 ) {
+  console.log('Creating Skia data from buffer');
   const data = Skia.Data.fromBytes(imageData);
+  console.log('Creating skia image');
   const img = Skia.Image.MakeImage(
     {
       width,
@@ -437,19 +455,22 @@ function AttractorCanvasImage({
   attractorParameters: AttractorParameters;
   highQuality: boolean; // default is true
 }) {
-  const image = null;
-  // useIterativeAttractorImage(
-  //   Math.round(width),
-  //   Math.round(height),
-  //   attractorParameters,
-  //   highQuality,
-  // );
+  // const image = null;
+  const imageRef = useRef<SkImage | null>(null);
+  const imageTimestamp = useIterativeAttractorImage(
+    Math.round(width),
+    Math.round(height),
+    attractorParameters,
+    highQuality,
+    imageRef,
+  );
 
   return (
     <Canvas style={{ flex: 1 }}>
-      {image && (
+      {imageTimestamp && (
         <Image
-          image={image}
+          key={imageTimestamp}
+          image={imageRef.current}
           fit="fill"
           x={0}
           y={0}

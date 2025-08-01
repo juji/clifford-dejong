@@ -108,13 +108,13 @@ function AppNavigator() {
               title: 'Tamagui Showcase',
             }}
           />
-          <Stack.Screen
+          {/* <Stack.Screen
             name="NativeModuleExample"
             component={NativeModuleExample}
             options={{
               title: 'NativeModuleExample',
             }}
-          />
+          /> */}
         </Stack.Navigator>
       </NavigationContainer>
     </View>
