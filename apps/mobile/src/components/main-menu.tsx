@@ -118,22 +118,6 @@ export function MainMenu() {
             >
               Worklet Demo
             </MenuButton>
-            <MenuButton
-              onPress={() => {
-                setIsOpen(false);
-                navigation.navigate('TestWorkletStop');
-              }}
-            >
-              Test Worklet Stop
-            </MenuButton>
-            {/* <MenuButton
-              onPress={() => {
-                setIsOpen(false);
-                navigation.navigate('NativeModuleExample');
-              }}
-            >
-              NativeModuleExample
-            </MenuButton> */}
           </>
         ) : null}
       </AnimatePresence>

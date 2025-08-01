@@ -2,21 +2,21 @@ import { View } from 'tamagui';
 import { Pressable, Text } from 'react-native';
 import { Canvas, Image } from '@shopify/react-native-skia';
 import { ProgressBar } from './progress-bar';
-// AttractorCanvas renders a full-screen attractor image in a single buffer.
 
 import { useAttractorStore } from '@repo/state/attractor-store';
 import { useGlobalStore } from '../store/global-store';
 import type { AttractorParameters } from '@repo/core/types';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   runOnJS,
   useSharedValue,
   runOnRuntime,
   createWorkletRuntime,
+  // runOnUI,
+  useDerivedValue,
 } from 'react-native-reanimated';
 import { Dimensions } from 'react-native';
-import type { SkImage } from '@shopify/react-native-skia';
 import { Skia, AlphaType, ColorType } from '@shopify/react-native-skia';
 
 const POINTS = 20000000; // Default points for attractor
@@ -25,36 +25,15 @@ const LOW_RES_POINTS = 200000; // Points for low-res attractor
 const LOW_RES_POINTS_PER_ITTERATION = 100000; // Points to generate per chunk (low res)
 const SCALE = 150;
 
-// Convert a Uint8Array RGBA buffer to a Skia image.
-// Skia requires width/height to be integers, and stride = width * 4 bytes.
-export function makeSkiaImage(
-  imageData: Uint8Array,
-  width: number = 256,
-  height: number = 256,
-) {
-  const data = Skia.Data.fromBytes(imageData);
-  const img = Skia.Image.MakeImage(
-    {
-      width,
-      height,
-      alphaType: AlphaType.Opaque,
-      colorType: ColorType.RGBA_8888,
-    },
-    data,
-    width * 4,
-  );
-  return img;
-}
-
 // Iterative, chunked attractor image generator using requestAnimationFrame
 function useIterativeAttractorImage(
   width: number,
   height: number,
   attractorParameters: AttractorParameters,
   highQuality: boolean,
-  imageRef: React.RefObject<SkImage | null>,
+  // imageRef: React.RefObject<SkImage | null>,
 ) {
-  const [imageTimestamp, setImageTimestamp] = useState<string | null>(null);
+  // const [imageTimestamp, setImageTimestamp] = useState<string | null>(null);
   const setAttractorProgress = useGlobalStore(s => s.setAttractorProgress);
 
   // should be predetermined name
@@ -62,6 +41,7 @@ function useIterativeAttractorImage(
   const attractorRuntime = createWorkletRuntime('attractor-runtime');
 
   // shared
+  const pixels = useSharedValue<Uint8Array | null>(null);
   const density = useSharedValue(new Uint32Array(width * height));
   const w = useSharedValue(width);
   const h = useSharedValue(height);
@@ -372,6 +352,7 @@ function useIterativeAttractorImage(
     function afterCalc(runAgain: boolean) {
       if (!isRunning) return;
       if (runAgain) {
+        // runOnUI(calculateAttractorWorklet)();
         runOnRuntime(attractorRuntime, calculateAttractorWorklet)();
       } else {
         onDone();
@@ -385,7 +366,7 @@ function useIterativeAttractorImage(
 
     function setImage(buffer: string | null) {
       if (!isRunning) return;
-      setMainImage(buffer);
+      pixels.set(buffer ? new Uint8Array(buffer.split(',').map(Number)) : null);
     }
 
     function onDone() {
@@ -406,27 +387,28 @@ function useIterativeAttractorImage(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function setMainImage(buffer: string | null) {
-    if (buffer === null) {
-      setImageTimestamp(null);
-      return;
+  const image = useDerivedValue(() => {
+    if (!pixels.value) {
+      return null; // No image data available
     }
 
-    try {
-      imageRef.current = makeSkiaImage(
-        new Uint8Array(buffer.split(',').map(Number)),
+    // This is the key. When pixels.value updates, this function runs.
+    const data = Skia.Data.fromBytes(pixels.value);
+    const image = Skia.Image.MakeImage(
+      {
         width,
         height,
-      );
-      setImageTimestamp(new Date().toISOString());
-    } catch (e) {
-      console.error('Error setting image from buffer:', e);
-      setImageTimestamp(null);
-      return;
-    }
-  }
+        colorType: ColorType.RGBA_8888,
+        alphaType: AlphaType.Premul, // Use Premul for transparent images
+      },
+      data,
+      width * 4,
+    );
 
-  return imageTimestamp;
+    return image;
+  }, [pixels]);
+
+  return image;
 }
 
 function AttractorCanvasImage({
@@ -441,21 +423,21 @@ function AttractorCanvasImage({
   highQuality: boolean; // default is true
 }) {
   // const image = null;
-  const imageRef = useRef<SkImage | null>(null);
-  const imageTimestamp = useIterativeAttractorImage(
+  // const imageRef = useRef<SkImage | null>(null);
+  const image = useIterativeAttractorImage(
     Math.round(width),
     Math.round(height),
     attractorParameters,
     highQuality,
-    imageRef,
+    // imageRef,
   );
 
   return (
     <Canvas style={{ flex: 1 }}>
-      {imageTimestamp && (
+      {image && (
         <Image
-          key={imageTimestamp}
-          image={imageRef.current}
+          // key={imageTimestamp}
+          image={image}
           fit="fill"
           x={0}
           y={0}
