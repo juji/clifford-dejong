@@ -7,15 +7,25 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import SampleTurboModule from '@specs/NativeSampleModule';
+import NativeSampleModule from '@specs/NativeSampleModule';
 
 function NativeModuleExample(): React.JSX.Element {
   const [value, setValue] = React.useState('');
   const [reversedValue, setReversedValue] = React.useState('');
 
   const onPress = () => {
-    const revString = SampleTurboModule.reverseString(value);
+    const revString = NativeSampleModule.reverseString(
+      value,
+      (log: string) => {
+        console.log('Native log:', log);
+      },
+      (buffer: string) => {
+        console.log('Reversed buffer:', buffer);
+      },
+    );
+
     setReversedValue(revString);
+    NativeSampleModule.setMainString(Math.random().toString(36).substring(7));
   };
 
   return (
