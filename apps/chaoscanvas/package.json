@@ -54,7 +54,7 @@
     "node": ">=18"
   },
   "codegenConfig": {
-    "name": "AppSpecs",
+    "name": "NativeAttractorCalcSpecs",
     "type": "modules",
     "jsSrcsDir": "specs",
     "android": {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <AppSpecsJSI.h>
+#include <NativeAttractorCalcSpecsJSI.h>
 
 #include <memory>
 #include <string>
