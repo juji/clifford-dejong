@@ -12,8 +12,17 @@ export function Jsi() {
     //   return;
     // }
     // setStarted(true);
-    const m = calculateAttractorNative({ timestamp: new Date().toISOString() });
-    setMessage(m);
+    // const m = calculateAttractorNative({ timestamp: new Date().toISOString() });
+    // setMessage(m);
+    calculateAttractorNative({ timestamp: new Date().toISOString() })
+      .then(result => {
+        console.log('Attractor calculation result:', result);
+        setMessage(result);
+      })
+      .catch(error => {
+        console.error('Error calculating attractor:', error);
+        setMessage('Error calculating attractor');
+      });
   }
 
   return (

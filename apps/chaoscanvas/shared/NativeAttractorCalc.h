@@ -11,7 +11,7 @@ class NativeAttractorCalc : public NativeAttractorCalcCxxSpec<NativeAttractorCal
 public:
   NativeAttractorCalc(std::shared_ptr<CallInvoker> jsInvoker);
 
-  std::string calculateAttractor(jsi::Runtime& rt, std::string timestamp);
+  jsi::Value calculateAttractor(jsi::Runtime& rt, std::string timestamp);
 };
 
 } // namespace facebook::react

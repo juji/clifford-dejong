@@ -6,7 +6,7 @@ export type AttractorCalcModuleParams = {
 
 export function calculateAttractorNative(
   params: AttractorCalcModuleParams,
-): string {
+): Promise<string> {
   // This function will call the native module to calculate the attractor
   return NativeAttractorCalc.calculateAttractor(params.timestamp);
 }
