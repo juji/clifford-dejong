@@ -56,6 +56,9 @@ importers:
       "@react-navigation/native-stack":
         specifier: ^7.3.23
         version: 7.3.23(@react-navigation/native@7.1.16(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.5.2(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native-screens@4.13.1(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
+      "@shopify/react-native-skia":
+        specifier: ^2.1.1
+        version: 2.1.1(react-native-reanimated@4.0.1(@babel/core@7.28.0)(react-native-worklets@0.4.1(@babel/core@7.28.0)(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
       "@tamagui/config":
         specifier: ^1.132.15
         version: 1.132.15(react-dom@19.1.0(react@19.1.0))(react-native-reanimated@4.0.1(@babel/core@7.28.0)(react-native-worklets@0.4.1(@babel/core@7.28.0)(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
@@ -68,12 +71,18 @@ importers:
       react-native:
         specifier: 0.80.2
         version: 0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0)
+      react-native-reanimated:
+        specifier: ^4.0.1
+        version: 4.0.1(@babel/core@7.28.0)(react-native-worklets@0.4.1(@babel/core@7.28.0)(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
       react-native-safe-area-context:
         specifier: ^5.5.2
         version: 5.5.2(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
       react-native-screens:
         specifier: ^4.13.1
         version: 4.13.1(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
+      react-native-worklets:
+        specifier: ^0.4.1
+        version: 0.4.1(@babel/core@7.28.0)(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
       tamagui:
         specifier: ^1.132.15
         version: 1.132.15(react-dom@19.1.0(react@19.1.0))(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
@@ -3537,6 +3546,22 @@ packages:
       typescript:
         optional: true
 
+  "@shopify/react-native-skia@2.1.1":
+    resolution:
+      {
+        integrity: sha512-ZLlehE47YqOw3MmBWX6VgJY6vB39vrJpoN35RQaYK+LvhQqH5GB1qhR+LBCjOSgYgHvdapJ89gC+LrpngnfbYQ==,
+      }
+    hasBin: true
+    peerDependencies:
+      react: ">=19.0"
+      react-native: ">=0.78"
+      react-native-reanimated: ^3.0
+    peerDependenciesMeta:
+      react-native:
+        optional: true
+      react-native-reanimated:
+        optional: true
+
   "@sideway/address@4.1.5":
     resolution:
       {
@@ -5070,6 +5095,12 @@ packages:
         integrity: sha512-9ORTwwS74VaTn38tNbQhsA5U44zkJfcb0BdTSyyG6frP4e8KMtHuTXYmwefe5dpL8XB1aGSIVTaLjD3BbWb5iA==,
       }
 
+  "@webgpu/types@0.1.21":
+    resolution:
+      {
+        integrity: sha512-pUrWq3V5PiSGFLeLxoGqReTZmiiXwY3jRkIG5sLLKjyqNxrwm/04b4nw7LSmGWJcKk59XOM/YRTUwOzo4MMlow==,
+      }
+
   abort-controller@3.0.0:
     resolution:
       {
@@ -5638,6 +5669,12 @@ packages:
     resolution:
       {
         integrity: sha512-pB68nIHmbN6L/4C6MH1DokyR3bYqFwjaSs/sWDHGj4CTcFtQUQMuJftVwWkXq7mNWOybD3KhUv3oWHoGxgP14Q==,
+      }
+
+  canvaskit-wasm@0.40.0:
+    resolution:
+      {
+        integrity: sha512-Od2o+ZmoEw9PBdN/yCGvzfu0WVqlufBPEWNG452wY7E9aT8RBE+ChpZF526doOlg7zumO4iCS+RAeht4P0Gbpw==,
       }
 
   chai@5.2.1:
@@ -9899,6 +9936,15 @@ packages:
       "@types/react":
         optional: true
 
+  react-reconciler@0.31.0:
+    resolution:
+      {
+        integrity: sha512-7Ob7Z+URmesIsIVRjnLoDGwBEG/tVitidU0nMsqX/eeJaLY89RISO/10ERe0MqmzuKUUB1rmY+h1itMbUHg9BQ==,
+      }
+    engines: { node: ">=0.10.0" }
+    peerDependencies:
+      react: ^19.0.0
+
   react-refresh@0.14.2:
     resolution:
       {
@@ -10238,6 +10284,12 @@ packages:
         integrity: sha512-xAg7SOnEhrm5zI3puOOKyy1OMcMlIJZYNJY7xLBwSze0UjhPLnWfj2GF2EpT0jmzaJKIWKHLsaSSajf35bcYnA==,
       }
     engines: { node: ">=v12.22.7" }
+
+  scheduler@0.25.0:
+    resolution:
+      {
+        integrity: sha512-xFVuu11jh+xcO7JOAGJNOXld8/TcEHK/4CituBUeUb5hqxJLj9YuemAEuvm9gQ/+pgXYfbQuqAkiYu+u7YEsNA==,
+      }
 
   scheduler@0.26.0:
     resolution:
@@ -14258,6 +14310,15 @@ snapshots:
     optionalDependencies:
       typescript: 5.8.2
 
+  "@shopify/react-native-skia@2.1.1(react-native-reanimated@4.0.1(@babel/core@7.28.0)(react-native-worklets@0.4.1(@babel/core@7.28.0)(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)":
+    dependencies:
+      canvaskit-wasm: 0.40.0
+      react: 19.1.0
+      react-reconciler: 0.31.0(react@19.1.0)
+    optionalDependencies:
+      react-native: 0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0)
+      react-native-reanimated: 4.0.1(@babel/core@7.28.0)(react-native-worklets@0.4.1(@babel/core@7.28.0)(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
+
   "@sideway/address@4.1.5":
     dependencies:
       "@hapi/hoek": 9.3.0
@@ -15837,6 +15898,8 @@ snapshots:
 
   "@vscode/sudo-prompt@9.3.1": {}
 
+  "@webgpu/types@0.1.21": {}
+
   abort-controller@3.0.0:
     dependencies:
       event-target-shim: 5.0.1
@@ -16224,6 +16287,10 @@ snapshots:
   camelcase@6.3.0: {}
 
   caniuse-lite@1.0.30001727: {}
+
+  canvaskit-wasm@0.40.0:
+    dependencies:
+      "@webgpu/types": 0.1.21
 
   chai@5.2.1:
     dependencies:
@@ -19295,6 +19362,11 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  react-reconciler@0.31.0(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      scheduler: 0.25.0
+
   react-refresh@0.14.2: {}
 
   react-refresh@0.17.0: {}
@@ -19518,6 +19590,8 @@ snapshots:
   saxes@6.0.0:
     dependencies:
       xmlchars: 2.2.0
+
+  scheduler@0.25.0: {}
 
   scheduler@0.26.0: {}
 
