@@ -68,6 +68,9 @@ importers:
       react-native-screens:
         specifier: ^4.13.1
         version: 4.13.1(react-native@0.80.2(@babel/core@7.28.0)(@react-native-community/cli@19.1.1(typescript@5.8.2))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
+      zustand:
+        specifier: ^5.0.6
+        version: 5.0.6(@types/react@19.1.0)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0))
     devDependencies:
       "@babel/core":
         specifier: ^7.25.2
