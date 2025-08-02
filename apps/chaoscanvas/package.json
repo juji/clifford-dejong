@@ -10,6 +10,7 @@
     "start": "react-native start --reset-cache",
     "test": "jest",
     "postinstall": "./setup.sh",
+    "setup": "./setup.sh",
     "clean": "cd android && ./gradlew clean && cd .."
   },
   "dependencies": {
