@@ -9,7 +9,8 @@
     "prestart": "watchman watch-del-all",
     "start": "react-native start --reset-cache",
     "test": "jest",
-    "postinstall": "./setup.sh"
+    "postinstall": "./setup.sh",
+    "clean": "cd android && ./gradlew clean && cd .."
   },
   "dependencies": {
     "@react-native/new-app-screen": "0.80.2",
