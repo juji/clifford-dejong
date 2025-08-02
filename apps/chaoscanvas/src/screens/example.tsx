@@ -1,14 +1,67 @@
-import { ScrollView, Text, useColorScheme } from "react-native";
-// import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-
+import { Text, ScrollView } from 'tamagui';
 
 export function Example() {
-
-  // const isDarkMode = useColorScheme() === 'dark';
-
   return (
-    <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
+    <ScrollView
+      // @ts-expect-error tamagui specific prop
+      contentContainerStyle={{ alignItems: 'center' }}
+    >
       <Text>Example - first</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
+      <Text>Example</Text>
       <Text>Example</Text>
       <Text>Example</Text>
       <Text>Example</Text>
