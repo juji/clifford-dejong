@@ -1,13 +1,7 @@
 import { View, Text, Button } from 'tamagui';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-// import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-
-// Define the navigation type
-type RootStackParamList = {
-  Home: undefined;
-  Example: undefined;
-};
+import { RootStackParamList } from '@/lib/navigation'; // Adjust the import path as necessary
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
