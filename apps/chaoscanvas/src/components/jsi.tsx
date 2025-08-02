@@ -1,33 +1,19 @@
 import { useState } from 'react';
 // import { ScrollView } from 'react-native';
 import { Text, Button, View, ScrollView } from 'tamagui';
-
-function useJsi() {
-  // This is a placeholder for the JSI functionality.
-  // In a real application, this would interface with native code.
-  return {
-    sendMessage: async (message: string) => {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate async operation
-      return `Hello from JSI, received message: ${message}`;
-    },
-  };
-}
+import { calculateAttractorNative } from '@/lib/calculate-attractor-native';
 
 export function Jsi() {
-  const [started, setStarted] = useState(false);
+  // const [started, setStarted] = useState(false);
   const [message, setMessage] = useState('Press the button to start');
 
-  const { sendMessage } = useJsi();
-
   function buttonPress() {
-    if (started) {
-      return;
-    }
-    setStarted(true);
-    sendMessage(new Date().toISOString()).then(response => {
-      setStarted(false);
-      setMessage(response);
-    });
+    // if (started) {
+    //   return;
+    // }
+    // setStarted(true);
+    const m = calculateAttractorNative({ timestamp: new Date().toISOString() });
+    setMessage(m);
   }
 
   return (
@@ -45,9 +31,10 @@ export function Jsi() {
         themeInverse
         onPress={() => buttonPress()}
         style={{ marginTop: 20 }}
-        disabled={started}
+        // disabled={started}
       >
-        {started ? 'Started' : 'Start'}
+        {/* {started ? 'Started' : 'Start'} */}
+        Start Calculation
       </Button>
 
       <View
