@@ -1,4 +1,4 @@
-package com.chaoscanvas
+package com.jujiplay.chaoscanvas
 
 import android.app.Application
 import com.facebook.react.PackageList

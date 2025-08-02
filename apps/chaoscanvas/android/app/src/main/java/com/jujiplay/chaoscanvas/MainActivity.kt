@@ -1,4 +1,4 @@
-package com.chaoscanvas
+package com.jujiplay.chaoscanvas
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
