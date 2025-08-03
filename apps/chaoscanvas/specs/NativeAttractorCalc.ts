@@ -14,7 +14,7 @@ export interface Spec extends TurboModule {
     // bytesWritten: number of bytes written in the last update
     // done: true if the calculation is done
     onUpdate: (bytesWritten: number, done: boolean) => void,
-  ) => Promise<string>;
+  ) => Object;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('NativeAttractorCalc');

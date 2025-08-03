@@ -19,21 +19,6 @@ export function Jsi() {
 
     calculateAttractorNative({
       timestamp: new Date().toISOString(),
-      // onProgress: (progressValue: number) => {
-      //   console.log('Progress update:', progressValue);
-      //   setProgress(progressValue);
-      // },
-      // onUpdate: (uint8string: string, done: boolean) => {
-      //   const values = uint8string.split(',').map(Number);
-      //   console.log(
-      //     'Update received, data points:',
-      //     values.length,
-      //     'done:',
-      //     done,
-      //   );
-      //   setPixelData(values);
-      //   setIsDone(done);
-      // },
     })
       .then(result => {
         console.log('Attractor calculation result:', result);

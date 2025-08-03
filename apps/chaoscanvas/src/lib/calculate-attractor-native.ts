@@ -13,6 +13,10 @@ export type AttractorCalcModuleParams = {
   onUpdate?: (bytesWritten: number, done: boolean) => void;
 };
 
+// export type AttractorCalcResult = {
+//   promise: Promise<string>;
+// };
+
 export function calculateAttractorNative(
   params: AttractorCalcModuleParams,
 ): Promise<string> {
@@ -41,11 +45,19 @@ export function calculateAttractorNative(
       );
     });
 
-  // Pass the sharedBuffer to the native function.
-  return NativeAttractorCalc.calculateAttractor(
+  const { promise, cancel } = NativeAttractorCalc.calculateAttractor(
     params.timestamp,
     sharedBuffer, // Pass the buffer here
     onProgress,
     onUpdate,
-  );
+  ) as { promise: Promise<string>; cancel: () => void };
+
+  setTimeout(() => {
+    // If you want to cancel the calculation after some time, you can call cancel.
+    console.log('Cancelling calculation after 1 second');
+    cancel();
+  }, 1000); // Example: cancel after 1 second
+
+  // Pass the sharedBuffer to the native function.
+  return promise;
 }
