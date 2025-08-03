@@ -1,15 +1,25 @@
 import NativeAttractorCalc from '@specs/NativeAttractorCalc';
 
+// Define a constant for the buffer size for clarity
+const POINT_COUNT = 1000000;
+// Assuming each point is represented by 4 int (r, g, b, a)
+const BYTES_PER_POINT = 4 * 4;
+const BUFFER_SIZE = POINT_COUNT * BYTES_PER_POINT;
+
 export type AttractorCalcModuleParams = {
   timestamp: string;
   onProgress?: (progress: number) => void;
-  onUpdate?: (uint8string: string, done: boolean) => void;
+  // The onUpdate callback now receives the number of new bytes written
+  onUpdate?: (bytesWritten: number, done: boolean) => void;
 };
 
 export function calculateAttractorNative(
   params: AttractorCalcModuleParams,
 ): Promise<string> {
-  // This function will call the native module to calculate the attractor
+  // Create the ArrayBuffer that will be written to by the C++ code.
+  const sharedBuffer = new ArrayBuffer(BUFFER_SIZE);
+  const dataView = new Uint8Array(sharedBuffer);
+
   const onProgress =
     params.onProgress ||
     ((progress: number) => {
@@ -18,17 +28,23 @@ export function calculateAttractorNative(
 
   const onUpdate =
     params.onUpdate ||
-    ((uint8string: string, done: boolean) => {
+    ((bytesWritten: number, done: boolean) => {
+      // The JS side can now access the updated `sharedBuffer` directly.
+      // For example, create a view on the buffer to read the data.
       console.log(
-        'Update received, data length:',
-        uint8string.split(',').length,
+        'Update received, bytes written:',
+        bytesWritten,
         'done:',
         done,
+        'First 10 points:',
+        dataView.length > 0 ? dataView.slice(0, 10) : 'N/A',
       );
     });
 
+  // Pass the sharedBuffer to the native function.
   return NativeAttractorCalc.calculateAttractor(
     params.timestamp,
+    sharedBuffer, // Pass the buffer here
     onProgress,
     onUpdate,
   );

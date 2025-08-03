@@ -5,18 +5,15 @@ export interface Spec extends TurboModule {
     // timestamp: ISO string, used to identify the calculation
     timestamp: string,
 
-    // dimension of image
-    // this is used to calculate the number of pixels
-    // and the size of the Uint8Array
-    // width: number,
-    // height: number,
+    // The shared buffer for zero-copy data transfer
+    buffer: Object,
 
     // progress: 0 - 1
     onProgress: (progress: number) => void,
 
-    // uint8string: uint8array concatenated to string, using "," as separator
-    // done: true if the calculation is done, false if it's still in progress
-    onUpdate: (uint8string: string, done: boolean) => void,
+    // bytesWritten: number of bytes written in the last update
+    // done: true if the calculation is done
+    onUpdate: (bytesWritten: number, done: boolean) => void,
   ) => Promise<string>;
 }
 
