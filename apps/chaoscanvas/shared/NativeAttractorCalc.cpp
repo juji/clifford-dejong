@@ -45,8 +45,9 @@ namespace facebook::react {
         auto resolveFunc = std::make_shared<jsi::Function>(args[0].asObject(runtime).asFunction(runtime));
         auto rejectFunc = std::make_shared<jsi::Function>(args[1].asObject(runtime).asFunction(runtime));
 
-        // Example of async work using the callInvoker
-        this->jsInvoker_->invokeAsync([
+        // Manually create a thread to run the calculation in the background
+        std::thread([
+          this,
           &runtime,
           timestamp,
           onProgressCopy,
@@ -61,32 +62,47 @@ namespace facebook::react {
             // Simulating attractor calculation
             for (int i = 0; i < 10; i++) {
               if (cancelled->load()) {
-                throw std::runtime_error("Cancelled");
+                // When cancelled, reject the promise from the JS thread
+                this->jsInvoker_->invokeAsync([&runtime, rejectFunc]() {
+                  rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled from C++"));
+                });
+                return; // Exit the thread
               }
 
-              double progress = (i + 1) / 10.0;
-              onProgressCopy->call(runtime, jsi::Value(progress));
-
-              // 2. Write directly into the ArrayBuffer
-              // This is a dummy implementation.
-              for (size_t j = 0; j < bufferSize; j++) {
-                  bufferPtr[j] = static_cast<uint8_t>(i);
-              }
-
-              // 3. Call onUpdate with bytes written
-              bool done = (i == 9);
-              onUpdateCopy->call(runtime, jsi::Value((int)bufferSize), jsi::Value(done));
-
-              //sleep for a short duration to simulate work
+              // sleep for a short duration to simulate work on the background thread
               std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+              // Schedule progress and update callbacks on the JS thread
+              this->jsInvoker_->invokeAsync([&runtime, onProgressCopy, onUpdateCopy, bufferPtr, bufferSize, i, cancelled]() {
+                if (cancelled->load()) return;
+
+                double progress = (i + 1) / 10.0;
+                onProgressCopy->call(runtime, jsi::Value(progress));
+
+                // This is a dummy implementation.
+                for (size_t j = 0; j < bufferSize; j++) {
+                    bufferPtr[j] = static_cast<uint8_t>(i);
+                }
+
+                bool done = (i == 9);
+                onUpdateCopy->call(runtime, jsi::Value((int)bufferSize), jsi::Value(done));
+              });
             }
 
-            std::string result = "Attractor calculation completed for timestamp: " + timestamp;
-            resolveFunc->call(runtime, jsi::String::createFromUtf8(runtime, result));
+            // Schedule the final resolution on the JS thread
+            this->jsInvoker_->invokeAsync([&runtime, resolveFunc, timestamp, cancelled]() {
+              if (cancelled->load()) return;
+              std::string result = "Attractor calculation completed for timestamp: " + timestamp;
+              resolveFunc->call(runtime, jsi::String::createFromUtf8(runtime, result));
+            });
+
           } catch (const std::exception& e) {
-            rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, e.what()));
+            // Schedule rejection on the JS thread
+            this->jsInvoker_->invokeAsync([&runtime, rejectFunc, e]() {
+              rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, e.what()));
+            });
           }
-        });
+        }).detach(); // Detach the thread to allow the JS function to return immediately
 
         return jsi::Value::undefined();
       }));

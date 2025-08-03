@@ -45,6 +45,7 @@ export function calculateAttractorNative(
       );
     });
 
+  const now = new Date().getTime();
   const { promise, cancel } = NativeAttractorCalc.calculateAttractor(
     params.timestamp,
     sharedBuffer, // Pass the buffer here
@@ -54,9 +55,10 @@ export function calculateAttractorNative(
 
   setTimeout(() => {
     // If you want to cancel the calculation after some time, you can call cancel.
-    console.log('Cancelling calculation after 1 second');
+    console.log('Cancelling calculation after 500ms');
+    console.log('actual elapsed time:', new Date().getTime() - now, 'ms');
     cancel();
-  }, 1000); // Example: cancel after 1 second
+  }, 500);
 
   // Pass the sharedBuffer to the native function.
   return promise;
