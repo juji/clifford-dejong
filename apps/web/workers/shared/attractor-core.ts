@@ -87,21 +87,22 @@ export function calculateAttractorPoints({
   batchSize: number;
   interval: number;
   onBatchProgress: (
-    i: number, 
-    pixels: Uint32Array, 
+    i: number,
+    pixels: Uint32Array,
     maxDensity: number,
-    isDone: boolean
+    isDone: boolean,
   ) => void;
-}): { 
+}): {
   processBatch: () => void;
-  pixels: Uint32Array;
+  densityPixels: Uint32Array;
   maxDensity: number;
 } {
-  let x = 0, y = 0;
-  const pixels = new Uint32Array(width * height);
+  let x = 0,
+    y = 0;
+  const densityPixels = new Uint32Array(width * height);
   let maxDensity = 0;
   let i = 0;
-  
+
   function processBatch() {
     const end = Math.min(i + batchSize, points);
     for (; i < end; i++) {
@@ -110,23 +111,23 @@ export function calculateAttractorPoints({
       let ny = smoothing(nyRaw, scale);
       x = nx;
       y = ny;
-      
+
       const screenX = Math.round(x * scale);
       const screenY = Math.round(y * scale);
       const px = Math.floor(screenX + width / 2 + left * width);
       const py = Math.floor(screenY + height / 2 + top * height);
-      
+
       if (px >= 0 && px < width && py >= 0 && py < height) {
         const idx = px + py * width;
-        pixels[idx] = (pixels[idx] || 0) + 1;
-        if (pixels[idx] > maxDensity) maxDensity = pixels[idx];
+        densityPixels[idx] = (densityPixels[idx] || 0) + 1;
+        if (densityPixels[idx] > maxDensity) maxDensity = densityPixels[idx];
       }
-      
+
       if ((i > 0 && i % interval === 0) || i === points - 1) {
-        onBatchProgress(i, pixels, maxDensity, i === points - 1);
+        onBatchProgress(i, densityPixels, maxDensity, i === points - 1);
       }
     }
   }
-  
-  return { processBatch, pixels, maxDensity };
+
+  return { processBatch, densityPixels, maxDensity };
 }

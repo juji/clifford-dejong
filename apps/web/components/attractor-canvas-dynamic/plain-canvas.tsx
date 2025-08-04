@@ -1,11 +1,20 @@
-'use client';
+"use client";
 
 import { useRef, useEffect, useCallback } from "react";
 import { useUIStore } from "@/store/ui-store";
 import { useAttractorStore } from "@repo/state/attractor-store";
 import { mainThreadDrawing } from "@/lib/main-thread-drawing";
-import { calculateAttractorPoints, getBatchSize, getInterval } from "../../workers/shared/attractor-core";
-import { DEFAULT_POINTS, DEFAULT_SCALE, LOW_QUALITY_POINTS, LOW_QUALITY_INTERVAL } from "@/lib/constants";
+import {
+  calculateAttractorPoints,
+  getBatchSize,
+  getInterval,
+} from "../../workers/shared/attractor-core";
+import {
+  DEFAULT_POINTS,
+  DEFAULT_SCALE,
+  LOW_QUALITY_POINTS,
+  LOW_QUALITY_INTERVAL,
+} from "@/lib/constants";
 import { clifford, dejong } from "@repo/core";
 
 type PlainAttractorParams = {
@@ -40,60 +49,63 @@ export function PlainCanvas({ ariaLabel }: { ariaLabel?: string }) {
 
   // Main thread calculation and drawing
   const rafId = useRef<number | null>(null);
-  const runAttractor = useCallback((params: PlainAttractorParams) => {
-    if (rafId.current !== null) {
-      cancelAnimationFrame(rafId.current);
-      rafId.current = null;
-    }
-    if (!canvasRef.current || !params) return;
-    const points = params.points;
-    const batchSize = getBatchSize(points, params.qualityMode);
-    const interval = getInterval(points, params.progressInterval);
-    let lastProgress = 0;
-    let done = false;
-    setProgress(0);
-    setImageUrl(null);
-
-    const { processBatch } = calculateAttractorPoints({
-      ...params,
-      batchSize,
-      interval,
-      onBatchProgress: (idx, pxs, maxD, isDone) => {
-        const progress = Math.round((idx / (points - 1)) * 100);
-        setProgress(progress);
-        if ((progress !== lastProgress || isDone) && canvasRef.current) {
-          mainThreadDrawing(
-            canvasRef.current,
-            Array.from(pxs),
-            maxD,
-            progress,
-            params.qualityMode,
-            attractorParameters
-          );
-          lastProgress = progress;
-        }
-        if (isDone && canvasRef.current && params.qualityMode === "high") {
-          setImageUrl(canvasRef.current.toDataURL("image/png"));
-          done = true;
-        }
-      },
-    });
-
-    function step() {
-      if (done) return;
-      processBatch();
-      if (!done && lastProgress < 100) {
-        rafId.current = requestAnimationFrame(step);
+  const runAttractor = useCallback(
+    (params: PlainAttractorParams) => {
+      if (rafId.current !== null) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
       }
-    }
-    rafId.current = requestAnimationFrame(step);
-    
-  }, [setProgress, setImageUrl, attractorParameters]);
+      if (!canvasRef.current || !params) return;
+      const points = params.points;
+      const batchSize = getBatchSize(points, params.qualityMode);
+      const interval = getInterval(points, params.progressInterval);
+      let lastProgress = 0;
+      let done = false;
+      setProgress(0);
+      setImageUrl(null);
+
+      const { processBatch } = calculateAttractorPoints({
+        ...params,
+        batchSize,
+        interval,
+        onBatchProgress: (idx, densityPixels, maxDensity, isDone) => {
+          const progress = Math.round((idx / (points - 1)) * 100);
+          setProgress(progress);
+          if ((progress !== lastProgress || isDone) && canvasRef.current) {
+            mainThreadDrawing(
+              canvasRef.current,
+              densityPixels,
+              maxDensity,
+              progress,
+              params.qualityMode,
+              attractorParameters,
+            );
+            lastProgress = progress;
+          }
+          if (isDone && canvasRef.current && params.qualityMode === "high") {
+            setImageUrl(canvasRef.current.toDataURL("image/png"));
+            done = true;
+          }
+        },
+      });
+
+      function step() {
+        if (done) return;
+        processBatch();
+        if (!done && lastProgress < 100) {
+          rafId.current = requestAnimationFrame(step);
+        }
+      }
+      rafId.current = requestAnimationFrame(step);
+    },
+    [setProgress, setImageUrl, attractorParameters],
+  );
 
   useEffect(() => {
     if (!benchmarkResult || !attractorParameters || !canvasSize) return;
     const params: PlainAttractorParams = {
-      attractorFn: attractorParameters.attractor === "clifford" ? clifford : dejong,
+      attractorFn:
+        attractorParameters.attractor === "clifford" ? clifford : dejong,
       a: attractorParameters.a,
       b: attractorParameters.b,
       c: attractorParameters.c,
@@ -109,7 +121,7 @@ export function PlainCanvas({ ariaLabel }: { ariaLabel?: string }) {
       hue: attractorParameters.hue,
       saturation: attractorParameters.saturation,
       brightness: attractorParameters.brightness,
-      background: attractorParameters.background
+      background: attractorParameters.background,
     };
     runAttractor(params);
     // eslint-disable-next-line react-hooks/exhaustive-deps

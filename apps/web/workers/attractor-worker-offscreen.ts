@@ -18,7 +18,7 @@ import {
   calculateAttractorPoints,
   getBatchSize,
   getInterval,
-  type AttractorRunParams
+  type AttractorRunParams,
 } from "./shared/attractor-core";
 
 type Params = {
@@ -215,33 +215,40 @@ function runAttractor({
   // Get calculation parameters from shared helpers
   const interval = getInterval(points, progressInterval);
   const batchSize = getBatchSize(points, qualityMode);
-  
-  function drawPixels(pixels: Uint32Array, maxDensity: number, progress: number) {
+
+  function drawPixels(
+    densityPixels: Uint32Array,
+    maxDensity: number,
+    progress: number,
+  ) {
     if (!offscreenCtx) return;
     const imageData = offscreenCtx.createImageData(width, height);
     const data = new Uint32Array(imageData.data.buffer);
     const bgArr = background || [0, 0, 0, 255];
-    const bgColor = (
-      ((bgArr[3] || 255) << 24) | 
-      ((bgArr[2] || 0) << 16) | 
-      ((bgArr[1] || 0) << 8) | 
-      (bgArr[0] || 0)
-    );
+    const bgColor =
+      ((bgArr[3] || 255) << 24) |
+      ((bgArr[2] || 0) << 16) |
+      ((bgArr[1] || 0) << 8) |
+      (bgArr[0] || 0);
 
     if (qualityMode === "low") {
-      for (let i = 0; i < pixels.length; i++) {
-        const val = Number(pixels[i]) || 0;
+      for (let i = 0; i < densityPixels.length; i++) {
+        const val = Number(densityPixels[i]) || 0;
         if (val > 0) {
           // Use HSV to RGB conversion for low quality mode
-          const [r, g, b] = hsv2rgb(hue || 120, saturation || 100, brightness || 100);
+          const [r, g, b] = hsv2rgb(
+            hue || 120,
+            saturation || 100,
+            brightness || 100,
+          );
           data[i] = (255 << 24) | (b << 16) | (g << 8) | r;
         } else {
           data[i] = bgColor;
         }
       }
     } else {
-      for (let i = 0; i < pixels.length; i++) {
-        const density = Number(pixels[i]) || 0;
+      for (let i = 0; i < densityPixels.length; i++) {
+        const density = Number(densityPixels[i]) || 0;
         if (density > 0) {
           data[i] = getColorData(
             density,
@@ -250,7 +257,7 @@ function runAttractor({
             saturation || 100,
             brightness || 100,
             progress,
-            bgArr
+            bgArr,
           );
         } else {
           data[i] = bgColor;
@@ -259,7 +266,7 @@ function runAttractor({
     }
     offscreenCtx.putImageData(imageData, 0, 0);
   }
-  
+
   // Setup calculation with batch progress handler
   const { processBatch } = calculateAttractorPoints({
     attractorFn,
@@ -275,12 +282,12 @@ function runAttractor({
     top,
     batchSize,
     interval,
-    onBatchProgress: (i, pixels, maxDensity, isDone) => {
+    onBatchProgress: (i, densityPixels, maxDensity, isDone) => {
       if (shouldStop) return;
-      
+
       const progress = i / (points - 1);
-      drawPixels(pixels, maxDensity, progress);
-      
+      drawPixels(densityPixels, maxDensity, progress);
+
       const progressVal = Math.round(progress * 100);
       const typeVal = isDone ? "done" : "preview";
       self.postMessage({
@@ -288,9 +295,9 @@ function runAttractor({
         progress: progressVal,
         qualityMode,
       });
-    }
+    },
   });
-  
+
   function runBatch() {
     if (shouldStop) return;
     processBatch();
@@ -298,7 +305,7 @@ function runAttractor({
       rafHandle = self.requestAnimationFrame(runBatch);
     }
   }
-  
+
   rafHandle = self.requestAnimationFrame(runBatch);
 }
 

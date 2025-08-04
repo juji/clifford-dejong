@@ -3,7 +3,7 @@ import { AttractorParameters } from "@repo/core/types";
 
 export function mainThreadDrawing(
   canvas: HTMLCanvasElement | null,
-  pixels: number[],
+  densityPixels: Uint32Array,
   maxDensity: number,
   progress: number,
   qualityMode: string,
@@ -28,8 +28,8 @@ export function mainThreadDrawing(
     const hue = attractorParameters.hue ?? 120;
     const saturation = attractorParameters.saturation ?? 100;
     const brightness = attractorParameters.brightness ?? 100;
-    for (let i = 0; i < pixels.length; i++) {
-      if ((pixels[i] ?? 0) > 0) {
+    for (let i = 0; i < densityPixels.length; i++) {
+      if ((densityPixels[i] ?? 0) > 0) {
         const [r, g, b] = hsv2rgb(hue, saturation, brightness);
         data[i] = (255 << 24) | (b << 16) | (g << 8) | r;
       } else {
@@ -37,8 +37,8 @@ export function mainThreadDrawing(
       }
     }
   } else {
-    for (let i = 0; i < pixels.length; i++) {
-      const density = pixels[i] ?? 0;
+    for (let i = 0; i < densityPixels.length; i++) {
+      const density = densityPixels[i] ?? 0;
       if (density > 0) {
         data[i] = getColorData(
           density,

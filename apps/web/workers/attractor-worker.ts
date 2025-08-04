@@ -15,7 +15,7 @@ import type { AttractorParameters } from "@repo/core/types";
 import {
   calculateAttractorPoints,
   getBatchSize,
-  getInterval
+  getInterval,
 } from "./shared/attractor-core";
 
 type Params = {
@@ -176,11 +176,7 @@ function runAttractor({
   const interval = getInterval(points, progressInterval);
   let i = 0;
   let lastProgress = 0;
-  const {
-    processBatch,
-    pixels,
-    maxDensity
-  } = calculateAttractorPoints({
+  const { processBatch } = calculateAttractorPoints({
     attractorFn,
     a,
     b,
@@ -194,14 +190,14 @@ function runAttractor({
     top,
     batchSize,
     interval,
-    onBatchProgress: (idx, pxs, maxD, isDone) => {
+    onBatchProgress: (idx, densityPixels, maxDensity, isDone) => {
       if (shouldStop) return;
       const progress = Math.round((idx / (points - 1)) * 100);
       if (progress !== lastProgress || isDone) {
         self.postMessage({
           type: isDone ? "done" : "preview",
-          pixels: pxs.slice(0),
-          maxDensity: maxD,
+          densityPixels: densityPixels.slice(0),
+          maxDensity,
           progress,
           batch: idx,
           qualityMode,

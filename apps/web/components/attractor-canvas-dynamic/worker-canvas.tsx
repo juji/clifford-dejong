@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useRef, useEffect, useCallback } from "react";
 import { useUIStore } from "@/store/ui-store";
@@ -23,48 +23,63 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
   const workerRef = useRef<Worker | null>(null);
   const setImageUrl = useUIStore((s) => s.setImageUrl);
 
-  const handleWorkerMessage = useCallback((e: MessageEvent) => {
-    const { type, pixels, maxDensity, progress, qualityMode, attractorParameters: params } = e.data;
-
-    if(!canvasRef.current) return;
-    if(!workerRef.current) return;
-    if(!canvasSize) return;
-
-    if(type === "ready") {
-      workerRef.current.postMessage({
-        type: "init",
-        params: attractorParameters,
-        width: canvasSize.width,
-        height: canvasSize.height,
-        progressInterval: qualityMode === "low" ? LOW_QUALITY_INTERVAL : 1,
-        qualityMode,
-        points: qualityMode === "low" ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
-        defaultScale: DEFAULT_SCALE,
-      });
-      return;
-    }
-    
-    setProgress(progress);
-    if(!progress){
-      setImageUrl(null);
-    }
-    
-    if ((type === "preview" || type === "done") && pixels && canvasRef.current && params) {
-      mainThreadDrawing(
-        canvasRef.current,
-        pixels,
+  const handleWorkerMessage = useCallback(
+    (e: MessageEvent) => {
+      const {
+        type,
+        densityPixels,
         maxDensity,
         progress,
         qualityMode,
-        params
-      );
-    }
+        attractorParameters: params,
+      } = e.data;
 
-    if(type === "done" && canvasRef.current && qualityMode === "high") {
-      setImageUrl(canvasRef.current.toDataURL("image/png"));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[canvasSize])
+      if (!canvasRef.current) return;
+      if (!workerRef.current) return;
+      if (!canvasSize) return;
+
+      if (type === "ready") {
+        workerRef.current.postMessage({
+          type: "init",
+          params: attractorParameters,
+          width: canvasSize.width,
+          height: canvasSize.height,
+          progressInterval: qualityMode === "low" ? LOW_QUALITY_INTERVAL : 1,
+          qualityMode,
+          points: qualityMode === "low" ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
+          defaultScale: DEFAULT_SCALE,
+        });
+        return;
+      }
+
+      setProgress(progress);
+      if (!progress) {
+        setImageUrl(null);
+      }
+
+      if (
+        (type === "preview" || type === "done") &&
+        densityPixels &&
+        canvasRef.current &&
+        params
+      ) {
+        mainThreadDrawing(
+          canvasRef.current,
+          densityPixels,
+          maxDensity,
+          progress,
+          qualityMode,
+          params,
+        );
+      }
+
+      if (type === "done" && canvasRef.current && qualityMode === "high") {
+        setImageUrl(canvasRef.current.toDataURL("image/png"));
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [canvasSize],
+  );
 
   // handle parameters change
   useEffect(() => {
@@ -73,7 +88,7 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
       type: "update",
       params: attractorParameters,
     });
-  },[ attractorParameters ])
+  }, [attractorParameters]);
 
   // when canvas size changes
   useEffect(() => {
@@ -83,7 +98,6 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
       width: canvasSize?.width,
       height: canvasSize?.height,
     });
-    
   }, [canvasSize]);
 
   // canvas visibility change
@@ -93,7 +107,6 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
         type: "start",
       });
     }
-    
   }, [canvasVisible]);
 
   // qualityMode from store
@@ -107,7 +120,6 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
       points: qualityMode === "low" ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
       qualityMode,
     });
-    
   }, [qualityMode]);
 
   // initiate
@@ -115,30 +127,31 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
     if (!benchmarkResult || !attractorParameters || !canvasSize) return;
     if (workerRef.current) return;
 
-    const worker = new Worker(new URL("../../workers/attractor-worker.ts", import.meta.url), { type: "module" });
+    const worker = new Worker(
+      new URL("../../workers/attractor-worker.ts", import.meta.url),
+      { type: "module" },
+    );
     workerRef.current = worker;
 
     worker.onmessage = handleWorkerMessage;
     setOnInitResize(() => {
       worker.postMessage({
-        type: 'stop'
-      })
-    })
+        type: "stop",
+      });
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [benchmarkResult, attractorParameters, canvasSize, handleWorkerMessage]);
 
   useEffect(() => {
     return () => {
-      setOnInitResize(() => {})
-      if(workerRef.current) {
-        workerRef.current.terminate()
-        workerRef.current = null
+      setOnInitResize(() => {});
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
       }
-    }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[])
-
-  
+  }, []);
 
   return benchmarkResult && canvasSize ? (
     <canvas

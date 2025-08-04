@@ -16,7 +16,7 @@ import type { AttractorParameters } from "@repo/core/types";
 import {
   calculateAttractorPoints,
   getBatchSize,
-  getInterval
+  getInterval,
 } from "./shared/attractor-core";
 
 // SharedArrayBuffer support
@@ -94,7 +94,7 @@ function initialize(data: any) {
     if (sharedBuffer) {
       sharedPixels = new Uint32Array(sharedBuffer);
     } else {
-      reportError('SharedArrayBuffer is null');
+      reportError("SharedArrayBuffer is null");
       return;
     }
   }
@@ -197,16 +197,13 @@ function runAttractor({
   const pixelCount = width * height;
   if (!sharedBuffer || !sharedPixels || sharedPixels.length !== pixelCount) {
     // If not provided, throw error
-    reportError('SharedArrayBuffer not provided or wrong size');
+    reportError("SharedArrayBuffer not provided or wrong size");
     return;
   } else {
     sharedPixels.fill(0);
   }
 
-  const {
-    processBatch,
-    maxDensity
-  } = calculateAttractorPoints({
+  const { processBatch } = calculateAttractorPoints({
     attractorFn,
     a,
     b,
@@ -220,7 +217,7 @@ function runAttractor({
     top,
     batchSize,
     interval,
-    onBatchProgress: (idx, pxs, maxD, isDone) => {
+    onBatchProgress: (idx, densityPixels, maxDensity, isDone) => {
       if (shouldStop) return;
 
       // Apply the same color and background logic as main-thread-drawing
@@ -233,8 +230,8 @@ function runAttractor({
         const hueVal = hue ?? 120;
         const saturationVal = saturation ?? 100;
         const brightnessVal = brightness ?? 100;
-        for (let i = 0; i < pxs.length; i++) {
-          if ((pxs[i] ?? 0) > 0) {
+        for (let i = 0; i < densityPixels.length; i++) {
+          if ((densityPixels[i] ?? 0) > 0) {
             const [r, g, b] = hsv2rgb(hueVal, saturationVal, brightnessVal);
             sharedPixels![i] = (255 << 24) | (b << 16) | (g << 8) | r;
           } else {
@@ -243,17 +240,17 @@ function runAttractor({
         }
       } else {
         const progressNorm = progress > 0 ? progress / 100 : 1;
-        for (let i = 0; i < pxs.length; i++) {
-          const density = pxs[i] ?? 0;
+        for (let i = 0; i < densityPixels.length; i++) {
+          const density = densityPixels[i] ?? 0;
           if (density > 0) {
             sharedPixels![i] = getColorData(
               density,
-              maxD,
+              maxDensity,
               hue ?? 120,
               saturation ?? 100,
               brightness ?? 100,
               progressNorm,
-              bgArr
+              bgArr,
             );
           } else {
             sharedPixels![i] = bgColor;
@@ -264,7 +261,7 @@ function runAttractor({
       if (progress !== lastProgress || isDone) {
         self.postMessage({
           type: isDone ? "done" : "preview",
-          maxDensity: maxD,
+          maxDensity,
           progress,
           batch: idx,
           qualityMode,
