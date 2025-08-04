@@ -146,11 +146,6 @@ std::pair<double, double> dejong(double x, double y, double a, double b, double 
     };
 }
 
-// create function that returns 1
-uint8_t returnNumber() {
-  return 32;
-}
-
 } // namespace attractors
 
 namespace facebook::react {
@@ -210,6 +205,10 @@ namespace facebook::react {
           cancelled
         ]() {
           try {
+
+            
+
+
             // Simulating attractor calculation
             for (int i = 0; i < 10; i++) {
               if (cancelled->load()) {
@@ -232,7 +231,7 @@ namespace facebook::react {
 
                 // This is a dummy implementation.
                 for (size_t j = 0; j < bufferSize; j++) {
-                    bufferPtr[j] = static_cast<uint8_t>(attractors::returnNumber() + i);
+                    bufferPtr[j] = static_cast<uint8_t>(i);
                 }
 
                 bool done = (i == 9);
