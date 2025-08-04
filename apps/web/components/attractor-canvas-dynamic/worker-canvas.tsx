@@ -76,8 +76,8 @@ export function WorkerCanvas({ ariaLabel }: { ariaLabel?: string }) {
       if (type === "done" && canvasRef.current && qualityMode === "high") {
         setImageUrl(canvasRef.current.toDataURL("image/png"));
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [canvasSize],
   );
 
