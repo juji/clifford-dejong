@@ -35,8 +35,8 @@ export type AttractorCalcModuleParams = {
 export function calculateAttractorNative({
   timestamp,
   attractorParameters = defaultAttractorParameters,
-  totalAttractorPoints = 1_000_000,
-  pointsPerIteration = 5000,
+  totalAttractorPoints = 10000,
+  pointsPerIteration = 5,
   width = 1000,
   height = 1000,
   drawOn = 5000,
