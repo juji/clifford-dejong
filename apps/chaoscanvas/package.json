@@ -9,6 +9,7 @@
     "prestart": "watchman watch-del-all",
     "start": "react-native start --reset-cache",
     "test": "jest",
+    "test:cpp": "cd shared && g++ -std=c++17 -o test_runner test-runner.cpp attractors.cpp && ./test_runner && rm test_runner",
     "postinstall": "./setup.sh",
     "setup": "./setup.sh",
     "preandroid": "cd android && ./gradlew clean && cd .."
