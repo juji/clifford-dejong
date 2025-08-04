@@ -72,41 +72,18 @@ namespace facebook::react {
     // Cancellation flag
     auto cancelled = std::make_shared<std::atomic<bool>>(false);
 
-  // Create a Promise
-  auto promiseCtor = rt.global().getPropertyAsFunction(rt, "Promise");
-  auto promise = promiseCtor.callAsConstructor(rt,
-    jsi::Function::createFromHostFunction(rt,
-      jsi::PropNameID::forAscii(rt, "executor"),
-      2, // resolve and reject
-      [ this, // Capture 'this' to access callInvoker
-        timestamp,
-        onProgressCopy,
-        onImageUpdateCopy,
-        bufferPtr,
-        bufferSize,
-        cancelled,
-        // attractorParamsCopy,
-        widthCopy,
-        heightCopy,
-        drawOnCopy,
-        highQualityCopy,
-        totalAttractorPointsCopy,
-        pointsPerIterationCopy
-      ](jsi::Runtime& runtime, const jsi::Value&, const jsi::Value* args, size_t count) -> jsi::Value {
-        auto resolveFunc = std::make_shared<jsi::Function>(args[0].asObject(runtime).asFunction(runtime));
-        auto rejectFunc = std::make_shared<jsi::Function>(args[1].asObject(runtime).asFunction(runtime));
-
-        // Manually create a thread to run the calculation in the background
-        std::thread([
-          this,
-          &runtime,
+    // Create a Promise
+    auto promiseCtor = rt.global().getPropertyAsFunction(rt, "Promise");
+    auto promise = promiseCtor.callAsConstructor(rt,
+      jsi::Function::createFromHostFunction(rt,
+        jsi::PropNameID::forAscii(rt, "executor"),
+        2, // resolve and reject
+        [ this, // Capture 'this' to access callInvoker
           timestamp,
           onProgressCopy,
           onImageUpdateCopy,
           bufferPtr,
           bufferSize,
-          resolveFunc,
-          rejectFunc,
           cancelled,
           // attractorParamsCopy,
           widthCopy,
@@ -115,119 +92,141 @@ namespace facebook::react {
           highQualityCopy,
           totalAttractorPointsCopy,
           pointsPerIterationCopy
-        ]() {
-          try {
+        ](jsi::Runtime& runtime, const jsi::Value&, const jsi::Value* args, size_t count) -> jsi::Value {
+          auto resolveFunc = std::make_shared<jsi::Function>(args[0].asObject(runtime).asFunction(runtime));
+          auto rejectFunc = std::make_shared<jsi::Function>(args[1].asObject(runtime).asFunction(runtime));
 
-            if (cancelled->load()) {
-              // When cancelled, reject the promise from the JS thread
-              this->jsInvoker_->invokeAsync([&runtime, rejectFunc]() {
-                rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled from C++"));
-              });
-              return; // Exit the thread
-            }
+          // Manually create a thread to run the calculation in the background
+          std::thread([
+            this,
+            timestamp,
+            onProgressCopy,
+            onImageUpdateCopy,
+            bufferPtr,
+            bufferSize,
+            resolveFunc,
+            rejectFunc,
+            cancelled,
+            // attractorParamsCopy,
+            widthCopy,
+            heightCopy,
+            drawOnCopy,
+            highQualityCopy,
+            totalAttractorPointsCopy,
+            pointsPerIterationCopy
+          ]() {
+            try {
 
-            // get attractor function
-            // auto attractorFunc = attractors::get_attractor_function(*attractorParamsCopy);
+              if (cancelled->load()) {
+                // When cancelled, reject the promise from the JS thread
+                this->jsInvoker_->invokeAsync([rejectFunc](jsi::Runtime& runtime) {
+                  rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled from C++"));
+                });
+                return; // Exit the thread
+              }
 
-            // Initialize calculation variables
-            std::vector<uint32_t> density(*widthCopy * *heightCopy, 0);
-            // double max_density = 0.0;
-            // double x = 0.0, y = 0.0;
-            // double centerX = *widthCopy / 2.0 + attractorParamsCopy->left;
-            // double centerY = *heightCopy / 2.0 + attractorParamsCopy->top;
+              // get attractor function
+              // auto attractorFunc = attractors::get_attractor_function(*attractorParamsCopy);
 
-            // int totalPoints = 0;
-            // while(totalPoints < *totalAttractorPointsCopy) {
+              // Initialize calculation variables
+              // std::vector<uint32_t> density(*widthCopy * *heightCopy, 0);
+              // double max_density = 0.0;
+              // double x = 0.0, y = 0.0;
+              // double centerX = *widthCopy / 2.0 + attractorParamsCopy->left;
+              // double centerY = *heightCopy / 2.0 + attractorParamsCopy->top;
 
-            //   if (cancelled->load()) {
-            //     // When cancelled, reject the promise from the JS thread
-            //     this->jsInvoker_->invokeAsync([&runtime, rejectFunc]() {
-            //       rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled"));
-            //     });
-            //     return; // Exit the thread
-            //   }
-              
-            //   int i = 0;
+              // int totalPoints = 0;
+              // while(totalPoints < *totalAttractorPointsCopy) {
 
-            //   // Perform calculations
-            //   while(i < *pointsPerIterationCopy && totalPoints < *totalAttractorPointsCopy) {
-
-            //     if (cancelled->load()) {
-            //       // When cancelled, reject the promise from the JS thread
-            //       this->jsInvoker_->invokeAsync([&runtime, rejectFunc]() {
-            //         rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled"));
-            //       });
-            //       return; // Exit the thread
-            //     }
+              //   if (cancelled->load()) {
+              //     // When cancelled, reject the promise from the JS thread
+              //     this->jsInvoker_->invokeAsync([&runtime, rejectFunc]() {
+              //       rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled"));
+              //     });
+              //     return; // Exit the thread
+              //   }
                 
-            //     attractors::AccumulationContext context = {
-            //       .density = density,
-            //       .max_density = max_density,
-            //       .x = x,
-            //       .y = y,
-            //       .totalPoints = totalPoints,
-            //       .pointsPerIteration = *pointsPerIterationCopy,
-            //       .w = *widthCopy,
-            //       .h = *heightCopy,
-            //       .scale = attractorParamsCopy->scale,
-            //       .a = attractorParamsCopy->a,
-            //       .b = attractorParamsCopy->b,
-            //       .c = attractorParamsCopy->c,
-            //       .d = attractorParamsCopy->d,
-            //       .centerX = centerX,
-            //       .centerY = centerY,
-            //       .totalAttractorPoints = *totalAttractorPointsCopy,
-            //       .fn = attractorFunc
-            //     };
-            //     attractors::accumulate_density(context);
+              //   int i = 0;
 
-            //     // on time, draw on the canvas
-            //     if (
-            //       totalPoints == 2 ||
-            //       totalPoints % *drawOnCopy == 0 ||
-            //       totalPoints == *totalAttractorPointsCopy - 1
-            //     ) {
+              //   // Perform calculations
+              //   while(i < *pointsPerIterationCopy && totalPoints < *totalAttractorPointsCopy) {
 
-            //       if (cancelled->load()) {
-            //         // When cancelled, reject the promise from the JS thread
-            //         this->jsInvoker_->invokeAsync([&runtime, rejectFunc]() {
-            //           rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled"));
-            //         });
-            //         return; // Exit the thread
-            //       }
+              //     if (cancelled->load()) {
+              //       // When cancelled, reject the promise from the JS thread
+              //       this->jsInvoker_->invokeAsync([&runtime, rejectFunc]() {
+              //         rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled"));
+              //       });
+              //       return; // Exit the thread
+              //     }
+                  
+              //     attractors::AccumulationContext context = {
+              //       .density = density,
+              //       .max_density = max_density,
+              //       .x = x,
+              //       .y = y,
+              //       .totalPoints = totalPoints,
+              //       .pointsPerIteration = *pointsPerIterationCopy,
+              //       .w = *widthCopy,
+              //       .h = *heightCopy,
+              //       .scale = attractorParamsCopy->scale,
+              //       .a = attractorParamsCopy->a,
+              //       .b = attractorParamsCopy->b,
+              //       .c = attractorParamsCopy->c,
+              //       .d = attractorParamsCopy->d,
+              //       .centerX = centerX,
+              //       .centerY = centerY,
+              //       .totalAttractorPoints = *totalAttractorPointsCopy,
+              //       .fn = attractorFunc
+              //     };
+              //     attractors::accumulate_density(context);
 
-            //       // Draw the current state on the canvas
-            //       attractors::ImageDataCreationContext imageContext = {
-            //         .imageData = reinterpret_cast<uint32_t*>(bufferPtr),
-            //         .imageSize = bufferSize / sizeof(uint32_t),
-            //         .density = density,
-            //         .max_density = max_density,
-            //         .h = attractorParamsCopy->hue,
-            //         .s = attractorParamsCopy->saturation,
-            //         .v = attractorParamsCopy->brightness,
-            //         .hQuality = *highQualityCopy,
-            //         .background = attractorParamsCopy->background
-            //       };
-            //       attractors::create_image_data(imageContext);
+              //     // on time, draw on the canvas
+              //     if (
+              //       totalPoints == 2 ||
+              //       totalPoints % *drawOnCopy == 0 ||
+              //       totalPoints == *totalAttractorPointsCopy - 1
+              //     ) {
 
-            //     }
+              //       if (cancelled->load()) {
+              //         // When cancelled, reject the promise from the JS thread
+              //         this->jsInvoker_->invokeAsync([&runtime, rejectFunc]() {
+              //           rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled"));
+              //         });
+              //         return; // Exit the thread
+              //       }
 
-            //     // update progress
-            //     double progress = totalPoints / *totalAttractorPointsCopy;
-            //     onProgressCopy->call(runtime, jsi::Value(progress));
+              //       // Draw the current state on the canvas
+              //       attractors::ImageDataCreationContext imageContext = {
+              //         .imageData = reinterpret_cast<uint32_t*>(bufferPtr),
+              //         .imageSize = bufferSize / sizeof(uint32_t),
+              //         .density = density,
+              //         .max_density = max_density,
+              //         .h = attractorParamsCopy->hue,
+              //         .s = attractorParamsCopy->saturation,
+              //         .v = attractorParamsCopy->brightness,
+              //         .hQuality = *highQualityCopy,
+              //         .background = attractorParamsCopy->background
+              //       };
+              //       attractors::create_image_data(imageContext);
 
-            //     i++;
-            //     totalPoints++;
-            //   }
+              //     }
 
-            // }
+              //     // update progress
+              //     double progress = totalPoints / *totalAttractorPointsCopy;
+              //     onProgressCopy->call(runtime, jsi::Value(progress));
+
+              //     i++;
+              //     totalPoints++;
+              //   }
+
+              // }
 
 
             // Simulating attractor calculation
             for (int i = 0; i < 10; i++) {
               if (cancelled->load()) {
                 // When cancelled, reject the promise from the JS thread
-                this->jsInvoker_->invokeAsync([&runtime, rejectFunc]() {
+                this->jsInvoker_->invokeAsync([rejectFunc](jsi::Runtime& runtime) {
                   rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled from C++"));
                 });
                 return; // Exit the thread
@@ -239,14 +238,16 @@ namespace facebook::react {
               // Schedule progress and update callbacks on the JS thread
               if (cancelled->load()) {
                 // When cancelled, reject the promise from the JS thread
-                this->jsInvoker_->invokeAsync([&runtime, rejectFunc]() {
+                this->jsInvoker_->invokeAsync([rejectFunc](jsi::Runtime& runtime) {
                   rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled from C++"));
                 });
                 return; // Exit the thread
               }
 
               double progress = (i + 1) / 10.0;
-              onProgressCopy->call(runtime, jsi::Value(progress));
+              this->jsInvoker_->invokeAsync([onProgressCopy, progress](jsi::Runtime& runtime) {
+                onProgressCopy->call(runtime, jsi::Value(progress));
+              });
 
               // This is a dummy implementation.
               for (size_t j = 0; j < bufferSize; j++) {
@@ -254,11 +255,11 @@ namespace facebook::react {
               }
 
               bool done = (i == 9);
-              onImageUpdateCopy->call(runtime, jsi::Value(done));
-            }
-
-            // Schedule the final resolution on the JS thread
-            this->jsInvoker_->invokeAsync([&runtime, resolveFunc, timestamp, cancelled]() {
+              this->jsInvoker_->invokeAsync([onImageUpdateCopy, done](jsi::Runtime& runtime) {
+                onImageUpdateCopy->call(runtime, jsi::Value(done));
+              });
+            }                          // Schedule the final resolution on the JS thread
+            this->jsInvoker_->invokeAsync([resolveFunc, timestamp, cancelled](jsi::Runtime& runtime) {
               if (cancelled->load()) return;
               std::string result = "Attractor calculation completed for timestamp: " + timestamp;
               resolveFunc->call(runtime, jsi::String::createFromUtf8(runtime, result));
@@ -267,14 +268,14 @@ namespace facebook::react {
           } catch (const std::exception& e) {
             std::string error_message = e.what();
             // Schedule rejection on the JS thread
-            this->jsInvoker_->invokeAsync([&runtime, rejectFunc, error_message]() {
+            this->jsInvoker_->invokeAsync([rejectFunc, error_message](jsi::Runtime& runtime) {
               rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, error_message));
             });
           }
-        }).detach(); // Detach the thread to allow the JS function to return immediately
+          }).detach(); // Detach the thread to allow the JS function to return immediately
 
-        return jsi::Value::undefined();
-      }));
+          return jsi::Value::undefined();
+        }));
 
   // Create cancel function
   auto cancelFunc = jsi::Function::createFromHostFunction(rt,
