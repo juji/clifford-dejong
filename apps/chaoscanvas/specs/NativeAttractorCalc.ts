@@ -8,12 +8,21 @@ export interface Spec extends TurboModule {
     // The shared buffer for zero-copy data transfer
     buffer: Object,
 
+    attractorParameters: Object,
+    width: number,
+    height: number,
+    drawOn: number,
+    highQuality: boolean,
+
+    totalAttractorPoints: number,
+    pointsPerIteration: number,
+
     // progress: 0 - 1
     onProgress: (progress: number) => void,
 
     // bytesWritten: number of bytes written in the last update
     // done: true if the calculation is done
-    onUpdate: (bytesWritten: number, done: boolean) => void,
+    onImageUpdate: (done: boolean) => void,
   ) => Object;
 }
 

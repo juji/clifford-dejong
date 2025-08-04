@@ -60,9 +60,11 @@ export function Jsi() {
     setIsDone(false);
     setMessage('Calculation started...');
 
-    calculateAttractorNative({
+    const { promise } = calculateAttractorNative({
       timestamp: new Date().toISOString(),
-    })
+    });
+
+    promise
       .then(result => {
         console.log('Attractor calculation result:', result);
         setMessage(result);

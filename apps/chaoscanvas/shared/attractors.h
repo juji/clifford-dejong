@@ -1,10 +1,12 @@
-
+#ifndef ATTRACTORS_H
+#define ATTRACTORS_H
 
 #include <vector>
 #include <functional>
 #include <memory>
 #include <cstdint>
 #include <utility>
+#include <string>
 
 namespace attractors {
 
@@ -37,36 +39,61 @@ std::pair<double, double> clifford(double x, double y, double a, double b, doubl
 
 std::pair<double, double> dejong(double x, double y, double a, double b, double c, double d);
 
-void accumulate_density(
-  std::vector<uint32_t>& density,
-  double& max_density,
-  double& xVal,
-  double& yVal,
-  int& totalPoints,
-  const int pointsPerIteration,
-  const int wVal,
-  const int hVal,
-  const double scale,
-  const double a,
-  const double b,
-  const double c,
-  const double d,
-  const double centerX,
-  const double centerY,
-  const int totalAttractorPoints,
-  const std::function<std::pair<double, double>(double xVal, double yVal, double a, double b, double c, double d)>& fn
+struct AttractorParameters {
+    std::string attractor;
+    double a;
+    double b;
+    double c;
+    double d;
+    double hue;
+    double saturation;
+    double brightness;
+    std::vector<int> background;
+    double scale;
+    double left;
+    double top;
+};
+
+std::function<std::pair<double, double>(double, double, double, double, double, double)> get_attractor_function(
+  const attractors::AttractorParameters& params
 );
 
-void create_image_data(
-  uint32_t* imageData,
-  size_t imageSize,
-  const std::vector<uint32_t>& density,
-  double max_density,
-  double h,
-  double s,
-  double v,
-  bool hQuality = true,
-  const std::vector<int>& background = {0, 0, 0, 255}
-);
+struct AccumulationContext {
+    std::vector<uint32_t>& density;
+    double& max_density;
+    double& x;
+    double& y;
+    int& totalPoints;
+    const int pointsPerIteration;
+    const int w;
+    const int h;
+    const double scale;
+    const double a;
+    const double b;
+    const double c;
+    const double d;
+    const double centerX;
+    const double centerY;
+    const int totalAttractorPoints;
+    const std::function<std::pair<double, double>(double, double, double, double, double, double)>& fn;
+};
+
+void accumulate_density(AccumulationContext& context);
+
+struct ImageDataCreationContext {
+    uint32_t* imageData;
+    size_t imageSize;
+    const std::vector<uint32_t>& density;
+    double max_density;
+    double h;
+    double s;
+    double v;
+    bool hQuality;
+    const std::vector<int>& background;
+};
+
+void create_image_data(ImageDataCreationContext& context);
 
 } // namespace attractors
+
+#endif // ATTRACTORS_H

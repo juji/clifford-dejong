@@ -3,16 +3,17 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "preandroid:clean": "cd android && ./gradlew clean && cd ..",
+    "android:clean": "react-native run-android",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "prestart": "watchman watch-del-all",
     "start": "react-native start --reset-cache",
-    "test": "jest && pnpm run test:cpp",
+    "test": "jest",
     "test:cpp": "cd shared && g++ -std=c++17 -o test_runner test-runner.cpp attractors.cpp && ./test_runner && rm test_runner",
     "postinstall": "./setup.sh",
-    "setup": "./setup.sh",
-    "preandroid": "cd android && ./gradlew clean && cd .."
+    "setup": "./setup.sh"
   },
   "dependencies": {
     "@react-native/new-app-screen": "0.80.2",

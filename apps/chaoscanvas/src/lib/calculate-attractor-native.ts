@@ -1,43 +1,67 @@
+import { AttractorParameters } from '@repo/core/types';
 import NativeAttractorCalc from '@specs/NativeAttractorCalc';
 
-// Define a constant for the buffer size for clarity
-const POINT_COUNT = 2048 * 2048;
-// Assuming each point is represented by 4 int (r, g, b, a)
-const BYTES_PER_POINT = 4 * 4;
-const BUFFER_SIZE = POINT_COUNT * BYTES_PER_POINT;
+const defaultAttractorParameters: AttractorParameters = {
+  attractor: 'clifford',
+  a: -1.8,
+  b: -2.0,
+  c: -0.5,
+  d: 0.9,
+  hue: 200,
+  saturation: 100,
+  brightness: 100,
+  background: [0, 0, 0, 255],
+  scale: 100,
+  left: 0,
+  top: 0,
+};
 
 export type AttractorCalcModuleParams = {
   timestamp: string;
+  attractorParameters?: AttractorParameters;
+
+  totalAttractorPoints?: number;
+  pointsPerIteration?: number;
+
+  width?: number;
+  height?: number;
+  drawOn?: number;
+  highQuality?: boolean;
+
   onProgress?: (progress: number) => void;
-  // The onUpdate callback now receives the number of new bytes written
-  onUpdate?: (bytesWritten: number, done: boolean) => void;
+  onImageUpdate?: (done: boolean) => void;
 };
 
-// export type AttractorCalcResult = {
-//   promise: Promise<string>;
-// };
+export function calculateAttractorNative({
+  timestamp,
+  attractorParameters = defaultAttractorParameters,
+  totalAttractorPoints = 1_000_000,
+  pointsPerIteration = 5000,
+  width = 1000,
+  height = 1000,
+  drawOn = 5000,
+  highQuality = true,
+  onProgress,
+  onImageUpdate,
+}: AttractorCalcModuleParams) {
+  const bufferSize = width * height * 4; // Assuming 4 bytes per pixel (RGBA)
 
-export function calculateAttractorNative(
-  params: AttractorCalcModuleParams,
-): Promise<string> {
   // Create the ArrayBuffer that will be written to by the C++ code.
-  const sharedBuffer = new ArrayBuffer(BUFFER_SIZE);
+  const sharedBuffer = new ArrayBuffer(bufferSize);
   const dataView = new Uint8Array(sharedBuffer);
 
-  const onProgress =
-    params.onProgress ||
+  const onProgressLocal =
+    onProgress ||
     ((progress: number) => {
       console.log('Progress:', Math.round(progress * 100) + '%');
     });
 
-  const onUpdate =
-    params.onUpdate ||
-    ((bytesWritten: number, done: boolean) => {
+  const onImageUpdateLocal =
+    onImageUpdate ||
+    ((done: boolean) => {
       // The JS side can now access the updated `sharedBuffer` directly.
       // For example, create a view on the buffer to read the data.
       console.log(
-        'Update received, bytes written:',
-        bytesWritten,
         'done:',
         done,
         'First 10 points:',
@@ -46,10 +70,17 @@ export function calculateAttractorNative(
     });
 
   const { promise, cancel } = NativeAttractorCalc.calculateAttractor(
-    params.timestamp,
+    timestamp,
     sharedBuffer, // Pass the buffer here
-    onProgress,
-    onUpdate,
+    attractorParameters,
+    width,
+    height,
+    drawOn,
+    highQuality,
+    totalAttractorPoints,
+    pointsPerIteration,
+    onProgressLocal,
+    onImageUpdateLocal,
   ) as { promise: Promise<string>; cancel: () => void };
 
   const now = new Date().getTime();
@@ -61,5 +92,5 @@ export function calculateAttractorNative(
   }, 500);
 
   // Pass the sharedBuffer to the native function.
-  return promise;
+  return { promise, cancel, dataView };
 }

@@ -135,81 +135,64 @@ std::pair<double, double> dejong(double x, double y, double a, double b, double 
     };
 }
 
-void accumulate_density(
-  std::vector<uint32_t>& density,
-  double& max_density,
-  double& xVal,
-  double& yVal,
-  int& totalPoints,
-  const int pointsPerIteration,
-  const int wVal,
-  const int hVal,
-  const double scale,
-  const double a,
-  const double b,
-  const double c,
-  const double d,
-  const double centerX,
-  const double centerY,
-  const int totalAttractorPoints,
-  const std::function<std::pair<double, double>(double, double, double, double, double, double)>& fn
+std::function<std::pair<double, double>(double, double, double, double, double, double)> get_attractor_function(
+  const attractors::AttractorParameters& params
 ) {
+    if (params.attractor == "clifford") {
+        return clifford;
+    } else if (params.attractor == "dejong") {
+        return dejong;
+    }
+    throw std::invalid_argument("Unknown attractor: " + params.attractor);
+}
+
+void accumulate_density(AccumulationContext& context) {
   int i = 0;
-  while (i < pointsPerIteration && totalPoints < totalAttractorPoints) {
-    auto next = fn(xVal, yVal, a, b, c, d);
-    xVal = next.first;
-    yVal = next.second;
+  while (i < context.pointsPerIteration && context.totalPoints < context.totalAttractorPoints) {
+    auto next = context.fn(context.x, context.y, context.a, context.b, context.c, context.d);
+    context.x = next.first;
+    context.y = next.second;
 
-    double sx = smoothing(xVal, scale);
-    double sy = smoothing(yVal, scale);
-    double screenX = sx * scale;
-    double screenY = sy * scale;
-    int px = static_cast<int>(std::floor(centerX + screenX));
-    int py = static_cast<int>(std::floor(centerY + screenY));
+    double sx = smoothing(context.x, context.scale);
+    double sy = smoothing(context.y, context.scale);
+    double screenX = sx * context.scale;
+    double screenY = sy * context.scale;
+    int px = static_cast<int>(std::floor(context.centerX + screenX));
+    int py = static_cast<int>(std::floor(context.centerY + screenY));
 
-    if (px >= 0 && px < wVal && py >= 0 && py < hVal) {
-      int idx = py * wVal + px;
-      if (idx >= 0 && idx < static_cast<int>(density.size())) {
-        density[idx]++;
-        if (density[idx] > max_density) max_density = density[idx];
+    if (px >= 0 && px < context.w && py >= 0 && py < context.h) {
+      int idx = py * context.w + px;
+      if (idx >= 0 && idx < static_cast<int>(context.density.size())) {
+        context.density[idx]++;
+        if (context.density[idx] > context.max_density) context.max_density = context.density[idx];
       }
     }
-    totalPoints++;
+    context.totalPoints++;
     i++;
   }
 }
 
-void create_image_data(
-  uint32_t* imageData,
-  size_t imageSize, // in pixels (width * height)
-  const std::vector<uint32_t>& density,
-  double max_density,
-  double h,
-  double s,
-  double v,
-  bool hQuality,
-  const std::vector<int>& background
-) {
-  size_t loopLimit = imageSize;
+void create_image_data(ImageDataCreationContext& context) {
+  size_t loopLimit = context.imageSize;
 
   uint32_t bgColor = 0;
-  if (!background.empty()) {
-    uint32_t bgA = background.size() > 3 ? background[3] : 255;
-    uint32_t bgB = background.size() > 2 ? background[2] : 0;
-    uint32_t bgG = background.size() > 1 ? background[1] : 0;
-    uint32_t bgR = background[0];
+  if (!context.background.empty()) {
+    uint32_t bgA = context.background.size() > 3 ? context.background[3] : 255;
+    uint32_t bgB = context.background.size() > 2 ? context.background[2] : 0;
+    uint32_t bgG = context.background.size() > 1 ? context.background[1] : 0;
+    uint32_t bgR = context.background[0];
     bgColor = (bgA << 24) | (bgB << 16) | (bgG << 8) | bgR;
   }
 
   size_t i = 0;
   while (i < loopLimit) {
-    if (i < density.size() && density[i] > 0) {
-      uint32_t dval = density[i];
-      imageData[i] = hQuality
-        ? get_color_data(dval, max_density, h, s, v, 1.0, background)
-        : get_low_quality_point(h, s, v);
+    if (i < context.density.size() && context.density[i] > 0) {
+      uint32_t dval = context.density[i];
+      context.imageData[i] = context.hQuality
+        ? get_color_data(dval, context.max_density, context.h, context.s, context.v, 1.0, context.background)
+        : get_low_quality_point(context.h, context.s, context.v);
     } else {
-      imageData[i] = bgColor;
+      context.imageData[i] = bgColor;
     }
     i++;
   }
