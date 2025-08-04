@@ -9,6 +9,24 @@ import Animated, {
 import { useEffect } from 'react';
 import { useWindowDimensions } from 'react-native';
 
+const styles = {
+  progressbar: {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 5,
+    zIndex: 100,
+    backgroundColor: 'transparent',
+    pointerEvents: 'none' as const,
+  },
+  progressbarfill: {
+    height: '100%' as any,
+    backgroundColor: '#fbbf24',
+    borderRadius: 3,
+  },
+};
+
 export function ProgressBar() {
   const progress = useGlobalStore(s => s.attractorProgress);
   const width = useSharedValue(0);
@@ -26,28 +44,8 @@ export function ProgressBar() {
   }, [progress, windowWidth]);
 
   return (
-    <View
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 5,
-        zIndex: 100,
-        backgroundColor: 'transparent',
-        pointerEvents: 'none',
-      }}
-    >
-      <Animated.View
-        style={[
-          {
-            width,
-            height: '100%',
-            backgroundColor: '#fbbf24', // amber-400
-            borderRadius: 3,
-          },
-        ]}
-      />
+    <View style={styles.progressbar}>
+      <Animated.View style={[{ width }, styles.progressbarfill]} />
     </View>
   );
 }
