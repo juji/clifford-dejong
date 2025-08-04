@@ -54,7 +54,7 @@ void accumulate_density(
   const double centerX,
   const double centerY,
   const int totalAttractorPoints,
-  const std::function<std::pair<double, double>(double, double, double, double, double, double)>& fn
+  const std::function<std::pair<double, double>(double xVal, double yVal, double a, double b, double c, double d)>& fn
 );
 
 void create_image_data(
