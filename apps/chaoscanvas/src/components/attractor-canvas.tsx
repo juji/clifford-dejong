@@ -15,8 +15,32 @@ import {
   createWorkletRuntime,
   useDerivedValue,
 } from 'react-native-reanimated';
-import { Dimensions } from 'react-native';
+
 import { Skia, AlphaType, ColorType } from '@shopify/react-native-skia';
+import { Dimensions } from 'react-native';
+
+const styles = {
+  container: {
+    flex: 1,
+    backgroundColor: 'darkslateblue',
+  },
+  canvas: {
+    flex: 1,
+  },
+  qualitybutton: {
+    position: 'absolute' as const,
+    left: 16,
+    bottom: 24,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  qualitybuttontext: {
+    color: 'white',
+    fontWeight: 'bold' as const,
+  },
+};
 
 const POINTS = 20000000; // Default points for attractor
 const POINTS_PER_ITTERATION = 500000; // Points to generate per chunk
@@ -432,7 +456,7 @@ function AttractorCanvasImage({
   );
 
   return (
-    <Canvas style={{ flex: 1 }}>
+    <Canvas style={styles.canvas}>
       {image && (
         <Image
           // key={imageTimestamp}
@@ -457,12 +481,7 @@ export function AttractorCanvas() {
   const [highQuality, setHighQuality] = useState(true);
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: 'darkslateblue',
-      }}
-    >
+    <View style={styles.container}>
       <ProgressBar />
       <AttractorCanvasImage
         key={JSON.stringify(attractorParameters) + (highQuality ? 'hq' : 'lq')}
@@ -473,18 +492,10 @@ export function AttractorCanvas() {
       />
       <Pressable
         onPress={() => setHighQuality(q => !q)}
-        style={{
-          position: 'absolute',
-          left: 16,
-          bottom: 24,
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          borderRadius: 8,
-          paddingHorizontal: 16,
-          paddingVertical: 10,
-        }}
+        style={styles.qualitybutton}
         accessibilityLabel="Toggle quality mode"
       >
-        <Text style={{ color: 'white', fontWeight: 'bold' }}>
+        <Text style={styles.qualitybuttontext}>
           {highQuality ? 'High Quality' : 'Low Quality'}
         </Text>
       </Pressable>
