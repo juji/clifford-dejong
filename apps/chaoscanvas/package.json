@@ -52,5 +52,18 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "codegenConfig": {
+    "name": "NativeAttractorCalcSpecs",
+    "type": "modules",
+    "jsSrcsDir": "specs",
+    "android": {
+      "javaPackageName": "com.attractorcalc.specs"
+    },
+    "ios": {
+      "modulesProvider": {
+        "NativeAttractorCalc": "NativeAttractorCalcProvider"
+      }
+    }
   }
 }

@@ -12,6 +12,8 @@
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		AB6B37A92E3DD97300557039 /* og-image.png in Resources */ = {isa = PBXBuildFile; fileRef = AB6B37A82E3DD97300557039 /* og-image.png */; };
+		ABFDBE6F2E3E41B300696F3A /* NativeAttractorCalc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ABFDBE6D2E3E41B300696F3A /* NativeAttractorCalc.cpp */; };
+		ABFDBE722E3E421900696F3A /* NativeAttractorCalcProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = ABFDBE712E3E421900696F3A /* NativeAttractorCalcProvider.mm */; };
 		D1057812A62A6F392AEE7834 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
@@ -26,6 +28,10 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = chaoscanvas/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = chaoscanvas/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AB6B37A82E3DD97300557039 /* og-image.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "og-image.png"; sourceTree = "<group>"; };
+		ABFDBE6C2E3E41B300696F3A /* NativeAttractorCalc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NativeAttractorCalc.h; sourceTree = "<group>"; };
+		ABFDBE6D2E3E41B300696F3A /* NativeAttractorCalc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = NativeAttractorCalc.cpp; sourceTree = "<group>"; };
+		ABFDBE702E3E421900696F3A /* NativeAttractorCalcProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NativeAttractorCalcProvider.h; sourceTree = "<group>"; };
+		ABFDBE712E3E421900696F3A /* NativeAttractorCalcProvider.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = NativeAttractorCalcProvider.mm; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -72,6 +78,9 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				ABFDBE702E3E421900696F3A /* NativeAttractorCalcProvider.h */,
+				ABFDBE712E3E421900696F3A /* NativeAttractorCalcProvider.mm */,
+				ABFDBE6E2E3E41B300696F3A /* shared */,
 				AB6B37A82E3DD97300557039 /* og-image.png */,
 				13B07FAE1A68108700A75B9A /* chaoscanvas */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
@@ -91,6 +100,16 @@
 			);
 			name = Products;
 			sourceTree = "<group>";
+		};
+		ABFDBE6E2E3E41B300696F3A /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				ABFDBE6C2E3E41B300696F3A /* NativeAttractorCalc.h */,
+				ABFDBE6D2E3E41B300696F3A /* NativeAttractorCalc.cpp */,
+			);
+			name = shared;
+			path = ../shared;
+			sourceTree = SOURCE_ROOT;
 		};
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
@@ -250,6 +269,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ABFDBE722E3E421900696F3A /* NativeAttractorCalcProvider.mm in Sources */,
+				ABFDBE6F2E3E41B300696F3A /* NativeAttractorCalc.cpp in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
