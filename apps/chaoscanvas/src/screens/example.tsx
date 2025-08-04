@@ -1,10 +1,14 @@
 import { Text, ScrollView } from 'tamagui';
 
+const styles = {
+  scrollView: { alignItems: 'center' },
+};
+
 export function Example() {
   return (
     <ScrollView
       // @ts-expect-error tamagui specific prop
-      contentContainerStyle={{ alignItems: 'center' }}
+      contentContainerStyle={styles.scrollView}
     >
       <Text>Example - first</Text>
       <Text>Example</Text>
