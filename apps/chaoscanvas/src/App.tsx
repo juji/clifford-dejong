@@ -5,6 +5,12 @@ import { TamaguiProvider, View } from '@tamagui/core';
 import { config } from './tamagui.config'; // your configuration
 import { Navigation } from './lib/navigation';
 
+const styles = {
+  container: {
+    flex: 1,
+  },
+};
+
 export default function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -16,7 +22,7 @@ export default function App() {
       config={config}
       defaultTheme={isDarkMode ? 'dark' : 'light'}
     >
-      <View style={{ flex: 1 }}>
+      <View style={styles.container}>
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
         <Navigation theme={navigationTheme} />
       </View>
