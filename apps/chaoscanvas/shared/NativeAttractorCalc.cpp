@@ -211,9 +211,9 @@ void NativeAttractorCalc::accumulate_density(AccumulationContext& context) {
 
     if (px >= 0 && px < context.w && py >= 0 && py < context.h) {
       int idx = py * context.w + px;
-      if (idx >= 0 && idx < static_cast<int>(context.density.size())) {
-        context.density[idx]++;
-        if (context.density[idx] > context.max_density) context.max_density = context.density[idx];
+      if (idx >= 0 && idx < static_cast<int>(context.densitySize)) {
+        context.densityPtr[idx]++;
+        if (context.densityPtr[idx] > context.max_density) context.max_density = context.densityPtr[idx];
       }
     }
     context.totalPoints++;
@@ -237,8 +237,8 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
 
   size_t i = 0;
   while (i < loopLimit) {
-    if (i < context.density.size() && context.density[i] > 0) {
-      uint32_t dval = context.density[i];
+    if (i < context.densitySize && context.densityPtr[i] > 0) {
+      uint32_t dval = context.densityPtr[i];
       context.imageData[i] = context.hQuality
         ? get_color_data(dval, context.max_density, context.h, context.s, context.v, 1.0, context.background)
         : get_low_quality_point(context.h, context.s, context.v);
@@ -256,8 +256,10 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
     std::shared_ptr<std::string> timestamp,
     std::shared_ptr<jsi::Function> onProgressCopy,
     std::shared_ptr<jsi::Function> onImageUpdateCopy,
-    uint8_t* bufferPtr,
-    size_t bufferSize,
+    uint32_t* densityBufferPtr,
+    size_t densityBufferSize,
+    uint8_t* imageBufferPtr,
+    size_t imageBufferSize,
     std::shared_ptr<jsi::Function> resolveFunc,
     std::shared_ptr<jsi::Function> rejectFunc,
     std::shared_ptr<std::atomic<bool>> cancelled,
@@ -276,8 +278,10 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
       timestamp,
       onProgressCopy,
       onImageUpdateCopy,
-      bufferPtr,
-      bufferSize,
+      densityBufferPtr,
+      densityBufferSize,
+      imageBufferPtr,
+      imageBufferSize,
       resolveFunc,
       rejectFunc,
       cancelled,
@@ -305,10 +309,18 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
         // get attractor function
         auto attractorFunc = get_attractor_function(*attractorParamsCopy);
 
-        // Initialize calculation variables
-        std::vector<uint32_t> density(*widthCopy * *heightCopy, 0);
+        // Initialize calculation variables - use the passed density buffer directly
+        // Note: We're no longer clearing the density buffer to allow accumulation across calls
+        size_t densitySize = *widthCopy * *heightCopy;
         
+        // Scan the buffer to find existing max density value
         double max_density = 0.0;
+        for (size_t i = 0; i < densitySize; i++) {
+          if (densityBufferPtr[i] > max_density) {
+            max_density = densityBufferPtr[i];
+          }
+        }
+        
         double x = 0.0, y = 0.0;
         double centerX = *widthCopy / 2.0 + attractorParamsCopy->left;
         double centerY = *heightCopy / 2.0 + attractorParamsCopy->top;
@@ -326,7 +338,8 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
           }
             
           AccumulationContext context = {
-            .density = density,
+            .densityPtr = densityBufferPtr,
+            .densitySize = densitySize,
             .max_density = max_density,
             .x = x,
             .y = y,
@@ -362,9 +375,10 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
 
             // Draw the current state on the canvas
             ImageDataCreationContext imageContext = {
-              .imageData = reinterpret_cast<uint32_t*>(bufferPtr),
-              .imageSize = bufferSize / sizeof(uint32_t),
-              .density = density,
+              .imageData = reinterpret_cast<uint32_t*>(imageBufferPtr),
+              .imageSize = imageBufferSize / sizeof(uint32_t),
+              .densityPtr = densityBufferPtr,
+              .densitySize = densitySize,
               .max_density = max_density,
               .h = attractorParamsCopy->hue,
               .s = attractorParamsCopy->saturation,
@@ -433,7 +447,8 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
   jsi::Object NativeAttractorCalc::calculateAttractor(
     jsi::Runtime& rt,
     std::string timestamp,
-    jsi::Object buffer,
+    jsi::Object densityBuffer,
+    jsi::Object imageBuffer,
     jsi::Object paramsAttractor,
     int width,
     int height,
@@ -468,12 +483,21 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
     attractorParams.background = backgroundVec;
 
     // 1. Validate and get the ArrayBuffer
-    if (!buffer.isArrayBuffer(rt)) {
+    if (!densityBuffer.isArrayBuffer(rt)) {
       throw jsi::JSError(rt, "Third argument must be an ArrayBuffer.");
     }
-    auto arrayBuffer = buffer.getArrayBuffer(rt);
-    uint8_t* bufferPtr = arrayBuffer.data(rt);
-    size_t bufferSize = arrayBuffer.size(rt);
+
+    if (!imageBuffer.isArrayBuffer(rt)) {
+      throw jsi::JSError(rt, "Fourth argument must be an ArrayBuffer.");
+    }
+
+    auto densityArrayBuffer = densityBuffer.getArrayBuffer(rt);
+    uint32_t* densityBufferPtr = reinterpret_cast<uint32_t*>(densityArrayBuffer.data(rt));
+    size_t densityBufferSize = densityArrayBuffer.size(rt);
+    
+    auto imageArrayBuffer = imageBuffer.getArrayBuffer(rt);
+    uint8_t* imageBufferPtr = imageArrayBuffer.data(rt);
+    size_t imageBufferSize = imageArrayBuffer.size(rt);
 
     // 2. Set Cancellation flag
     auto cancelled = std::make_shared<std::atomic<bool>>(false);
@@ -501,8 +525,10 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
           timestampCopy,
           onProgressCopy,
           onImageUpdateCopy,
-          bufferPtr,
-          bufferSize,
+          densityBufferPtr,
+          densityBufferSize,
+          imageBufferPtr,
+          imageBufferSize,
           cancelled,
           attractorParamsCopy,
           widthCopy,
@@ -521,8 +547,10 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
             timestampCopy,
             onProgressCopy,
             onImageUpdateCopy,
-            bufferPtr,
-            bufferSize,
+            densityBufferPtr,
+            densityBufferSize,
+            imageBufferPtr,
+            imageBufferSize,
             resolveFunc,
             rejectFunc,
             cancelled,

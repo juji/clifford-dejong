@@ -43,7 +43,7 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
 
   console.log('build number', NativeAttractorCalc.getBuildNumber());
 
-  let pointsPerIteration = 100_000;
+  let pointsPerIteration = 1_000_000;
   // const performanceRating = NativeAttractorCalc.ratePerformance();
   // console.log('Performance rating:', performanceRating);
   // if(performanceRating === 0) {
@@ -68,8 +68,9 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
   const bufferSize = width * height * 4; // Assuming 4 bytes per pixel (RGBA)
 
   // Create the ArrayBuffer that will be written to by the C++ code.
-  const sharedBuffer = new ArrayBuffer(bufferSize);
-  const dataView = new Uint8Array(sharedBuffer);
+  const sharedImageBuffer = new ArrayBuffer(bufferSize);
+  const sharedDensityBuffer = new ArrayBuffer(bufferSize);
+  const dataView = new Uint8Array(sharedImageBuffer);
   let prevSum = 0;
 
   // cancelation should be done locally, inside onProgress or onImageUpdate
@@ -141,7 +142,8 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
   const { promise, cancel: cancelOnThread } =
     NativeAttractorCalc.calculateAttractor(
       timestamp,
-      sharedBuffer, // Pass the buffer here
+      sharedDensityBuffer,
+      sharedImageBuffer, // Pass the buffer here
       attractorParameters,
       width,
       height,

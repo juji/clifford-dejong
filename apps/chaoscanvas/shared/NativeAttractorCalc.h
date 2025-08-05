@@ -41,7 +41,8 @@ struct AttractorParameters {
 };
 
 struct AccumulationContext {
-    std::vector<uint32_t>& density;
+    uint32_t* densityPtr;
+    size_t densitySize;
     double& max_density;
     double& x;
     double& y;
@@ -64,7 +65,8 @@ struct AccumulationContext {
 struct ImageDataCreationContext {
     uint32_t* imageData;
     size_t imageSize;
-    const std::vector<uint32_t>& density;
+    const uint32_t* densityPtr;
+    size_t densitySize;
     double max_density;
     double h;
     double s;
@@ -83,7 +85,8 @@ public:
   jsi::Object calculateAttractor(
     jsi::Runtime& rt, 
     std::string timestamp, 
-    jsi::Object buffer, 
+    jsi::Object densityBuffer,
+    jsi::Object imageBuffer,
     jsi::Object attractorParameters,
     int width,
     int height,
@@ -122,8 +125,10 @@ private:
     std::shared_ptr<std::string> timestamp,
     std::shared_ptr<jsi::Function> onProgressCopy,
     std::shared_ptr<jsi::Function> onImageUpdateCopy,
-    uint8_t* bufferPtr,
-    size_t bufferSize,
+    uint32_t* densityBufferPtr,
+    size_t densityBufferSize,
+    uint8_t* imageBufferPtr,
+    size_t imageBufferSize,
     std::shared_ptr<jsi::Function> resolveFunc,
     std::shared_ptr<jsi::Function> rejectFunc,
     std::shared_ptr<std::atomic<bool>> cancelled,

@@ -7,8 +7,9 @@ export interface Spec extends TurboModule {
     // timestamp: ISO string, used to identify the calculation
     timestamp: string,
 
-    // The shared buffer for zero-copy data transfer
-    buffer: Object,
+    // The shared buffers for zero-copy data transfer
+    densityBuffer: Object,
+    imageBuffer: Object,
 
     attractorParameters: Object,
     width: number,
