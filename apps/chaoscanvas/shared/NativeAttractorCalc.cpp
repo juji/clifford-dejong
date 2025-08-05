@@ -185,10 +185,9 @@ std::function<std::pair<double, double>(double, double, double, double, double, 
             return dejong(x, y, params.a, params.b, params.c, params.d);
         };
     }
-    // Default or error case
-    return [=](double x, double y, double a, double b, double c, double d) {
-        return std::make_pair(0.0, 0.0);
-    };
+    
+    // Error case - throw an exception for invalid attractor type
+    throw std::runtime_error("Invalid attractor type: " + params.attractor + ". Must be 'clifford' or 'dejong'.");
 }
 
 void NativeAttractorCalc::accumulate_density(AccumulationContext& context) {
