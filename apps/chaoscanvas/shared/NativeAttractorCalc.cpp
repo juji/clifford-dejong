@@ -256,7 +256,7 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
         if (cancelled->load()) {
           // When cancelled, reject the promise from the JS thread
           this->jsInvoker_->invokeAsync([rejectFunc](jsi::Runtime& runtime) {
-            rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled from C++"));
+            rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, ""));
           });
           return; // Exit the thread
         }
@@ -279,11 +279,7 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
           // this allows cancellation
           std::this_thread::sleep_for(std::chrono::milliseconds(1));
           if (cancelled->load()) {
-            // When cancelled, reject the promise from the JS thread
-            this->jsInvoker_->invokeAsync([rejectFunc](jsi::Runtime& runtime) {
-              rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled"));
-            });
-            return; // Exit the thread
+            break; // Exit the while loop
           }
             
           AccumulationContext context = {
@@ -317,11 +313,7 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
             // this allows cancellation
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
             if (cancelled->load()) {
-              // When cancelled, reject the promise from the JS thread
-              this->jsInvoker_->invokeAsync([rejectFunc](jsi::Runtime& runtime) {
-                rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled"));
-              });
-              return; // Exit the thread
+              break; // Exit the while loop
             }
 
             // Draw the current state on the canvas
@@ -349,6 +341,13 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
             totalPoints % *progressIntervalCopy == 0 || 
             totalPoints == (*totalAttractorPointsCopy - 1)
           ) {
+
+            // this allows cancellation
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            if (cancelled->load()) {
+              break; // Exit the while loop
+            }
+
             progress = static_cast<double>(totalPoints) / *totalAttractorPointsCopy;
             this->jsInvoker_->invokeAsync([
               onProgressCopy, 
@@ -367,20 +366,23 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
           }
         }
           
-      // Schedule the final resolution on the JS thread
-      this->jsInvoker_->invokeAsync([resolveFunc, timestamp, cancelled](jsi::Runtime& runtime) {
-        if (cancelled->load()) return;
-        std::string result = "Attractor calculation completed for timestamp: " + *timestamp;
-        resolveFunc->call(runtime, jsi::String::createFromUtf8(runtime, result));
-      });
+        // return timestamp when it's done and not canceled
+        this->jsInvoker_->invokeAsync([resolveFunc, rejectFunc, timestamp, cancelled](jsi::Runtime& runtime) {
+          if (cancelled->load()) {
+            rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, ""));
+          }else{
+            resolveFunc->call(runtime, jsi::String::createFromUtf8(runtime, *timestamp));
+          }
+        });
 
-    } catch (const std::exception& e) {
-      std::string error_message = e.what();
-      // Schedule rejection on the JS thread
-      this->jsInvoker_->invokeAsync([rejectFunc, error_message](jsi::Runtime& runtime) {
-        rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, error_message));
-      });
-    }
+      } catch (const std::exception& e) {
+        std::string error_message = e.what();
+        // Schedule rejection on the JS thread
+        this->jsInvoker_->invokeAsync([rejectFunc, error_message](jsi::Runtime& runtime) {
+          rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, error_message));
+        });
+      }
+
     }).detach(); // Detach the thread to allow the JS function to return immediately
   }
 

@@ -82,8 +82,14 @@ export function Jsi() {
         setMessage(result);
       })
       .catch(error => {
-        console.error('Error calculating attractor:', error);
-        setMessage('Error calculating attractor');
+        // id error
+        if (error) {
+          console.error('Error calculating attractor:', error);
+          setMessage('Error calculating attractor');
+        } else {
+          console.error('Calculation was cancelled FROM JS');
+          setMessage('Calculation was cancelled FROM JS');
+        }
       });
   }
 

@@ -59,6 +59,8 @@ export function calculateAttractorNative({
   // Create the ArrayBuffer that will be written to by the C++ code.
   const sharedBuffer = new ArrayBuffer(bufferSize);
   const dataView = new Uint8Array(sharedBuffer);
+  let prevSum = 0;
+  let cancelLocal: (() => void) | null = null;
 
   const now = new Date().getTime();
 
@@ -85,25 +87,21 @@ export function calculateAttractorNative({
       // The JS side can now access the updated `sharedBuffer` directly.
       // For example, create a view on the buffer to read the data.
 
-      const meanValue =
-        dataView.length > 0
-          ? dataView.reduce((a, b) => a + b, 0) / dataView.length
-          : 0;
-      console.log(
-        'done:',
-        done,
-        'Mean value of data:',
-        meanValue,
-        'Std deviation:',
-        dataView.length > 0
-          ? Math.sqrt(
-              dataView.reduce(
-                (a, b) => a + (b - meanValue / dataView.length) ** 2,
-                0,
-              ) / dataView.length,
-            )
-          : 'N/A',
-      );
+      const currentSum = dataView.reduce((a, b) => a + b, 0);
+
+      if (prevSum === currentSum) {
+        console.log('No change in pixel data, skipping update');
+        if (cancelLocal) {
+          console.log('Cancelling calculation due to no change in pixel data');
+          cancelLocal();
+          // cancelLocal = null;
+        }
+        return;
+      }
+
+      console.log('done:', done, 'image is the same:', currentSum === prevSum);
+
+      prevSum = currentSum;
 
       if (done) {
         console.log(
@@ -129,13 +127,15 @@ export function calculateAttractorNative({
     onImageUpdateLocal,
   ) as { promise: Promise<string>; cancel: () => void };
 
-  // const now = new Date().getTime();
-  // setTimeout(() => {
-  //   // If you want to cancel the calculation after some time, you can call cancel.
-  //   console.log('Cancelling calculation after 500ms');
-  //   console.log('actual elapsed time:', new Date().getTime() - now, 'ms');
-  //   cancel();
-  // }, 500);
+  cancelLocal = cancel;
+
+  // const nowD = new Date().getTime();
+  setTimeout(() => {
+    // If you want to cancel the calculation after some time, you can call cancel.
+    console.log('Cancelling calculation after 500ms');
+    console.log('actual elapsed time:', new Date().getTime() - now, 'ms');
+    cancel();
+  }, 500);
 
   // Pass the sharedBuffer to the native function.
   return { promise, cancel, dataView };
