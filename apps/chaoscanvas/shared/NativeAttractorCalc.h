@@ -49,6 +49,7 @@ struct AccumulationContext {
     const double centerY;
     const int totalAttractorPoints;
     const std::function<std::pair<double, double>(double, double, double, double, double, double)>& fn;
+    const std::shared_ptr<std::atomic<bool>>& cancelled;
 };
 
 struct ImageDataCreationContext {

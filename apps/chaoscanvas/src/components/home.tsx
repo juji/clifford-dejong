@@ -1,7 +1,5 @@
 import { View, Text, Button } from 'tamagui';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@/lib/navigation'; // Adjust the import path as necessary
 
 // Styles object outside the component
 const styles = {
@@ -15,13 +13,8 @@ const styles = {
   },
 };
 
-type HomeScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'Home'
->;
-
 export function Home() {
-  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const navigation = useNavigation();
 
   return (
     <View style={styles.container}>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 // import { ScrollView } from 'react-native';
 import { Text, Button, View, ScrollView, Progress } from 'tamagui';
 import { calculateAttractorNative } from '@/lib/calculate-attractor-native';
+import { useNavigation } from '@react-navigation/native';
 
 const styles = {
   container: {
@@ -53,15 +54,37 @@ export function Jsi() {
   const [pixelData, setPixelData] = useState<number[] | null>(null);
   const [isDone, setIsDone] = useState(false);
   const cancelRef = useRef<(() => void) | null>(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
-    return () => {
-      // Cleanup function to cancel the calculation if the component unmounts
+    console.log('Jsi component mounted');
+    // Add listeners for navigation focus and blur events
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      console.log('Jsi screen focused');
+    });
+
+    const unsubscribeBlur = navigation.addListener('blur', () => {
+      console.log('Jsi screen blurred');
       if (cancelRef.current) {
+        console.log('Cancelling calculation on unmount');
         cancelRef.current();
+        cancelRef.current = null;
+      }
+    });
+
+    return () => {
+      console.log('Jsi component unmounted');
+      // Cleanup listeners
+      unsubscribeFocus();
+      unsubscribeBlur();
+      // Cancel any ongoing calculation if the component unmounts
+      if (cancelRef.current) {
+        console.log('Cancelling calculation on unmount');
+        cancelRef.current();
+        cancelRef.current = null;
       }
     };
-  }, []);
+  }, [navigation]);
 
   function buttonPress() {
     // Reset states
@@ -106,6 +129,15 @@ export function Jsi() {
       >
         {/* {started ? 'Started' : 'Start'} */}
         Start Calculation
+      </Button>
+
+      <Button
+        size="$5"
+        themeInverse
+        onPress={() => navigation.navigate('Example')}
+        style={styles.button}
+      >
+        Go to Example
       </Button>
 
       <View style={styles.resultbox} borderColor="$borderColor">

@@ -159,6 +159,9 @@ void NativeAttractorCalc::accumulate_density(AccumulationContext& context) {
 
   int i = 0;
   while (i < context.pointsPerIteration && context.totalPoints < context.totalAttractorPoints) {
+    if (context.cancelled->load()) {
+      break;
+    }
     auto next = context.fn(context.x, context.y, context.a, context.b, context.c, context.d);
     context.x = next.first;
     context.y = next.second;
@@ -277,7 +280,7 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
         while(totalPoints < *totalAttractorPointsCopy) {
 
           // this allows cancellation
-          std::this_thread::sleep_for(std::chrono::milliseconds(1));
+          // std::this_thread::sleep_for(std::chrono::milliseconds(1));
           if (cancelled->load()) {
             break; // Exit the while loop
           }
@@ -299,7 +302,8 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
             .centerX = centerX,
             .centerY = centerY,
             .totalAttractorPoints = *totalAttractorPointsCopy,
-            .fn = attractorFunc
+            .fn = attractorFunc,
+            .cancelled = cancelled
           };
           accumulate_density(context);
 
@@ -311,7 +315,7 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
           ) {
 
             // this allows cancellation
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            // std::this_thread::sleep_for(std::chrono::milliseconds(1));
             if (cancelled->load()) {
               break; // Exit the while loop
             }
@@ -343,7 +347,7 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
           ) {
 
             // this allows cancellation
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            // std::this_thread::sleep_for(std::chrono::milliseconds(1));
             if (cancelled->load()) {
               break; // Exit the while loop
             }
