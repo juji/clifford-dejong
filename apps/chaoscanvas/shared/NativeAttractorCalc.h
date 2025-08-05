@@ -74,7 +74,8 @@ public:
     jsi::Object attractorParameters,
     int width,
     int height,
-    int drawOn,
+    int drawInterval,
+    int progressInterval,
     bool highQuality,
     int totalAttractorPoints,
     int pointsPerIteration,
@@ -103,6 +104,25 @@ private:
   );
   void accumulate_density(AccumulationContext& context);
   void create_image_data(ImageDataCreationContext& context);
+  
+  void startAttractorCalculationThread(
+    std::shared_ptr<std::string> timestamp,
+    std::shared_ptr<jsi::Function> onProgressCopy,
+    std::shared_ptr<jsi::Function> onImageUpdateCopy,
+    uint8_t* bufferPtr,
+    size_t bufferSize,
+    std::shared_ptr<jsi::Function> resolveFunc,
+    std::shared_ptr<jsi::Function> rejectFunc,
+    std::shared_ptr<std::atomic<bool>> cancelled,
+    std::shared_ptr<AttractorParameters> attractorParamsCopy,
+    std::shared_ptr<int> widthCopy,
+    std::shared_ptr<int> heightCopy,
+    std::shared_ptr<int> drawIntervalCopy,
+    std::shared_ptr<int> progressIntervalCopy,
+    std::shared_ptr<bool> highQualityCopy,
+    std::shared_ptr<int> totalAttractorPointsCopy,
+    std::shared_ptr<int> pointsPerIterationCopy
+  );
 };
 
 } // namespace facebook::react

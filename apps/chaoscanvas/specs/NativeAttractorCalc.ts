@@ -11,14 +11,19 @@ export interface Spec extends TurboModule {
     attractorParameters: Object,
     width: number,
     height: number,
-    drawOn: number,
+    drawInterval: number,
+    progressInterval: number,
     highQuality: boolean,
 
     totalAttractorPoints: number,
     pointsPerIteration: number,
 
     // progress: 0 - 1
-    onProgress: (progress: number) => void,
+    onProgress: (
+      progress: number,
+      totalPointsWritten: number,
+      totalPointsTarget: number,
+    ) => void,
 
     // bytesWritten: number of bytes written in the last update
     // done: true if the calculation is done

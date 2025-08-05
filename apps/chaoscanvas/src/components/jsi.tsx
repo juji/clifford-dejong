@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 // import { ScrollView } from 'react-native';
 import { Text, Button, View, ScrollView, Progress } from 'tamagui';
 import { calculateAttractorNative } from '@/lib/calculate-attractor-native';
@@ -52,6 +52,16 @@ export function Jsi() {
   const [progress, setProgress] = useState(0);
   const [pixelData, setPixelData] = useState<number[] | null>(null);
   const [isDone, setIsDone] = useState(false);
+  const cancelRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      // Cleanup function to cancel the calculation if the component unmounts
+      if (cancelRef.current) {
+        cancelRef.current();
+      }
+    };
+  }, []);
 
   function buttonPress() {
     // Reset states
@@ -60,9 +70,11 @@ export function Jsi() {
     setIsDone(false);
     setMessage('Calculation started...');
 
-    const { promise } = calculateAttractorNative({
+    const { promise, cancel } = calculateAttractorNative({
       timestamp: new Date().toISOString(),
     });
+
+    cancelRef.current = cancel;
 
     promise
       .then(result => {

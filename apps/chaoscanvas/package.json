@@ -6,6 +6,8 @@
     "preandroid:clean": "cd android && ./gradlew clean && cd ..",
     "android:clean": "react-native run-android",
     "android": "react-native run-android",
+    "preios:clean": "./setup.sh",
+    "ios:clean": "react-native run-ios",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "prestart": "watchman watch-del-all",
