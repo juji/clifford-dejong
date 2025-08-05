@@ -279,7 +279,7 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
       onProgressCopy,
       onImageUpdateCopy,
       densityBufferPtr,
-      densityBufferSize,
+      // densityBufferSize,
       imageBufferPtr,
       imageBufferSize,
       resolveFunc,

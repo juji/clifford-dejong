@@ -43,27 +43,39 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
 
   console.log('build number', NativeAttractorCalc.getBuildNumber());
 
-  let pointsPerIteration = 1_000_000;
-  // const performanceRating = NativeAttractorCalc.ratePerformance();
-  // console.log('Performance rating:', performanceRating);
-  // if(performanceRating === 0) {
-  //   console.warn('Performance rating is UNKNOWN, using 100_000 (default) pointsPerIteration');
-  // } else if(performanceRating <= 1) {
-  //   console.warn('Performance rating is VERY_SLOW, using 500_000 pointsPerIteration');
-  //   pointsPerIteration = 500_000; // VERY_SLOW
-  // } else if(performanceRating <= 2) {
-  //   console.warn('Performance rating is SLOW, using 1_000_000 pointsPerIteration');
-  //   pointsPerIteration = 1_000_000; // SLOW
-  // } else if(performanceRating <= 3) {
-  //   console.warn('Performance rating is MEDIUM, using 2_000_000 pointsPerIteration');
-  //   pointsPerIteration = 2_000_000; // MEDIUM
-  // } else if(performanceRating <= 4) {
-  //   console.log('Performance rating is MEDIUM or FAST, using 5_000_000 pointsPerIteration');
-  //   pointsPerIteration = 5_000_000; // MEDIUM or FAST
-  // } else {
-  //   console.log('Performance rating is VERY_FAST, using 10_000_000 pointsPerIteration');
-  //   pointsPerIteration = 10_000_000; // VERY_FAST
-  // }
+  let pointsPerIteration = 10_000_000;
+  const performanceRating = NativeAttractorCalc.ratePerformance();
+  console.log('Performance rating:', performanceRating);
+  if (performanceRating === 0) {
+    console.warn(
+      'Performance rating is UNKNOWN, using 100_000 (default) pointsPerIteration',
+    );
+  } else if (performanceRating <= 1) {
+    console.warn(
+      'Performance rating is VERY_SLOW, using 500_000 pointsPerIteration',
+    );
+    pointsPerIteration = 500_000; // VERY_SLOW
+  } else if (performanceRating <= 2) {
+    console.warn(
+      'Performance rating is SLOW, using 1_000_000 pointsPerIteration',
+    );
+    pointsPerIteration = 1_000_000; // SLOW
+  } else if (performanceRating <= 3) {
+    console.warn(
+      'Performance rating is MEDIUM, using 2_000_000 pointsPerIteration',
+    );
+    pointsPerIteration = 2_000_000; // MEDIUM
+  } else if (performanceRating <= 4) {
+    console.log(
+      'Performance rating is FAST, using 5_000_000 pointsPerIteration',
+    );
+    pointsPerIteration = 5_000_000; // FAST
+  } else {
+    console.log(
+      'Performance rating is VERY_FAST, using 10_000_000 pointsPerIteration',
+    );
+    pointsPerIteration = 10_000_000; // VERY_FAST
+  }
 
   const bufferSize = width * height * 4; // Assuming 4 bytes per pixel (RGBA)
 
@@ -77,21 +89,28 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
   // this is because ios
   let cancelled = false;
   let cancelFunction: (() => void) | null = null;
+  let totalPoints = 0;
+  let totalProgress = 0;
 
   const now = new Date().getTime();
 
   const onProgressLocal = (
     progress: number,
     totalPointsWritten?: number,
-    totalPointsTarget?: number,
+    // totalPointsTarget?: number,
   ) => {
+    if (totalPointsWritten) {
+      totalPoints += totalPointsWritten;
+      totalProgress = totalPoints / totalAttractorPoints;
+    }
+
     console.log(
       'Progress:',
-      Math.round(progress * 100) + '%',
+      Math.round(totalProgress * 100) + '%',
       'Total points written:',
-      totalPointsWritten,
+      totalPoints,
       'Total points target:',
-      totalPointsTarget,
+      totalAttractorPoints,
     );
 
     if (cancelled && cancelFunction) {
@@ -100,7 +119,7 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
       return;
     }
 
-    onProgress && onProgress(progress, totalPointsWritten, totalPointsTarget);
+    onProgress && onProgress(progress, totalPoints, totalAttractorPoints);
   };
 
   const onImageUpdateLocal = (done: boolean) => {
@@ -139,26 +158,58 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
     }
   };
 
-  const { promise, cancel: cancelOnThread } =
-    NativeAttractorCalc.calculateAttractor(
-      timestamp,
-      sharedDensityBuffer,
-      sharedImageBuffer, // Pass the buffer here
-      attractorParameters,
-      width,
-      height,
-      drawInterval,
-      progressInterval,
-      highQuality,
-      totalAttractorPoints,
-      pointsPerIteration,
-      onProgressLocal,
-      onImageUpdateLocal,
-    ) as { promise: Promise<string>; cancel: () => void };
+  let returnedPromise: Promise<string> = Promise.resolve('');
+  let tp = 0;
+  while (tp < totalAttractorPoints) {
+    returnedPromise = returnedPromise.then(async () => {
+      if (cancelled) {
+        throw new Error('');
+      }
+
+      const {
+        promise,
+        // cancel: cancelOnThread
+      } = NativeAttractorCalc.calculateAttractor(
+        timestamp,
+        sharedDensityBuffer,
+        sharedImageBuffer, // Pass the buffer here
+        attractorParameters,
+        width,
+        height,
+        drawInterval,
+        progressInterval,
+        highQuality,
+        // totalAttractorPoints,
+        pointsPerIteration, // Use the calculated pointsPerIteration instead of totalAttractorPoints
+        pointsPerIteration,
+        onProgressLocal,
+        onImageUpdateLocal,
+      ) as { promise: Promise<string>; cancel: () => void };
+
+      return promise.then(async ts => {
+        if (cancelled) {
+          throw new Error('');
+        }
+        return ts;
+      });
+    });
+
+    tp += pointsPerIteration;
+  }
+
+  returnedPromise = returnedPromise.then(ts => {
+    console.log(
+      'Attractor calculation completed in',
+      new Date().getTime() - now,
+      'ms',
+    );
+    return ts;
+  });
 
   cancelFunction = function () {
+    console.log('assigning cancel function');
     cancelled = true;
-    cancelOnThread();
+    // cancelOnThread();
   };
 
   // Cancelling after some time
@@ -171,5 +222,5 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
   // }, 500);
 
   // Pass the sharedBuffer to the native function.
-  return { promise, cancel: cancelFunction, dataView };
+  return { promise: returnedPromise, cancel: cancelFunction, dataView };
 }
