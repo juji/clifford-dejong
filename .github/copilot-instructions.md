@@ -109,6 +109,20 @@ pnpm test --filter=core
 - For multi-item commits, **use bullet points** to list key changes for better readability.
 - If a commit fails due to linting, tests, or other checks, **reuse the original commit message** when fixing and recommitting. Do not create redundant commit histories.
 
+### Git Add and Commit
+
+When asked to commit, you should stage and commit in a single command:
+
+```bash
+# Stage and commit specific files in one command
+git add <files> && git commit -m "<type>: <description>"
+
+# Example
+git add apps/chaoscanvas/shared/NativeAttractorCalc.cpp && git commit -m "fix: throw error for invalid attractor types"
+```
+
+This allows better communication of the changes made, especially when multiple files are involved.
+
 ### Example Commit Message
 
 ```bash
