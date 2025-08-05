@@ -365,8 +365,6 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
               );
             });
           }
-
-          totalPoints++;
         }
           
       // Schedule the final resolution on the JS thread
