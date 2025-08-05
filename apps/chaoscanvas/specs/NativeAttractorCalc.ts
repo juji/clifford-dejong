@@ -1,6 +1,8 @@
 import { TurboModule, TurboModuleRegistry } from 'react-native';
 
 export interface Spec extends TurboModule {
+  readonly getBuildNumber: () => string;
+  readonly ratePerformance: () => number;
   readonly calculateAttractor: (
     // timestamp: ISO string, used to identify the calculation
     timestamp: string,

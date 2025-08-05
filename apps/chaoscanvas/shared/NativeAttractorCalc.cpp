@@ -12,6 +12,8 @@
 
 namespace facebook::react {
 
+std::string version = "1.0.1";
+
 // A C++ implementation of the BezierEasing function from the original JS.
 // It returns a lambda function that calculates the easing.
 std::function<double(double)> NativeAttractorCalc::bezier_easing(double p0, double p1, double p2, double p3) {
@@ -112,6 +114,40 @@ uint32_t NativeAttractorCalc::get_color_data(
            (static_cast<uint32_t>(rgb.b) << 16) |
            (static_cast<uint32_t>(rgb.g) << 8) |
            static_cast<uint32_t>(rgb.r);
+}
+
+double NativeAttractorCalc::ratePerformance(jsi::Runtime& rt) {
+    const int num_iterations = 10000000; // 10 million iterations for a quicker test
+    volatile double result = 0.0;
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    for (int i = 0; i < num_iterations; ++i) {
+        result += std::sin(static_cast<double>(i)) * std::cos(static_cast<double>(i));
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+
+    if (elapsed.count() == 0) {
+        return static_cast<double>(VERY_FAST); // Execution was too fast to measure, which is the best possible outcome.
+    }
+
+    double score = num_iterations / elapsed.count();
+
+    // These thresholds are calibrated based on typical performance ranges.
+    // They might need adjustment for your specific target devices.
+    // Score is in iterations per millisecond.
+    PerformanceRating rating = score > 500000 ? VERY_FAST :
+                               score > 200000 ? FAST :
+                               score > 50000  ? MEDIUM :
+                               score > 10000  ? SLOW :
+                                                VERY_SLOW;
+    return static_cast<double>(rating);
+}
+
+std::string NativeAttractorCalc::getBuildNumber(jsi::Runtime& rt) {
+    return version;
 }
 
 uint32_t NativeAttractorCalc::get_low_quality_point(double hue, double saturation, double brightness) {
@@ -256,6 +292,8 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
     ]() {
       try {
 
+        // this allows cancellation
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
         if (cancelled->load()) {
           // When cancelled, reject the promise from the JS thread
           this->jsInvoker_->invokeAsync([rejectFunc](jsi::Runtime& runtime) {
@@ -277,10 +315,12 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
         double progress = 0.0;
         int totalPoints = 0;
 
-        while(totalPoints < *totalAttractorPointsCopy) {
+        while(
+          totalPoints < *totalAttractorPointsCopy && !cancelled->load()
+        ) {
 
           // this allows cancellation
-          // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+          std::this_thread::sleep_for(std::chrono::milliseconds(1));
           if (cancelled->load()) {
             break; // Exit the while loop
           }
@@ -315,7 +355,7 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
           ) {
 
             // this allows cancellation
-            // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
             if (cancelled->load()) {
               break; // Exit the while loop
             }
@@ -347,7 +387,7 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
           ) {
 
             // this allows cancellation
-            // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
             if (cancelled->load()) {
               break; // Exit the while loop
             }
@@ -505,6 +545,7 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
     0,
     [cancelled](jsi::Runtime&, const jsi::Value&, const jsi::Value* , size_t) -> jsi::Value {
       cancelled->store(true);
+      std::this_thread::sleep_for(std::chrono::seconds(2));
       return jsi::Value::undefined();
     });
 

@@ -5,27 +5,12 @@ import { defaultState } from '@repo/state/attractor-store';
 const defaultAttractorParameters: AttractorParameters =
   defaultState.attractorParameters;
 
-// const defaultAttractorParameters: AttractorParameters = {
-//   attractor: 'clifford',
-//   a: -1.8,
-//   b: -2.0,
-//   c: -0.5,
-//   d: 0.9,
-//   hue: 200,
-//   saturation: 100,
-//   brightness: 100,
-//   background: [0, 0, 0, 255],
-//   scale: 100,
-//   left: 0,
-//   top: 0,
-// };
-
 export type AttractorCalcModuleParams = {
   timestamp: string;
   attractorParameters?: AttractorParameters;
 
   totalAttractorPoints?: number;
-  pointsPerIteration?: number;
+  // pointsPerIteration?: number;
 
   width?: number;
   height?: number;
@@ -41,19 +26,45 @@ export type AttractorCalcModuleParams = {
   onImageUpdate?: (done: boolean) => void;
 };
 
-export function calculateAttractorNative({
-  timestamp,
-  attractorParameters = defaultAttractorParameters,
-  totalAttractorPoints = 20_000_000,
-  pointsPerIteration = 2_000_000,
-  width = 1000,
-  height = 1000,
-  drawInterval = 100_000,
-  progressInterval = 50_000,
-  highQuality = true,
-  onProgress,
-  onImageUpdate,
-}: AttractorCalcModuleParams) {
+export function calculateAttractorNative(params: AttractorCalcModuleParams) {
+  const {
+    timestamp,
+    attractorParameters = defaultAttractorParameters,
+    totalAttractorPoints = 20_000_000,
+    // pointsPerIteration = 2_000_000,
+    width = 1000,
+    height = 1000,
+    drawInterval = 100_000,
+    progressInterval = 50_000,
+    highQuality = true,
+    onProgress,
+    onImageUpdate,
+  } = params;
+
+  console.log('build number', NativeAttractorCalc.getBuildNumber());
+
+  let pointsPerIteration = 100_000;
+  // const performanceRating = NativeAttractorCalc.ratePerformance();
+  // console.log('Performance rating:', performanceRating);
+  // if(performanceRating === 0) {
+  //   console.warn('Performance rating is UNKNOWN, using 100_000 (default) pointsPerIteration');
+  // } else if(performanceRating <= 1) {
+  //   console.warn('Performance rating is VERY_SLOW, using 500_000 pointsPerIteration');
+  //   pointsPerIteration = 500_000; // VERY_SLOW
+  // } else if(performanceRating <= 2) {
+  //   console.warn('Performance rating is SLOW, using 1_000_000 pointsPerIteration');
+  //   pointsPerIteration = 1_000_000; // SLOW
+  // } else if(performanceRating <= 3) {
+  //   console.warn('Performance rating is MEDIUM, using 2_000_000 pointsPerIteration');
+  //   pointsPerIteration = 2_000_000; // MEDIUM
+  // } else if(performanceRating <= 4) {
+  //   console.log('Performance rating is MEDIUM or FAST, using 5_000_000 pointsPerIteration');
+  //   pointsPerIteration = 5_000_000; // MEDIUM or FAST
+  // } else {
+  //   console.log('Performance rating is VERY_FAST, using 10_000_000 pointsPerIteration');
+  //   pointsPerIteration = 10_000_000; // VERY_FAST
+  // }
+
   const bufferSize = width * height * 4; // Assuming 4 bytes per pixel (RGBA)
 
   // Create the ArrayBuffer that will be written to by the C++ code.
@@ -144,10 +155,8 @@ export function calculateAttractorNative({
     ) as { promise: Promise<string>; cancel: () => void };
 
   cancelFunction = function () {
-    if (!cancelled) {
-      cancelled = true;
-      cancelOnThread();
-    }
+    cancelled = true;
+    cancelOnThread();
   };
 
   // Cancelling after some time

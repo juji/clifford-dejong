@@ -1,7 +1,7 @@
 #pragma once
 
 #include <NativeAttractorCalcSpecsJSI.h>
-
+#include <jsi/jsi.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -10,6 +10,15 @@
 #include <utility>
 
 namespace facebook::react {
+
+enum PerformanceRating {
+    VERY_SLOW = 1,
+    SLOW = 2,
+    MEDIUM = 3,
+    FAST = 4,
+    VERY_FAST = 5,
+    UNKNOWN = 0
+};
 
 // Represents an RGB color
 struct RGB {
@@ -67,6 +76,9 @@ struct ImageDataCreationContext {
 class NativeAttractorCalc : public NativeAttractorCalcCxxSpec<NativeAttractorCalc> {
 public:
   NativeAttractorCalc(std::shared_ptr<CallInvoker> jsInvoker);
+
+  double ratePerformance(jsi::Runtime& rt);
+  std::string getBuildNumber(jsi::Runtime& rt);
 
   jsi::Object calculateAttractor(
     jsi::Runtime& rt, 
