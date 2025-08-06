@@ -335,6 +335,7 @@ function useIterativeAttractorImage(
         totalPointsVal === totalAttractorPointsVal
       ) {
         const imageData = new Uint32Array(wVal * hVal);
+        console.log(`image data size: ${imageData.byteLength} bytes`);
 
         const loopLimit = Math.min(wVal * hVal, densityVal.length);
         for (let i = 0; i < loopLimit; i++) {

@@ -12,7 +12,7 @@
 
 namespace facebook::react {
 
-std::string version = "2.0.0";
+std::string version = "2.0.1";
 
 // A C++ implementation of the BezierEasing function from the original JS.
 // It returns a lambda function that calculates the easing.
@@ -221,7 +221,7 @@ void NativeAttractorCalc::accumulateDensity(AccumulationContext& context) {
 
 void NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
 
-  size_t loopLimit = context.imageSize;
+  int loopLimit = context.imageSize;
 
   uint32_t bgColor = 0;
   if (!context.background.empty()) {
@@ -232,16 +232,14 @@ void NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
     bgColor = (bgA << 24) | (bgB << 16) | (bgG << 8) | bgR;
   }
 
-  size_t i = 0;
+  int i = 0;
   while (i < loopLimit) {
-    if (i < context.densitySize && context.densityPtr[i] > 0) {
-      uint32_t dval = context.densityPtr[i];
-      context.imageData[i] = context.highQuality
-        ? getColorData(dval, context.maxDensity, context.h, context.s, context.v, 1.0, context.background)
-        : getLowQualityPoint(context.h, context.s, context.v);
-    } else {
-      context.imageData[i] = bgColor;
-    }
+    uint32_t dval = context.densityPtr[i];
+    context.imageData[i] = dval > 0 ? (
+      context.highQuality
+      ? getColorData(dval, context.maxDensity, context.h, context.s, context.v, 1.0, context.background)
+      : getLowQualityPoint(context.h, context.s, context.v)
+    ) : bgColor;
     i++;
   }
 
@@ -252,8 +250,7 @@ void NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
   void NativeAttractorCalc::startAttractorCalculationThread(
     std::string timestamp,
     uint32_t* densityBufferPtr,
-    uint8_t* imageBufferPtr,
-    size_t imageBufferSize,
+    uint32_t* imageBufferPtr,
     bool highQuality,
 
     std::string attractor,
@@ -278,7 +275,6 @@ void NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
       timestamp,
       densityBufferPtr,
       imageBufferPtr,
-      imageBufferSize,
       highQuality,
           
       attractor,
@@ -307,8 +303,6 @@ void NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
         
         double centerX = width / 2.0 + left;
         double centerY = height / 2.0 + top;
-        double progress = 0.0;
-        int totalPoints = 0;
         
         // Create reference-able variables
         int maxDensityRef = maxDensity; 
@@ -342,7 +336,7 @@ void NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
         // Draw the current state on the buffer
         ImageDataCreationContext imageContext = {
           .imageData = reinterpret_cast<uint32_t*>(imageBufferPtr),
-          .imageSize = imageBufferSize / sizeof(uint32_t),
+          .imageSize = width * height,
           .densityPtr = densityBufferPtr,
           .densitySize = densitySize,
           .maxDensity = maxDensityRef,
@@ -436,8 +430,7 @@ void NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
     uint32_t* densityBufferPtr = reinterpret_cast<uint32_t*>(densityArrayBuffer.data(rt));
     
     auto imageArrayBuffer = imageBuffer.getArrayBuffer(rt);
-    uint8_t* imageBufferPtr = imageArrayBuffer.data(rt);
-    size_t imageBufferSize = imageArrayBuffer.size(rt);
+    uint32_t* imageBufferPtr = reinterpret_cast<uint32_t*>(imageArrayBuffer.data(rt));
 
     // 4. Create a Promise
     auto promiseCtor = rt.global().getPropertyAsFunction(rt, "Promise");
@@ -450,7 +443,6 @@ void NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
           
           densityBufferPtr,
           imageBufferPtr,
-          imageBufferSize,
           
           attractor,
           a, b, c, d,
@@ -473,7 +465,6 @@ void NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
             timestamp,
             densityBufferPtr,
             imageBufferPtr,
-            imageBufferSize,
             highQuality,
             
             attractor,

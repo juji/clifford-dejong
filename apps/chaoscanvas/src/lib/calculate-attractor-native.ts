@@ -57,7 +57,7 @@ export function ratePerformance(log = true) {
 }
 
 export type AttractorCalcModuleParams = {
-  timestamp: string;
+  timestamp?: string;
   attractorParameters?: AttractorParameters;
 
   totalAttractorPoints?: number;
@@ -77,10 +77,11 @@ export type AttractorCalcModuleParams = {
   log?: boolean;
 };
 
-export function logBuildNumber() {
-  console.log('build number', NativeAttractorCalc.getBuildNumber());
+export function getBuildNumber() {
+  return NativeAttractorCalc.getBuildNumber();
 }
 
+const SCALE = 5;
 export function calculateAttractorNative(params: AttractorCalcModuleParams) {
   const {
     timestamp = new Date().toISOString(),
@@ -101,12 +102,21 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
 
   // Assuming 4 bytes per pixel (RGBA)
   // and 4 bytes of uint32
-  const bufferSize = width * height * 4;
 
+  const dataView = new Uint32Array(width * height); // RGBA format
+  const densityView = new Uint32Array(width * height); // uint32 format
   // Create the ArrayBuffer that will be written to by the C++ code.
-  const sharedDensityBuffer = new ArrayBuffer(bufferSize); // uint32
-  const sharedImageBuffer = new ArrayBuffer(bufferSize); // uint8 rgba
-  const dataView = new Uint8Array(sharedImageBuffer);
+  const sharedDensityBuffer = densityView.buffer; // uint32
+  const sharedImageBuffer = dataView.buffer; // uint8 rgba
+  const imageView = new Uint8Array(dataView.buffer); // RGBA format
+
+  console.log('Shared buffers created:', {
+    width,
+    height,
+    sharedDensityBuffer: sharedDensityBuffer.byteLength,
+    sharedImageBuffer: sharedImageBuffer.byteLength,
+    dataView: dataView.byteLength,
+  });
 
   // cancelation should be done locally
   let cancelled = false;
@@ -166,6 +176,10 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
   // this can be stopped by the cancel function
   let returnedPromise: Promise<string> = Promise.resolve('');
   let tp = 0;
+  const updatedAttractorParameters = {
+    ...attractorParameters,
+    scale: attractorParameters.scale * SCALE,
+  };
   while (tp < totalAttractorPoints) {
     returnedPromise = returnedPromise.then(async () => {
       // on canccellation
@@ -185,7 +199,7 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
         sharedImageBuffer, // Pass the buffer here
         highQuality,
 
-        attractorParameters,
+        updatedAttractorParameters,
         width,
         height,
         x,
@@ -223,6 +237,6 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
   return {
     promise: returnedPromise,
     cancel: cancelFunction,
-    dataView,
+    imageView,
   };
 }

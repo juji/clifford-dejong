@@ -61,7 +61,7 @@ struct AccumulationContext {
 
 struct ImageDataCreationContext {
     uint32_t* imageData;
-    size_t imageSize;
+    int imageSize;
     const uint32_t* densityPtr;
     size_t densitySize;
     int maxDensity;
@@ -121,8 +121,7 @@ private:
     std::string timestamp,
    
     uint32_t* densityBufferPtr,
-    uint8_t* imageBufferPtr,
-    size_t imageBufferSize,
+    uint32_t* imageBufferPtr,
     bool highQuality,
 
     std::string attractor,
