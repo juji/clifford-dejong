@@ -63,7 +63,8 @@ NativeAttractorCalc::bezierEasing(double p0, double p1, double p2, double p3) {
   };
 }
 
-RGB NativeAttractorCalc::hsvToRgb(double h, double s, double v) {
+RGB
+NativeAttractorCalc::hsvToRgb(double h, double s, double v) {
   // Exactly match JavaScript hsv2rgb implementation
   // Clamp input values to valid ranges
   h = std::max(0.0, std::min(359.0, h));
@@ -133,7 +134,8 @@ RGB NativeAttractorCalc::hsvToRgb(double h, double s, double v) {
   };
 }
 
-uint32_t NativeAttractorCalc::getColorData(
+uint32_t
+NativeAttractorCalc::getColorData(
   double density,
   double maxDensity,
   double h,
@@ -180,15 +182,15 @@ uint32_t NativeAttractorCalc::getColorData(
 
   // Match JS exactly: opacityBezier(progress || 1)
   double effectiveProgress = progress <= 0 ? 1.0 : progress;
-  uint32_t alpha =
-    static_cast<uint32_t>(std::round(opacity_bezier(effectiveProgress) * 255));
+  uint32_t alpha = static_cast<uint32_t>(std::round(opacity_bezier(effectiveProgress) * 255));
 
   // Match JS bit-shifting pattern exactly
   return (alpha << 24) | (static_cast<uint32_t>(blendedB) << 16) |
     (static_cast<uint32_t>(blendedG) << 8) | static_cast<uint32_t>(blendedR);
 }
 
-double NativeAttractorCalc::ratePerformance(jsi::Runtime& rt) {
+double
+NativeAttractorCalc::ratePerformance(jsi::Runtime& rt) {
   const int num_iterations = 10000000;  // 10 million iterations for a quicker test
   volatile double result = 0.0;
 
@@ -226,35 +228,27 @@ double NativeAttractorCalc::ratePerformance(jsi::Runtime& rt) {
   return static_cast<double>(rating);
 }
 
-std::string NativeAttractorCalc::getBuildNumber(jsi::Runtime& rt) {
+std::string
+NativeAttractorCalc::getBuildNumber(jsi::Runtime& rt) {
   return version;
 }
 
-uint32_t NativeAttractorCalc::getLowQualityPoint(
-  double hue,
-  double saturation,
-  double brightness
-) {
+uint32_t
+NativeAttractorCalc::getLowQualityPoint(double hue, double saturation, double brightness) {
   RGB rgb = hsvToRgb(hue, saturation, brightness);
   return (255 << 24) | (rgb.b << 16) | (rgb.g << 8) | rgb.r;
 }
 
-double NativeAttractorCalc::smoothing(double num, double scale) {
+double
+NativeAttractorCalc::smoothing(double num, double scale) {
   const double factor = 0.2;
   // Use C++ random to match JavaScript's Math.random() < 0.5 behavior
   return num +
-    (static_cast<double>(std::rand()) / RAND_MAX < 0.5 ? -factor : factor) *
-    (1.0 / scale);
+    (static_cast<double>(std::rand()) / RAND_MAX < 0.5 ? -factor : factor) * (1.0 / scale);
 }
 
-std::pair<double, double> NativeAttractorCalc::clifford(
-  double x,
-  double y,
-  double a,
-  double b,
-  double c,
-  double d
-) {
+std::pair<double, double>
+NativeAttractorCalc::clifford(double x, double y, double a, double b, double c, double d) {
   return {std::sin(a * y) + c * std::cos(a * x), std::sin(b * x) + d * std::cos(b * y)};
 }
 
@@ -263,10 +257,11 @@ NativeAttractorCalc::dejong(double x, double y, double a, double b, double c, do
   return {std::sin(a * y) - std::cos(b * x), std::sin(c * x) - std::cos(d * y)};
 }
 
-using AttractorFn = std::function<
-  std::pair<double, double>(double, double, double, double, double, double)>;
+using AttractorFn =
+  std::function<std::pair<double, double>(double, double, double, double, double, double)>;
 
-AttractorFn NativeAttractorCalc::getAttractorFunction(std::string attractor) {
+AttractorFn
+NativeAttractorCalc::getAttractorFunction(std::string attractor) {
   if (attractor == "clifford") {
     return [=, this](double x, double y, double a, double b, double c, double d) {
       return clifford(x, y, a, b, c, d);
@@ -283,11 +278,11 @@ AttractorFn NativeAttractorCalc::getAttractorFunction(std::string attractor) {
   );
 }
 
-void NativeAttractorCalc::accumulateDensity(AccumulationContext& context) {
+void
+NativeAttractorCalc::accumulateDensity(AccumulationContext& context) {
   int i = 0;
   while (i < context.pointsToCalculate) {
-    auto next =
-      context.fn(context.x, context.y, context.a, context.b, context.c, context.d);
+    auto next = context.fn(context.x, context.y, context.a, context.b, context.c, context.d);
     context.x = next.first;
     context.y = next.second;
 
@@ -312,7 +307,8 @@ void NativeAttractorCalc::accumulateDensity(AccumulationContext& context) {
   }
 }
 
-void NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
+void
+NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
   int loopLimit = context.imageSize;
 
   uint32_t bgColor = 0;
@@ -330,13 +326,7 @@ void NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
     if (dval > 0) {
       if (context.highQuality) {
         context.imageData[i] = getColorData(
-          dval,
-          context.maxDensity,
-          context.h,
-          context.s,
-          context.v,
-          1.0,
-          context.background
+          dval, context.maxDensity, context.h, context.s, context.v, 1.0, context.background
         );
       } else {
         context.imageData[i] = getLowQualityPoint(context.h, context.s, context.v);
@@ -352,7 +342,8 @@ NativeAttractorCalc::NativeAttractorCalc(std::shared_ptr<CallInvoker> jsInvoker)
     : NativeAttractorCalcCxxSpec(std::move(jsInvoker)) {
 }
 
-void NativeAttractorCalc::startAttractorCalculationThread(
+void
+NativeAttractorCalc::startAttractorCalculationThread(
   std::string timestamp,
   uint32_t* densityBufferPtr,
   uint32_t* imageBufferPtr,
@@ -466,9 +457,7 @@ void NativeAttractorCalc::startAttractorCalculationThread(
           jsi::Runtime& runtime
         ) {
           jsi::Object result = jsi::Object(runtime);
-          result.setProperty(
-            runtime, "timestamp", jsi::String::createFromUtf8(runtime, timestamp)
-          );
+          result.setProperty(runtime, "timestamp", jsi::String::createFromUtf8(runtime, timestamp));
           result.setProperty(runtime, "maxDensity", jsi::Value(maxDensityRef));
           result.setProperty(runtime, "x", jsi::Value(xRef));
           result.setProperty(runtime, "y", jsi::Value(yRef));
@@ -488,7 +477,8 @@ void NativeAttractorCalc::startAttractorCalculationThread(
                 // immediately
 }
 
-jsi::Value NativeAttractorCalc::calculateAttractor(
+jsi::Value
+NativeAttractorCalc::calculateAttractor(
   jsi::Runtime& rt,
   std::string timestamp,
   jsi::Object densityBuffer,
@@ -506,8 +496,7 @@ jsi::Value NativeAttractorCalc::calculateAttractor(
 ) {
   // 0. Parse AttractorParameters
   AttractorParameters attractorParams;
-  std::string attractor =
-    attractorParameters.getProperty(rt, "attractor").asString(rt).utf8(rt);
+  std::string attractor = attractorParameters.getProperty(rt, "attractor").asString(rt).utf8(rt);
   double a = attractorParameters.getProperty(rt, "a").asNumber();
   double b = attractorParameters.getProperty(rt, "b").asNumber();
   double c = attractorParameters.getProperty(rt, "c").asNumber();
@@ -523,9 +512,7 @@ jsi::Value NativeAttractorCalc::calculateAttractor(
     attractorParameters.getProperty(rt, "background").asObject(rt).asArray(rt);
   std::vector<int> background;
   for (size_t i = 0; i < backgroundArray.size(rt); ++i) {
-    background.push_back(
-      static_cast<int>(backgroundArray.getValueAtIndex(rt, i).asNumber())
-    );
+    background.push_back(static_cast<int>(backgroundArray.getValueAtIndex(rt, i).asNumber()));
   }
 
   // 1. Validate and get the ArrayBuffer

@@ -1,6 +1,6 @@
 BasedOnStyle: Chromium
 IndentWidth: 2
-ColumnLimit: 90
+ColumnLimit: 100
 AlignAfterOpenBracket: BlockIndent
 BinPackArguments: false
 BinPackParameters: false
@@ -8,4 +8,5 @@ AllowShortFunctionsOnASingleLine: None
 LambdaBodyIndentation: Signature
 AlignOperands: false
 ContinuationIndentWidth: 2
-AlwaysBreakAfterReturnType: None
+AlwaysBreakAfterReturnType: AllDefinitions
+Cpp11BracedListStyle: true
