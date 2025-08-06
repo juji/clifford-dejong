@@ -17,19 +17,26 @@ std::string version = "2.0.1";
 // A C++ implementation of the BezierEasing function from the original JS.
 // It returns a lambda function that calculates the easing.
 std::function<double(double)> NativeAttractorCalc::bezierEasing(double p0, double p1, double p2, double p3) {
+    // Define these functions to match the JavaScript implementation exactly
+    // All captures are by value [=] to ensure they work properly when returned
+    
+    // These can be static since they don't depend on the parameters
     auto A = [](double aA1, double aA2) { return 1.0 - 3.0 * aA2 + 3.0 * aA1; };
     auto B = [](double aA1, double aA2) { return 3.0 * aA2 - 6.0 * aA1; };
     auto C = [](double aA1) { return 3.0 * aA1; };
 
-    auto calc_bezier = [&](double t, double aA1, double aA2) {
+    // This needs to capture the A, B, C functions
+    auto calc_bezier = [=](double t, double aA1, double aA2) {
         return ((A(aA1, aA2) * t + B(aA1, aA2)) * t + C(aA1)) * t;
     };
 
-    auto get_slope = [&](double t, double aA1, double aA2) {
+    // This needs to capture the A, B, C functions
+    auto get_slope = [=](double t, double aA1, double aA2) {
         return 3.0 * A(aA1, aA2) * t * t + 2.0 * B(aA1, aA2) * t + C(aA1);
     };
 
-    auto get_t_for_x = [&](double aX) {
+    // Capture everything by value to match JS implementation exactly
+    auto get_t_for_x = [=](double aX) {
         double aGuessT = aX;
         for (int i = 0; i < 4; ++i) {
             double currentSlope = get_slope(aGuessT, p0, p2);
@@ -40,6 +47,7 @@ std::function<double(double)> NativeAttractorCalc::bezierEasing(double p0, doubl
         return aGuessT;
     };
 
+    // Return the final function with everything captured by value
     return [=](double x) {
         if (x <= 0.0) return 0.0;
         if (x >= 1.0) return 1.0;
@@ -48,22 +56,33 @@ std::function<double(double)> NativeAttractorCalc::bezierEasing(double p0, doubl
 }
 
 RGB NativeAttractorCalc::hsvToRgb(double h, double s, double v) {
+    // Exactly match JavaScript hsv2rgb implementation
+    // Clamp input values to valid ranges
     h = std::max(0.0, std::min(359.0, h));
-    s = std::max(0.0, std::min(100.0, s)) / 100.0;
-    v = std::max(0.0, std::min(100.0, v)) / 100.0;
+    s = std::max(0.0, std::min(100.0, s));
+    v = std::max(0.0, std::min(100.0, v));
+    
+    // Normalize s and v to 0-1 range
+    s /= 100.0;
+    v /= 100.0;
 
+    // Handle grayscale case (s === 0)
     if (s == 0.0) {
         int val = std::round(v * 255);
         return {val, val, val};
     }
 
+    // Convert hue to sector (0-5)
     h /= 60.0;
     int i = std::floor(h);
     double f = h - i;
+    
+    // Calculate color components
     double p = v * (1.0 - s);
     double q = v * (1.0 - s * f);
-    double t = v * (1.0 - s * (1.0 - f));
+    double t = v * (1.0 - s * (1 - f));
 
+    // Assign RGB based on hue sector
     double r, g, b;
     switch (i) {
         case 0: r = v; g = t; b = p; break;
@@ -71,9 +90,10 @@ RGB NativeAttractorCalc::hsvToRgb(double h, double s, double v) {
         case 2: r = p; g = v; b = t; break;
         case 3: r = p; g = q; b = v; break;
         case 4: r = t; g = p; b = v; break;
-        default: r = v; g = p; b = q; break;
+        default: r = v; g = p; b = q; break; // Handles case 5 and any overflow
     }
 
+    // Return RGB values scaled to 0-255 range and rounded to integers
     return {
         static_cast<int>(std::round(r * 255)),
         static_cast<int>(std::round(g * 255)),
@@ -90,37 +110,46 @@ uint32_t NativeAttractorCalc::getColorData(
   double progress,
   const std::vector<int>& background
 ) {
-    if (maxDensity <= 1.0) maxDensity = 1.01; // prevent log(1) = 0
+    // Exactly match JavaScript behavior
     if (density <= 0) return 0;
+    
+    // Prevent log(1) = 0 or log of negative/zero numbers
+    if (maxDensity <= 1.0) maxDensity = 1.01;
 
     auto saturation_bezier = bezierEasing(0.79, -0.34, 0.54, 1.18);
     auto density_bezier = bezierEasing(0.75, 0.38, 0.24, 1.33);
     auto opacity_bezier = bezierEasing(0.24, 0.27, 0.13, 0.89);
 
+    // Match JS exactly - first calculate log values
     double mdens = std::log(maxDensity);
     double pdens = std::log(density);
 
+    // Match JS hsv2rgb call exactly
     RGB rgb = hsvToRgb(
         h,
         s - std::max(0.0, std::min(1.0, saturation_bezier(pdens / mdens))) * s,
         v
     );
 
+    // Match JS density_alpha calculation exactly
     double density_alpha = std::max(0.0, std::min(1.0, density_bezier(pdens / mdens)));
     
-    // Get background color components with defaults if not provided
+    // Get background color components with defaults matching JS behavior
+    // In JS: (background && background[0]) || 0
     int bgR = background.size() > 0 ? background[0] : 0;
     int bgG = background.size() > 1 ? background[1] : 0;
     int bgB = background.size() > 2 ? background[2] : 0;
     
-    // Blend colors based on density_alpha
+    // Blend colors based on density_alpha exactly as JS does
     int blendedR = std::round(rgb.r * density_alpha + bgR * (1 - density_alpha));
     int blendedG = std::round(rgb.g * density_alpha + bgG * (1 - density_alpha));
     int blendedB = std::round(rgb.b * density_alpha + bgB * (1 - density_alpha));
     
-    // Calculate final alpha based on opacity_bezier
-    uint32_t alpha = static_cast<uint32_t>(std::round(opacity_bezier(progress > 0 ? progress : 1) * 255));
+    // Match JS exactly: opacityBezier(progress || 1)
+    double effectiveProgress = progress <= 0 ? 1.0 : progress;
+    uint32_t alpha = static_cast<uint32_t>(std::round(opacity_bezier(effectiveProgress) * 255));
 
+    // Match JS bit-shifting pattern exactly
     return (alpha << 24) |
            (static_cast<uint32_t>(blendedB) << 16) |
            (static_cast<uint32_t>(blendedG) << 8) |

@@ -108,6 +108,11 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
 
   const dataView = new Uint32Array(width * height); // RGBA format
   const densityView = new Uint32Array(width * height); // uint32 format
+
+  // Initialize arrays with zeros
+  dataView.fill(0);
+  densityView.fill(0);
+
   // Create the ArrayBuffer that will be written to by the C++ code.
   const sharedDensityBuffer = densityView.buffer; // uint32
   const sharedImageBuffer = dataView.buffer; // uint8 rgba
