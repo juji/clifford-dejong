@@ -18,7 +18,6 @@ export interface Spec extends TurboModule {
     progressInterval: number,
     highQuality: boolean,
 
-    totalAttractorPoints: number,
     pointsPerIteration: number,
 
     // progress: 0 - 1

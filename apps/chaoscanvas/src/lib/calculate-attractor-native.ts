@@ -206,10 +206,6 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
         drawInterval,
         progressInterval,
         highQuality,
-        // totalAttractorPoints,
-        // Use the calculated pointsPerIteration instead of totalAttractorPoints
-        // this makes the tread stop at a more predictable time
-        pointsPerIteration,
         pointsPerIteration,
         onProgressLocal,
         onImageUpdateLocal,
