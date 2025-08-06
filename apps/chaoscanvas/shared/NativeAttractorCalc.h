@@ -43,11 +43,10 @@ struct AttractorParameters {
 struct AccumulationContext {
     uint32_t* densityPtr;
     size_t densitySize;
-    double& max_density;
+    int& maxDensity;
     double& x;
     double& y;
-    int& totalPoints;
-    const int pointsPerIteration;
+    const int pointsToCalculate;
     const int w;
     const int h;
     const double scale;
@@ -57,9 +56,7 @@ struct AccumulationContext {
     const double d;
     const double centerX;
     const double centerY;
-    const int totalAttractorPoints;
     const std::function<std::pair<double, double>(double, double, double, double, double, double)>& fn;
-    const std::shared_ptr<std::atomic<bool>>& cancelled;
 };
 
 struct ImageDataCreationContext {
@@ -67,11 +64,11 @@ struct ImageDataCreationContext {
     size_t imageSize;
     const uint32_t* densityPtr;
     size_t densitySize;
-    double max_density;
+    int maxDensity;
     double h;
     double s;
     double v;
-    bool hQuality;
+    bool highQuality;
     const std::vector<int>& background;
 };
 
@@ -82,61 +79,67 @@ public:
   double ratePerformance(jsi::Runtime& rt);
   std::string getBuildNumber(jsi::Runtime& rt);
 
-  jsi::Object calculateAttractor(
-    jsi::Runtime& rt, 
+  jsi::Value calculateAttractor(
+    jsi::Runtime& rt,
+
     std::string timestamp, 
     jsi::Object densityBuffer,
     jsi::Object imageBuffer,
-    jsi::Object attractorParameters,
-    int width,
-    int height,
-    int drawInterval,
-    int progressInterval,
     bool highQuality,
-    int pointsPerIteration,
-    jsi::Function onProgress, 
-    jsi::Function onImageUpdate
+
+    jsi::Object attractorParameters,
+    int width, int height,
+    double x, double y,
+    int maxDensity,
+
+    int pointsToCalculate
   );
 
 private:
-  std::function<double(double)> bezier_easing(double p0, double p1, double p2, double p3);
-  RGB hsv_to_rgb(double h, double s, double v);
-  uint32_t get_color_data(
+  std::function<double(double)> bezierEasing(double p0, double p1, double p2, double p3);
+  RGB hsvToRgb(double h, double s, double v);
+  uint32_t getColorData(
     double density,
-    double max_density,
+    double maxDensity,
     double h,
     double s,
     double v,
     double progress = 1.0,
     const std::vector<int>& background = {0, 0, 0, 255}
   );
-  uint32_t get_low_quality_point(double hue, double saturation, double brightness);
+  uint32_t getLowQualityPoint(double hue, double saturation, double brightness);
   double smoothing(double num, double scale);
   std::pair<double, double> clifford(double x, double y, double a, double b, double c, double d);
   std::pair<double, double> dejong(double x, double y, double a, double b, double c, double d);
-  std::function<std::pair<double, double>(double, double, double, double, double, double)> get_attractor_function(
-    const AttractorParameters& params
+  std::function<std::pair<double, double>(double, double, double, double, double, double)> getAttractorFunction(
+    std::string attractor
   );
-  void accumulate_density(AccumulationContext& context);
-  void create_image_data(ImageDataCreationContext& context);
-  
+  void accumulateDensity(AccumulationContext& context);
+  void createImageData(ImageDataCreationContext& context);
+
   void startAttractorCalculationThread(
-    std::shared_ptr<std::string> timestamp,
-    std::shared_ptr<jsi::Function> onProgressCopy,
-    std::shared_ptr<jsi::Function> onImageUpdateCopy,
+    std::string timestamp,
+   
     uint32_t* densityBufferPtr,
     uint8_t* imageBufferPtr,
     size_t imageBufferSize,
+    bool highQuality,
+
+    std::string attractor,
+    double a, double b, double c, double d,
+    double hue, double saturation, double brightness,
+    std::vector<int> background,
+
+    double scale, double top, double left,
+    int width, int height,
+    double x, double y,
+    int maxDensity,
+
+    int pointsToCalculate,
+
     std::shared_ptr<jsi::Function> resolveFunc,
-    std::shared_ptr<jsi::Function> rejectFunc,
-    std::shared_ptr<std::atomic<bool>> cancelled,
-    std::shared_ptr<AttractorParameters> attractorParamsCopy,
-    std::shared_ptr<int> widthCopy,
-    std::shared_ptr<int> heightCopy,
-    std::shared_ptr<int> drawIntervalCopy,
-    std::shared_ptr<int> progressIntervalCopy,
-    std::shared_ptr<bool> highQualityCopy,
-    std::shared_ptr<int> pointsPerIterationCopy
+    std::shared_ptr<jsi::Function> rejectFunc
+
   );
 };
 

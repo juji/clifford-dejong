@@ -10,27 +10,24 @@ export interface Spec extends TurboModule {
     // The shared buffers for zero-copy data transfer
     densityBuffer: Object,
     imageBuffer: Object,
+    highQuality: boolean,
 
     attractorParameters: Object,
     width: number,
     height: number,
-    drawInterval: number,
-    progressInterval: number,
-    highQuality: boolean,
+    x: number,
+    y: number,
+    maxDensity: number,
 
-    pointsPerIteration: number,
-
-    // progress: 0 - 1
-    onProgress: (
-      progress: number,
-      totalPointsWritten: number,
-      totalPointsTarget: number,
-    ) => void,
-
-    // bytesWritten: number of bytes written in the last update
-    // done: true if the calculation is done
-    onImageUpdate: (done: boolean) => void,
-  ) => Object;
+    // how many points to calculate
+    pointsToCalculate: number,
+  ) => Promise<{
+    timestamp: string;
+    x: number;
+    y: number;
+    maxDensity: number;
+    pointsAdded: number;
+  }>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('NativeAttractorCalc');

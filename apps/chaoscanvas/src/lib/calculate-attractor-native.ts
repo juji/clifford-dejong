@@ -65,16 +65,14 @@ export type AttractorCalcModuleParams = {
 
   width?: number;
   height?: number;
-  drawInterval?: number;
-  progressInterval?: number;
   highQuality?: boolean;
 
   onProgress?: (
-    progress: number,
-    totalPointsWritten?: number,
-    totalPointsTarget?: number,
+    totalProgress: number,
+    totalPoints: number,
+    totalAttractorPoints: number,
   ) => void;
-  onImageUpdate?: (done: boolean) => void;
+  onImageUpdate?: () => void;
 
   log?: boolean;
 };
@@ -85,7 +83,7 @@ export function logBuildNumber() {
 
 export function calculateAttractorNative(params: AttractorCalcModuleParams) {
   const {
-    timestamp,
+    timestamp = new Date().toISOString(),
     attractorParameters = defaultAttractorParameters,
 
     totalAttractorPoints = 20_000_000,
@@ -93,8 +91,6 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
 
     width = 1000,
     height = 1000,
-    drawInterval = 100_000,
-    progressInterval = 50_000,
 
     highQuality = true,
     onProgress,
@@ -116,6 +112,9 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
   let cancelled = false;
   let totalPoints = 0;
   let totalProgress = 0;
+  let maxDensity = 0;
+  let x = 0;
+  let y = 0;
 
   function cancelFunction() {
     if (log) console.log('assigning cancel function');
@@ -125,17 +124,14 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
   // something to measure the time it takes to run the calculation
   const now = new Date().getTime();
 
-  const onProgressLocal = (
-    // progress: number,
-    // will always be 100%
-    _: number,
-    totalPointsWritten?: number,
-    // totalPointsTarget?: number,
-  ) => {
-    if (totalPointsWritten) {
-      totalPoints += totalPointsWritten;
-      totalProgress = totalPoints / totalAttractorPoints;
+  const onProgressLocal = (pointsAdded: number) => {
+    if (cancelled) {
+      if (log) console.log('Calculation cancelled, skipping progress update');
+      return;
     }
+
+    totalPoints += pointsAdded;
+    totalProgress = totalPoints / totalAttractorPoints;
 
     if (log)
       console.log(
@@ -147,15 +143,10 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
         totalAttractorPoints,
       );
 
-    if (cancelled) {
-      if (log) console.log('Calculation cancelled, skipping progress update');
-      return;
-    }
-
     onProgress && onProgress(totalProgress, totalPoints, totalAttractorPoints);
   };
 
-  const onImageUpdateLocal = (done: boolean) => {
+  const onImageUpdateLocal = () => {
     // The JS side can now access the updated `sharedBuffer` directly.
     // For example, create a view on the buffer to read the data.
 
@@ -167,16 +158,8 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
       return;
     }
 
-    onImageUpdate && onImageUpdate(done);
-
-    if (done) {
-      if (log)
-        console.log(
-          'Calculation completed in',
-          new Date().getTime() - now,
-          'ms',
-        );
-    }
+    onImageUpdate && onImageUpdate();
+    if (log) console.log('image updated');
   };
 
   // create a promise chain for calling c++
@@ -191,27 +174,35 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
       }
 
       const {
-        promise,
-        // this is saying, we don't need the cancel function
-        // just make sure this doesn't need to run very long
-        // we do that by setting totalAttractorPoints to pointsPerIteration
-        // cancel: cancelOnThread
-      } = NativeAttractorCalc.calculateAttractor(
+        timestamp: newTimestamp,
+        x: newX,
+        y: newY,
+        maxDensity: newMaxDensity,
+        pointsAdded,
+      } = await NativeAttractorCalc.calculateAttractor(
         timestamp,
         sharedDensityBuffer,
         sharedImageBuffer, // Pass the buffer here
+        highQuality,
+
         attractorParameters,
         width,
         height,
-        drawInterval,
-        progressInterval,
-        highQuality,
-        pointsPerIteration,
-        onProgressLocal,
-        onImageUpdateLocal,
-      ) as { promise: Promise<string>; cancel: () => void };
+        x,
+        y,
+        maxDensity,
 
-      return promise;
+        pointsPerIteration,
+      );
+
+      x = newX;
+      y = newY;
+      maxDensity = newMaxDensity;
+
+      onProgressLocal(pointsAdded);
+      onImageUpdateLocal();
+
+      return newTimestamp;
     });
 
     tp += pointsPerIteration;
