@@ -93,7 +93,6 @@ public:
     int drawInterval,
     int progressInterval,
     bool highQuality,
-    int totalAttractorPoints,
     int pointsPerIteration,
     jsi::Function onProgress, 
     jsi::Function onImageUpdate
@@ -126,7 +125,6 @@ private:
     std::shared_ptr<jsi::Function> onProgressCopy,
     std::shared_ptr<jsi::Function> onImageUpdateCopy,
     uint32_t* densityBufferPtr,
-    size_t densityBufferSize,
     uint8_t* imageBufferPtr,
     size_t imageBufferSize,
     std::shared_ptr<jsi::Function> resolveFunc,
@@ -138,7 +136,6 @@ private:
     std::shared_ptr<int> drawIntervalCopy,
     std::shared_ptr<int> progressIntervalCopy,
     std::shared_ptr<bool> highQualityCopy,
-    std::shared_ptr<int> totalAttractorPointsCopy,
     std::shared_ptr<int> pointsPerIterationCopy
   );
 };

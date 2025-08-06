@@ -256,7 +256,6 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
     std::shared_ptr<jsi::Function> onProgressCopy,
     std::shared_ptr<jsi::Function> onImageUpdateCopy,
     uint32_t* densityBufferPtr,
-    size_t densityBufferSize,
     uint8_t* imageBufferPtr,
     size_t imageBufferSize,
     std::shared_ptr<jsi::Function> resolveFunc,
@@ -268,7 +267,6 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
     std::shared_ptr<int> drawIntervalCopy,
     std::shared_ptr<int> progressIntervalCopy,
     std::shared_ptr<bool> highQualityCopy,
-    std::shared_ptr<int> totalAttractorPointsCopy,
     std::shared_ptr<int> pointsPerIterationCopy
   ) {
     // Manually create a thread to run the calculation in the background
@@ -278,7 +276,6 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
       onProgressCopy,
       onImageUpdateCopy,
       densityBufferPtr,
-      // densityBufferSize,
       imageBufferPtr,
       imageBufferSize,
       resolveFunc,
@@ -290,7 +287,6 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
       drawIntervalCopy,
       progressIntervalCopy,
       highQualityCopy,
-      totalAttractorPointsCopy,
       pointsPerIterationCopy
     ]() {
       try {
@@ -325,102 +321,90 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
         double centerY = *heightCopy / 2.0 + attractorParamsCopy->top;
         double progress = 0.0;
         int totalPoints = 0;
+          
+        AccumulationContext context = {
+          .densityPtr = densityBufferPtr,
+          .densitySize = densitySize,
+          .max_density = max_density,
+          .x = x,
+          .y = y,
+          .totalPoints = totalPoints,
+          .pointsPerIteration = *pointsPerIterationCopy,
+          .w = *widthCopy,
+          .h = *heightCopy,
+          .scale = attractorParamsCopy->scale,
+          .a = attractorParamsCopy->a,
+          .b = attractorParamsCopy->b,
+          .c = attractorParamsCopy->c,
+          .d = attractorParamsCopy->d,
+          .centerX = centerX,
+          .centerY = centerY,
+          .fn = attractorFunc,
+          .cancelled = cancelled
+        };
+        accumulate_density(context);
 
-        while(
-          totalPoints < *totalAttractorPointsCopy && !cancelled->load()
+        // on time, draw on the canvas
+        if (
+          totalPoints == 10 ||
+          totalPoints % *drawIntervalCopy == 0 ||
+          totalPoints == (*pointsPerIterationCopy - 1)
         ) {
 
           // this allows cancellation
           std::this_thread::sleep_for(std::chrono::milliseconds(1));
           if (cancelled->load()) {
-            break; // Exit the while loop
+            return;
           }
-            
-          AccumulationContext context = {
+
+          // Draw the current state on the canvas
+          ImageDataCreationContext imageContext = {
+            .imageData = reinterpret_cast<uint32_t*>(imageBufferPtr),
+            .imageSize = imageBufferSize / sizeof(uint32_t),
             .densityPtr = densityBufferPtr,
             .densitySize = densitySize,
             .max_density = max_density,
-            .x = x,
-            .y = y,
-            .totalPoints = totalPoints,
-            .pointsPerIteration = *pointsPerIterationCopy,
-            .w = *widthCopy,
-            .h = *heightCopy,
-            .scale = attractorParamsCopy->scale,
-            .a = attractorParamsCopy->a,
-            .b = attractorParamsCopy->b,
-            .c = attractorParamsCopy->c,
-            .d = attractorParamsCopy->d,
-            .centerX = centerX,
-            .centerY = centerY,
-            .totalAttractorPoints = *totalAttractorPointsCopy,
-            .fn = attractorFunc,
-            .cancelled = cancelled
+            .h = attractorParamsCopy->hue,
+            .s = attractorParamsCopy->saturation,
+            .v = attractorParamsCopy->brightness,
+            .hQuality = *highQualityCopy,
+            .background = attractorParamsCopy->background
           };
-          accumulate_density(context);
+          create_image_data(imageContext);
 
-          // on time, draw on the canvas
-          if (
-            totalPoints == 10 ||
-            totalPoints % *drawIntervalCopy == 0 ||
-            totalPoints == (*totalAttractorPointsCopy - 1)
-          ) {
+          bool done = (totalPoints == *pointsPerIterationCopy - 1);
+          this->jsInvoker_->invokeAsync([onImageUpdateCopy, done](jsi::Runtime& runtime) {
+            onImageUpdateCopy->call(runtime, jsi::Value(done));
+          });
+        }
 
-            // this allows cancellation
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            if (cancelled->load()) {
-              break; // Exit the while loop
-            }
+        // update progress
+        if(
+          totalPoints % *progressIntervalCopy == 0 || 
+          totalPoints == (*pointsPerIterationCopy - 1)
+        ) {
 
-            // Draw the current state on the canvas
-            ImageDataCreationContext imageContext = {
-              .imageData = reinterpret_cast<uint32_t*>(imageBufferPtr),
-              .imageSize = imageBufferSize / sizeof(uint32_t),
-              .densityPtr = densityBufferPtr,
-              .densitySize = densitySize,
-              .max_density = max_density,
-              .h = attractorParamsCopy->hue,
-              .s = attractorParamsCopy->saturation,
-              .v = attractorParamsCopy->brightness,
-              .hQuality = *highQualityCopy,
-              .background = attractorParamsCopy->background
-            };
-            create_image_data(imageContext);
-
-            bool done = (totalPoints == *totalAttractorPointsCopy - 1);
-            this->jsInvoker_->invokeAsync([onImageUpdateCopy, done](jsi::Runtime& runtime) {
-              onImageUpdateCopy->call(runtime, jsi::Value(done));
-            });
+          // this allows cancellation
+          std::this_thread::sleep_for(std::chrono::milliseconds(1));
+          if (cancelled->load()) {
+            return;
           }
 
-          // update progress
-          if(
-            totalPoints % *progressIntervalCopy == 0 || 
-            totalPoints == (*totalAttractorPointsCopy - 1)
-          ) {
-
-            // this allows cancellation
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            if (cancelled->load()) {
-              break; // Exit the while loop
-            }
-
-            progress = static_cast<double>(totalPoints) / *totalAttractorPointsCopy;
-            this->jsInvoker_->invokeAsync([
-              onProgressCopy, 
-              progress, 
-              totalPoints, 
-              totalAttractorPointsCopy
-            ](jsi::Runtime& runtime) {
-              // rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled"));
-              onProgressCopy->call(
-                runtime, 
-                jsi::Value(progress), 
-                jsi::Value(totalPoints), 
-                jsi::Value(*totalAttractorPointsCopy)
-              );
-            });
-          }
+          progress = static_cast<double>(totalPoints) / *pointsPerIterationCopy;
+          this->jsInvoker_->invokeAsync([
+            onProgressCopy, 
+            progress, 
+            totalPoints, 
+            pointsPerIterationCopy
+          ](jsi::Runtime& runtime) {
+            // rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, "Cancelled"));
+            onProgressCopy->call(
+              runtime, 
+              jsi::Value(progress), 
+              jsi::Value(totalPoints), 
+              jsi::Value(*pointsPerIterationCopy)
+            );
+          });
         }
           
         // return timestamp when it's done and not canceled
@@ -454,7 +438,6 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
     int drawInterval,
     int progressInterval,
     bool highQuality,
-    int totalAttractorPoints,
     int pointsPerIteration,
     jsi::Function onProgress,
     jsi::Function onImageUpdate
@@ -492,7 +475,6 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
 
     auto densityArrayBuffer = densityBuffer.getArrayBuffer(rt);
     uint32_t* densityBufferPtr = reinterpret_cast<uint32_t*>(densityArrayBuffer.data(rt));
-    size_t densityBufferSize = densityArrayBuffer.size(rt);
     
     auto imageArrayBuffer = imageBuffer.getArrayBuffer(rt);
     uint8_t* imageBufferPtr = imageArrayBuffer.data(rt);
@@ -511,7 +493,6 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
     auto drawIntervalCopy = std::make_shared<int>(drawInterval);
     auto progressIntervalCopy = std::make_shared<int>(progressInterval);
     auto highQualityCopy = std::make_shared<bool>(highQuality);
-    auto totalAttractorPointsCopy = std::make_shared<int>(totalAttractorPoints);
     auto pointsPerIterationCopy = std::make_shared<int>(pointsPerIteration);
 
     // 4. Create a Promise
@@ -525,7 +506,6 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
           onProgressCopy,
           onImageUpdateCopy,
           densityBufferPtr,
-          densityBufferSize,
           imageBufferPtr,
           imageBufferSize,
           cancelled,
@@ -535,7 +515,6 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
           drawIntervalCopy,
           progressIntervalCopy,
           highQualityCopy,
-          totalAttractorPointsCopy,
           pointsPerIterationCopy
         ](jsi::Runtime& runtime, const jsi::Value&, const jsi::Value* args, size_t count) -> jsi::Value {
           auto resolveFunc = std::make_shared<jsi::Function>(args[0].asObject(runtime).asFunction(runtime));
@@ -547,7 +526,6 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
             onProgressCopy,
             onImageUpdateCopy,
             densityBufferPtr,
-            densityBufferSize,
             imageBufferPtr,
             imageBufferSize,
             resolveFunc,
@@ -559,7 +537,6 @@ void NativeAttractorCalc::create_image_data(ImageDataCreationContext& context) {
             drawIntervalCopy,
             progressIntervalCopy,
             highQualityCopy,
-            totalAttractorPointsCopy,
             pointsPerIterationCopy
           );
 

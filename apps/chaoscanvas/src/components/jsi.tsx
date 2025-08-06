@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 // import { ScrollView } from 'react-native';
 import { Text, Button, View, ScrollView, Progress } from 'tamagui';
-import { calculateAttractorNative } from '@/lib/calculate-attractor-native';
+import {
+  calculateAttractorNative,
+  ratePerformance,
+} from '@/lib/calculate-attractor-native';
 import { useNavigation } from '@react-navigation/native';
 
 const styles = {
@@ -54,7 +57,13 @@ export function Jsi() {
   const [pixelData, setPixelData] = useState<number[] | null>(null);
   const [isDone, setIsDone] = useState(false);
   const cancelRef = useRef<(() => void) | null>(null);
+  const performanceRating = useRef<{ pointsPerIteration: number } | null>(null);
   const navigation = useNavigation();
+
+  useEffect(() => {
+    // Rate performance on mount
+    performanceRating.current = ratePerformance();
+  }, []);
 
   useEffect(() => {
     console.log('Jsi component mounted');
