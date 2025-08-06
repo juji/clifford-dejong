@@ -81,9 +81,9 @@ export function getBuildNumber() {
   return NativeAttractorCalc.getBuildNumber();
 }
 
-const SCALE = 5;
+const SCALE = 100;
 export function calculateAttractorNative(params: AttractorCalcModuleParams) {
-  const {
+  let {
     timestamp = new Date().toISOString(),
     attractorParameters = defaultAttractorParameters,
 
@@ -99,6 +99,9 @@ export function calculateAttractorNative(params: AttractorCalcModuleParams) {
 
     log = true,
   } = params;
+
+  totalAttractorPoints = 20_000_000;
+  pointsPerIteration = 2_000_000;
 
   // Assuming 4 bytes per pixel (RGBA)
   // and 4 bytes of uint32

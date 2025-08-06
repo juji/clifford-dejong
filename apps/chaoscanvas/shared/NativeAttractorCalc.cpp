@@ -107,13 +107,24 @@ uint32_t NativeAttractorCalc::getColorData(
     );
 
     double density_alpha = std::max(0.0, std::min(1.0, density_bezier(pdens / mdens)));
-    double opacity = std::max(0.0, std::min(1.0, opacity_bezier(progress)));
-    double alpha = std::min(density_alpha, opacity) * 255;
+    
+    // Get background color components with defaults if not provided
+    int bgR = background.size() > 0 ? background[0] : 0;
+    int bgG = background.size() > 1 ? background[1] : 0;
+    int bgB = background.size() > 2 ? background[2] : 0;
+    
+    // Blend colors based on density_alpha
+    int blendedR = std::round(rgb.r * density_alpha + bgR * (1 - density_alpha));
+    int blendedG = std::round(rgb.g * density_alpha + bgG * (1 - density_alpha));
+    int blendedB = std::round(rgb.b * density_alpha + bgB * (1 - density_alpha));
+    
+    // Calculate final alpha based on opacity_bezier
+    uint32_t alpha = static_cast<uint32_t>(std::round(opacity_bezier(progress > 0 ? progress : 1) * 255));
 
-    return (static_cast<uint32_t>(alpha) << 24) |
-           (static_cast<uint32_t>(rgb.b) << 16) |
-           (static_cast<uint32_t>(rgb.g) << 8) |
-           static_cast<uint32_t>(rgb.r);
+    return (alpha << 24) |
+           (static_cast<uint32_t>(blendedB) << 16) |
+           (static_cast<uint32_t>(blendedG) << 8) |
+           static_cast<uint32_t>(blendedR);
 }
 
 double NativeAttractorCalc::ratePerformance(jsi::Runtime& rt) {
@@ -156,7 +167,9 @@ uint32_t NativeAttractorCalc::getLowQualityPoint(double hue, double saturation, 
 }
 
 double NativeAttractorCalc::smoothing(double num, double scale) {
-    return std::log(num) * scale;
+    const double factor = 0.2;
+    // Use C++ random to match JavaScript's Math.random() < 0.5 behavior
+    return num + (static_cast<double>(std::rand()) / RAND_MAX < 0.5 ? -factor : factor) * (1.0 / scale);
 }
 
 std::pair<double, double> NativeAttractorCalc::clifford(double x, double y, double a, double b, double c, double d) {
