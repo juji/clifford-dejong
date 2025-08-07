@@ -1,19 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 
-// Define the interface for our WASM module instance
-interface HelloModuleInstance {
-  getGreeting: () => string;
-}
-
 export function useWasmModule() {
   const [greeting, setGreeting] = useState<string>("Loading WASM...");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const [isWasmSupported, setIsWasmSupported] = useState<boolean | null>(null);
+  const [worker, setWorker] = useState<Worker | null>(null);
 
   useEffect(() => {
-    // Check if WebAssembly is supported in this browser
+    // Check if WebAssembly and Web Workers are supported
     if (typeof WebAssembly === "undefined") {
       setError(new Error("WebAssembly is not supported in this browser"));
       setGreeting("WebAssembly not supported");
@@ -22,47 +18,60 @@ export function useWasmModule() {
       return;
     }
 
+    if (typeof Worker === "undefined") {
+      setError(new Error("Web Workers are not supported in this browser"));
+      setGreeting("Web Workers not supported");
+      setIsLoading(false);
+      return;
+    }
+
     setIsWasmSupported(true);
 
-    // Create a script element to load the WASM JavaScript glue code
-    const script = document.createElement("script");
-    script.src = "/hello.js";
-    script.async = true;
+    // Create a Web Worker to run the WebAssembly code
+    const wasmWorker = new Worker("/wasm-worker.js");
+    setWorker(wasmWorker);
 
-    script.onload = async () => {
-      try {
-        // Access the global HelloModule created by the script
-        // @ts-ignore - HelloModule is loaded globally by the script
-        const module = window.HelloModule as () => Promise<HelloModuleInstance>;
-        const instance = await module();
+    // Set up message handlers
+    wasmWorker.onmessage = (event) => {
+      const { type, result, message, error: workerError, success } = event.data;
 
-        // Get greeting from WASM
-        const result = instance.getGreeting();
-        setGreeting(result);
-        setIsLoading(false);
-      } catch (err) {
-        console.error("Failed to load WASM module:", err);
-        setError(
-          err instanceof Error ? err : new Error("Unknown error loading WASM"),
-        );
-        setGreeting("Error loading WASM");
-        setIsLoading(false);
+      switch (type) {
+        case "initialized":
+          if (success) {
+            // After initialization, request the greeting
+            wasmWorker.postMessage({ type: "getGreeting" });
+          }
+          break;
+
+        case "greeting":
+          setGreeting(result);
+          setIsLoading(false);
+          break;
+
+        case "error":
+          console.error("Worker error:", message, workerError);
+          setError(new Error(message));
+          setGreeting("Error: " + message);
+          setIsLoading(false);
+          break;
       }
     };
 
-    script.onerror = () => {
-      console.error("Failed to load WASM script");
-      setError(new Error("Failed to load WASM script"));
+    // Handle worker errors
+    wasmWorker.onerror = (error) => {
+      console.error("Web Worker error:", error);
+      setError(new Error("Web Worker failed: " + error.message));
       setGreeting("Error loading WASM");
       setIsLoading(false);
     };
 
-    // Add the script to the document
-    document.body.appendChild(script);
+    // Initialize the worker
+    wasmWorker.postMessage({ type: "init" });
 
     // Cleanup function
     return () => {
-      document.body.removeChild(script);
+      wasmWorker.terminate();
+      setWorker(null);
     };
   }, []);
 
