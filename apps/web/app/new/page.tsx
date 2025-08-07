@@ -18,7 +18,11 @@ const WasmGreeting = dynamic(
           </p>
         );
 
-      return <h1 className="text-4xl font-bold">{greeting}</h1>;
+      return (
+        <div>
+          <h1 className="text-4xl font-bold">{greeting}</h1>
+        </div>
+      );
     }),
   { ssr: false },
 );
