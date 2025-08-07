@@ -81,7 +81,7 @@ export function getBuildNumber() {
   return NativeAttractorCalc.getBuildNumber();
 }
 
-const SCALE = 100;
+const SCALE = 150;
 export function calculateAttractorNative(params: AttractorCalcModuleParams) {
   let {
     timestamp = new Date().toISOString(),
