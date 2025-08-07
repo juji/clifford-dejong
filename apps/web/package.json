@@ -4,13 +4,18 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 3000",
-    "build": "pnpm run lint && next build",
+    "dev": "pnpm run build:wasm:dev && next dev --turbopack --port 3000",
+    "dev:wasm": "pnpm run build:wasm:dev && concurrently \"next dev --turbopack --port 3000\" \"pnpm run watch:wasm\"",
+    "build": "pnpm run build:wasm && pnpm run lint && next build",
     "start": "next start",
     "lint": "next lint --max-warnings 0",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
-    "generate-favicon": "node scripts/generate-favicon.js"
+    "generate-favicon": "node scripts/generate-favicon.js",
+    "build:wasm": "cd wasm && chmod +x build.sh && ./build.sh",
+    "build:wasm:dev": "cd wasm && chmod +x build.sh && ./build.sh --debug",
+    "build:wasm:verbose": "cd wasm && chmod +x build.sh && ./build.sh --debug --verbose",
+    "watch:wasm": "chokidar \"wasm/**/*.cpp\" -c \"pnpm run build:wasm:dev\""
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.14",
@@ -55,6 +60,8 @@
     "@types/react-dom": "19.1.1",
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.21",
+    "chokidar": "^4.0.3",
+    "concurrently": "^9.2.0",
     "eslint": "^9.29.0",
     "fake-indexeddb": "^6.0.1",
     "jest-axe": "^10.0.0",
