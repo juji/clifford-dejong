@@ -7,10 +7,16 @@ import dynamic from "next/dynamic";
 const WasmGreeting = dynamic(
   () =>
     Promise.resolve(() => {
-      const { greeting, isLoading, error } = useWasmModule();
+      const { greeting, isLoading, error, isWasmSupported } = useWasmModule();
 
       if (isLoading) return <p>Loading WebAssembly...</p>;
       if (error) return <p>Error: {error.message}</p>;
+      if (isWasmSupported === false)
+        return (
+          <p className="text-red-500">
+            Your browser does not support WebAssembly
+          </p>
+        );
 
       return <h1 className="text-4xl font-bold">{greeting}</h1>;
     }),

@@ -10,8 +10,20 @@ export function useWasmModule() {
   const [greeting, setGreeting] = useState<string>("Loading WASM...");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [isWasmSupported, setIsWasmSupported] = useState<boolean | null>(null);
 
   useEffect(() => {
+    // Check if WebAssembly is supported in this browser
+    if (typeof WebAssembly === "undefined") {
+      setError(new Error("WebAssembly is not supported in this browser"));
+      setGreeting("WebAssembly not supported");
+      setIsLoading(false);
+      setIsWasmSupported(false);
+      return;
+    }
+
+    setIsWasmSupported(true);
+
     // Create a script element to load the WASM JavaScript glue code
     const script = document.createElement("script");
     script.src = "/hello.js";
@@ -54,5 +66,5 @@ export function useWasmModule() {
     };
   }, []);
 
-  return { greeting, isLoading, error };
+  return { greeting, isLoading, error, isWasmSupported };
 }
