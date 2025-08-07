@@ -138,6 +138,12 @@ jobs:
           run_install: false
           cache: "pnpm"
 
+      - name: Install emsdk
+        uses: mymindstorm/setup-emsdk@v14
+
+      - name: Verify em++
+        run: em++ -v
+
       # Set up the entire workspace with Turborepo
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
