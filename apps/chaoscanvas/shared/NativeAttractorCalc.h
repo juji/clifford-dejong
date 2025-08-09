@@ -49,15 +49,11 @@ struct AccumulationContext {
   const int pointsToCalculate;
   const int w;
   const int h;
-  const double scale;
-  const double a;
-  const double b;
-  const double c;
-  const double d;
+  const AttractorParameters& attractorParams;
   const double centerX;
   const double centerY;
-  const std::function<
-    std::pair<double, double>(double, double, double, double, double, double)>& fn;
+  const std::function<std::pair<double, double>(double, double, double, double, double, double)>&
+    fn;
 };
 
 struct ImageDataCreationContext {
@@ -66,11 +62,8 @@ struct ImageDataCreationContext {
   const uint32_t* densityPtr;
   size_t densitySize;
   int maxDensity;
-  double h;
-  double s;
-  double v;
   bool highQuality;
-  const std::vector<int>& background;
+  const AttractorParameters& attractorParams;
 };
 
 class NativeAttractorCalc : public NativeAttractorCalcCxxSpec<NativeAttractorCalc> {
@@ -112,47 +105,38 @@ class NativeAttractorCalc : public NativeAttractorCalcCxxSpec<NativeAttractorCal
   );
   uint32_t getLowQualityPoint(double hue, double saturation, double brightness);
   double smoothing(double num, double scale);
-  std::pair<double, double>
-  clifford(double x, double y, double a, double b, double c, double d);
-  std::pair<double, double>
-  dejong(double x, double y, double a, double b, double c, double d);
+  std::pair<double, double> clifford(double x, double y, double a, double b, double c, double d);
+  std::pair<double, double> dejong(double x, double y, double a, double b, double c, double d);
   std::function<std::pair<double, double>(double, double, double, double, double, double)>
   getAttractorFunction(std::string attractor);
   void accumulateDensity(AccumulationContext& context);
   void createImageData(ImageDataCreationContext& context);
+  // Helper method to convert JSI object to AttractorParameters
+  AttractorParameters extractAttractorParameters(jsi::Runtime& rt, jsi::Object& jsiParams);
 
-  void startAttractorCalculationThread(
-    std::string timestamp,
+  struct StartAttractorCalculationThreadParams {
+    std::string timestamp;
 
-    uint32_t* densityBufferPtr,
-    uint32_t* imageBufferPtr,
-    bool highQuality,
+    uint32_t* densityBufferPtr;
+    uint32_t* imageBufferPtr;
+    bool highQuality;
 
-    std::string attractor,
-    double a,
-    double b,
-    double c,
-    double d,
-    double hue,
-    double saturation,
-    double brightness,
-    std::vector<int> background,
+    // Use AttractorParameters struct directly
+    AttractorParameters attractorParams;
 
-    double scale,
-    double top,
-    double left,
-    int width,
-    int height,
-    double x,
-    double y,
-    int maxDensity,
+    int width;
+    int height;
+    double x;
+    double y;
+    int maxDensity;
 
-    int pointsToCalculate,
+    int pointsToCalculate;
 
-    std::shared_ptr<jsi::Function> resolveFunc,
-    std::shared_ptr<jsi::Function> rejectFunc
+    std::shared_ptr<jsi::Function> resolveFunc;
+    std::shared_ptr<jsi::Function> rejectFunc;
+  };
 
-  );
+  void startAttractorCalculationThread(StartAttractorCalculationThreadParams& params);
 };
 
 }  // namespace facebook::react
