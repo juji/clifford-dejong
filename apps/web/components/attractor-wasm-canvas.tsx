@@ -67,42 +67,44 @@ export default function AttractorWasmCanvas() {
   // Calculate attractor when parameters change or canvas is resized
   useEffect(() => {
     let cancelCalculation: (() => void) | false | undefined;
-
-    if (isReady && canvasRef.current) {
-      cancelCalculation = calculateAttractor(
-        attractorParams,
-        {
-          onProgress: (progressValue) => {
-            // Update UI store progress
-            setProgress(progressValue);
-            // Update canvas as calculation progresses
-            renderCanvas();
-          },
-          onComplete: (result) => {
-            // Don't update if cancelled
-            if (!result.cancelled) {
-              // Set progress to completed in UI store
-              setProgress(1);
-              // Final render with complete calculation
+    const timeout = setTimeout(() => {
+      if (isReady && canvasRef.current) {
+        cancelCalculation = calculateAttractor(
+          attractorParams,
+          {
+            onProgress: (progressValue) => {
+              // Update UI store progress
+              setProgress(progressValue);
+              // Update canvas as calculation progresses
               renderCanvas();
-            }
+            },
+            onComplete: (result) => {
+              // Don't update if cancelled
+              if (!result.cancelled) {
+                // Set progress to completed in UI store
+                setProgress(1);
+                // Final render with complete calculation
+                renderCanvas();
+              }
+            },
+            onError: (err) => {
+              console.error("Attractor calculation error:", err);
+            },
           },
-          onError: (err) => {
-            console.error("Attractor calculation error:", err);
+          {
+            width: canvasSize.width,
+            height: canvasSize.height,
           },
-        },
-        {
-          width: canvasSize.width,
-          height: canvasSize.height,
-        },
-      );
-    }
+        );
+      }
+    }, 333);
 
     // Return cleanup function to cancel calculation when parameters change
     return () => {
       if (typeof cancelCalculation === "function") {
         cancelCalculation();
       }
+      if (timeout) clearTimeout(timeout);
     };
   }, [
     isReady,

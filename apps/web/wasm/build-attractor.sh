@@ -11,7 +11,7 @@ mkdir -p ../public/wasm
 emcc \
   attractor-calc.cpp \
   -std=c++17 \
-  -O2 \
+  -O3 \
   -gsource-map \
   -s WASM=1 \
   -s ALLOW_MEMORY_GROWTH=1 \

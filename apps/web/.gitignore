@@ -40,4 +40,6 @@ next-env.d.ts
 /public/attractor-wasm.js
 /public/*.wasm
 /public/*.wasm.map
-/public/wasm
+/public/wasm/attractor-calc.mjs
+/public/wasm/attractor-calc.wasm
+/public/wasm/attractor-calc.wasm.map
