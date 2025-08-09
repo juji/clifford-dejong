@@ -66,6 +66,16 @@ self.onmessage = async function (e) {
       }
       break;
 
+    case "cancel":
+      // Cancel the current calculation
+      isCalculating = false;
+      self.postMessage({
+        type: "result",
+        progress: 0,
+        cancelled: true,
+      });
+      break;
+
     case "terminate":
       if (wasmModule) {
         // Clean up WebAssembly resources if needed

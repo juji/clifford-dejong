@@ -14,6 +14,7 @@ interface AttractorWorkerParams extends AttractorParameters {
 interface AttractorCalculationResult {
   progress: number;
   duration?: number;
+  cancelled?: boolean;
 }
 
 interface AttractorCallbacks {
@@ -135,6 +136,7 @@ export function useWasmAttractor() {
 
   /**
    * Calculate attractor points using the WebAssembly module via the worker
+   * @returns A function to cancel the current calculation, or false if calculation couldn't start
    */
   const calculateAttractor = useCallback(
     (
@@ -200,7 +202,18 @@ export function useWasmAttractor() {
         },
       });
 
-      return true;
+      // Return a cancel function
+      return () => {
+        if (workerRef.current && isCalculating) {
+          // Signal the worker to cancel the calculation
+          workerRef.current.postMessage({ type: "cancel" });
+          setIsCalculating(false);
+          setProgress(0);
+          if (callbacks?.onComplete) {
+            callbacks.onComplete({ progress: 0, cancelled: true });
+          }
+        }
+      };
     },
     [isReady, isCalculating],
   );

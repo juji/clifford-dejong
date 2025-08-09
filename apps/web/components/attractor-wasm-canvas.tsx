@@ -66,8 +66,10 @@ export default function AttractorWasmCanvas() {
 
   // Calculate attractor when parameters change or canvas is resized
   useEffect(() => {
+    let cancelCalculation: (() => void) | false | undefined;
+
     if (isReady && canvasRef.current) {
-      calculateAttractor(
+      cancelCalculation = calculateAttractor(
         attractorParams,
         {
           onProgress: (progressValue) => {
@@ -76,11 +78,14 @@ export default function AttractorWasmCanvas() {
             // Update canvas as calculation progresses
             renderCanvas();
           },
-          onComplete: () => {
-            // Set progress to completed in UI store
-            setProgress(1);
-            // Final render with complete calculation
-            renderCanvas();
+          onComplete: (result) => {
+            // Don't update if cancelled
+            if (!result.cancelled) {
+              // Set progress to completed in UI store
+              setProgress(1);
+              // Final render with complete calculation
+              renderCanvas();
+            }
           },
           onError: (err) => {
             console.error("Attractor calculation error:", err);
@@ -92,6 +97,13 @@ export default function AttractorWasmCanvas() {
         },
       );
     }
+
+    // Return cleanup function to cancel calculation when parameters change
+    return () => {
+      if (typeof cancelCalculation === "function") {
+        cancelCalculation();
+      }
+    };
   }, [
     isReady,
     attractorParams,
