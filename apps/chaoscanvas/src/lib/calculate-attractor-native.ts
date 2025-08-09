@@ -13,7 +13,7 @@ export function ratePerformance(log = true) {
   // pointsPerIteration needs to a be a denominator that returns a whole number
   // when used in totalAttractorPoints / pointsPerIteration
 
-  let pointsPerIteration = 100_000;
+  let pointsPerIteration = 500_000;
   const performanceRating = NativeAttractorCalc.ratePerformance();
   if (log) console.log('Performance rating:', performanceRating);
   if (performanceRating === 0) {
@@ -26,19 +26,19 @@ export function ratePerformance(log = true) {
       console.warn(
         'Performance rating is VERY_SLOW, using 500_000 pointsPerIteration',
       );
-    pointsPerIteration = 500_000; // VERY_SLOW
+    pointsPerIteration = 1_000_000; // VERY_SLOW
   } else if (performanceRating <= 2) {
     if (log)
       console.warn(
         'Performance rating is SLOW, using 1_000_000 pointsPerIteration',
       );
-    pointsPerIteration = 1_000_000; // SLOW
+    pointsPerIteration = 2_000_000; // SLOW
   } else if (performanceRating <= 3) {
     if (log)
       console.warn(
         'Performance rating is MEDIUM, using 2_000_000 pointsPerIteration',
       );
-    pointsPerIteration = 2_000_000; // MEDIUM
+    pointsPerIteration = 4_000_000; // MEDIUM
   } else if (performanceRating <= 4) {
     if (log)
       console.log(

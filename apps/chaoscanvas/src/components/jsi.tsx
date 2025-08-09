@@ -196,11 +196,10 @@ export function Jsi() {
     cancelRef.current = cancel;
 
     promise
-      .then(result => {
-        console.log('Attractor calculation result:', result);
-        console.log(`Calculation took ${new Date().getTime() - now} ms`);
+      .then(_ => {
+        const calcTime = new Date().getTime() - now;
         setIsDone(true);
-        setMessage(result);
+        setMessage(`Calculation took ${calcTime} ms`);
       })
       .catch(error => {
         // id error
@@ -259,6 +258,9 @@ export function Jsi() {
               </Text>
               <Text>Received {pixelData.length} data points</Text>
               <Text>Sum: {pixelData.reduce((acc, val) => acc + val, 0)}</Text>
+              <Text>
+                PointsPerIteration: {performanceRating?.pointsPerIteration}
+              </Text>
             </View>
           )}
 
