@@ -40,3 +40,4 @@ next-env.d.ts
 /public/attractor-wasm.js
 /public/*.wasm
 /public/*.wasm.map
+/public/wasm
