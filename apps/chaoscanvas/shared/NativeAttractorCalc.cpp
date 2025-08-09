@@ -282,14 +282,21 @@ void
 NativeAttractorCalc::accumulateDensity(AccumulationContext& context) {
   int i = 0;
   while (i < context.pointsToCalculate) {
-    auto next = context.fn(context.x, context.y, context.a, context.b, context.c, context.d);
+    auto next = context.fn(
+      context.x,
+      context.y,
+      context.attractorParams.a,
+      context.attractorParams.b,
+      context.attractorParams.c,
+      context.attractorParams.d
+    );
     context.x = next.first;
     context.y = next.second;
 
-    double sx = smoothing(context.x, context.scale);
-    double sy = smoothing(context.y, context.scale);
-    double screenX = sx * context.scale;
-    double screenY = sy * context.scale;
+    double sx = smoothing(context.x, context.attractorParams.scale);
+    double sy = smoothing(context.y, context.attractorParams.scale);
+    double screenX = sx * context.attractorParams.scale;
+    double screenY = sy * context.attractorParams.scale;
     int px = static_cast<int>(std::floor(context.centerX + screenX));
     int py = static_cast<int>(std::floor(context.centerY + screenY));
 
@@ -312,11 +319,14 @@ NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
   int loopLimit = context.imageSize;
 
   uint32_t bgColor = 0;
-  if (!context.background.empty()) {
-    uint32_t bgA = context.background.size() > 3 ? context.background[3] : 255;
-    uint32_t bgB = context.background.size() > 2 ? context.background[2] : 0;
-    uint32_t bgG = context.background.size() > 1 ? context.background[1] : 0;
-    uint32_t bgR = context.background[0];
+  if (!context.attractorParams.background.empty()) {
+    uint32_t bgA =
+      context.attractorParams.background.size() > 3 ? context.attractorParams.background[3] : 255;
+    uint32_t bgB =
+      context.attractorParams.background.size() > 2 ? context.attractorParams.background[2] : 0;
+    uint32_t bgG =
+      context.attractorParams.background.size() > 1 ? context.attractorParams.background[1] : 0;
+    uint32_t bgR = context.attractorParams.background[0];
     bgColor = (bgA << 24) | (bgB << 16) | (bgG << 8) | bgR;
   }
 
@@ -326,10 +336,20 @@ NativeAttractorCalc::createImageData(ImageDataCreationContext& context) {
     if (dval > 0) {
       if (context.highQuality) {
         context.imageData[i] = getColorData(
-          dval, context.maxDensity, context.h, context.s, context.v, 1.0, context.background
+          dval,
+          context.maxDensity,
+          context.attractorParams.hue,
+          context.attractorParams.saturation,
+          context.attractorParams.brightness,
+          1.0,
+          context.attractorParams.background
         );
       } else {
-        context.imageData[i] = getLowQualityPoint(context.h, context.s, context.v);
+        context.imageData[i] = getLowQualityPoint(
+          context.attractorParams.hue,
+          context.attractorParams.saturation,
+          context.attractorParams.brightness
+        );
       }
     } else {
       context.imageData[i] = bgColor;
@@ -344,92 +364,37 @@ NativeAttractorCalc::NativeAttractorCalc(std::shared_ptr<CallInvoker> jsInvoker)
 
 void
 NativeAttractorCalc::startAttractorCalculationThread(
-  std::string timestamp,
-  uint32_t* densityBufferPtr,
-  uint32_t* imageBufferPtr,
-  bool highQuality,
-
-  std::string attractor,
-  double a,
-  double b,
-  double c,
-  double d,
-  double hue,
-  double saturation,
-  double brightness,
-  std::vector<int> background,
-
-  double scale,
-  double left,
-  double top,
-  int width,
-  int height,
-  double x,
-  double y,
-  int maxDensity,
-
-  int pointsToCalculate,
-
-  std::shared_ptr<jsi::Function> resolveFunc,
-  std::shared_ptr<jsi::Function> rejectFunc
+  StartAttractorCalculationThreadParams& params
 ) {
   // Manually create a thread to run the calculation in the background
-  std::thread([this,
-               timestamp,
-               densityBufferPtr,
-               imageBufferPtr,
-               highQuality,
-               attractor,
-               a,
-               b,
-               c,
-               d,
-               hue,
-               saturation,
-               brightness,
-               background,
-               scale,
-               left,
-               top,
-               width,
-               height,
-               x,
-               y,
-               maxDensity,
-               pointsToCalculate,
-               resolveFunc,
-               rejectFunc]() {
+  std::thread([this, params]() {
     try {
       // get attractor function
-      auto attractorFunc = getAttractorFunction(attractor);
+      auto attractorFunc = getAttractorFunction(params.attractorParams.attractor);
 
       // Initialize calculation variables - use the passed density buffer
       // directly Note: We're no longer clearing the density buffer to allow
       // accumulation across calls
-      size_t densitySize = width * height;
+      size_t densitySize = params.width * params.height;
 
-      double centerX = width / 2.0 + left;
-      double centerY = height / 2.0 + top;
+      double centerX = params.width / 2.0 + params.attractorParams.left;
+      double centerY = params.height / 2.0 + params.attractorParams.top;
 
       // Create reference-able variables
-      int maxDensityRef = maxDensity;
-      double xRef = x;
-      double yRef = y;
+      int maxDensityRef = params.maxDensity;
+      double xRef = params.x;
+      double yRef = params.y;
 
       AccumulationContext context = {
-        .densityPtr = densityBufferPtr,
+        .densityPtr = params.densityBufferPtr,
         .densitySize = densitySize,
         .maxDensity = maxDensityRef,
         .x = xRef,
         .y = yRef,
-        .pointsToCalculate = pointsToCalculate,
-        .w = width,
-        .h = height,
-        .scale = scale,
-        .a = a,
-        .b = b,
-        .c = c,
-        .d = d,
+        .pointsToCalculate = params.pointsToCalculate,
+        .w = params.width,
+        .h = params.height,
+        .attractorParams = params.attractorParams,
         .centerX = centerX,
         .centerY = centerY,
         .fn = attractorFunc,
@@ -438,43 +403,68 @@ NativeAttractorCalc::startAttractorCalculationThread(
 
       // Draw the current state on the buffer
       ImageDataCreationContext imageContext = {
-        .imageData = reinterpret_cast<uint32_t*>(imageBufferPtr),
-        .imageSize = width * height,
-        .densityPtr = densityBufferPtr,
+        .imageData = reinterpret_cast<uint32_t*>(params.imageBufferPtr),
+        .imageSize = params.width * params.height,
+        .densityPtr = params.densityBufferPtr,
         .densitySize = densitySize,
         .maxDensity = maxDensityRef,
-        .h = hue,
-        .s = saturation,
-        .v = brightness,
-        .highQuality = highQuality,
-        .background = background
+        .highQuality = params.highQuality,
+        .attractorParams = params.attractorParams
       };
       createImageData(imageContext);
 
       // resolve the promise with the result
-      this->jsInvoker_->invokeAsync(
-        [resolveFunc, timestamp, maxDensityRef, xRef, yRef, pointsToCalculate](
-          jsi::Runtime& runtime
-        ) {
-          jsi::Object result = jsi::Object(runtime);
-          result.setProperty(runtime, "timestamp", jsi::String::createFromUtf8(runtime, timestamp));
-          result.setProperty(runtime, "maxDensity", jsi::Value(maxDensityRef));
-          result.setProperty(runtime, "x", jsi::Value(xRef));
-          result.setProperty(runtime, "y", jsi::Value(yRef));
-          result.setProperty(runtime, "pointsAdded", jsi::Value(pointsToCalculate));
-          resolveFunc->call(runtime, result);
-        }
-      );
+      this->jsInvoker_->invokeAsync([resolveFunc = params.resolveFunc,
+                                     timestamp = params.timestamp,
+                                     maxDensityRef,
+                                     xRef,
+                                     yRef,
+                                     pointsToCalculate =
+                                       params.pointsToCalculate](jsi::Runtime& runtime) {
+        jsi::Object result = jsi::Object(runtime);
+        result.setProperty(runtime, "timestamp", jsi::String::createFromUtf8(runtime, timestamp));
+        result.setProperty(runtime, "maxDensity", jsi::Value(maxDensityRef));
+        result.setProperty(runtime, "x", jsi::Value(xRef));
+        result.setProperty(runtime, "y", jsi::Value(yRef));
+        result.setProperty(runtime, "pointsAdded", jsi::Value(pointsToCalculate));
+        resolveFunc->call(runtime, result);
+      });
 
     } catch (const std::exception& e) {
       std::string error_message = e.what();
       // Schedule rejection on the JS thread
-      this->jsInvoker_->invokeAsync([rejectFunc, error_message](jsi::Runtime& runtime) {
+      this->jsInvoker_->invokeAsync([rejectFunc = params.rejectFunc,
+                                     error_message](jsi::Runtime& runtime) {
         rejectFunc->call(runtime, jsi::String::createFromUtf8(runtime, error_message));
       });
     }
   }).detach();  // Detach the thread to allow the JS function to return
                 // immediately
+}
+
+// Helper method to convert JSI object to AttractorParameters
+AttractorParameters
+NativeAttractorCalc::extractAttractorParameters(jsi::Runtime& rt, jsi::Object& jsiParams) {
+  jsi::Array backgroundArray = jsiParams.getProperty(rt, "background").asObject(rt).asArray(rt);
+  std::vector<int> background;
+  for (size_t i = 0; i < backgroundArray.size(rt); ++i) {
+    background.push_back(static_cast<int>(backgroundArray.getValueAtIndex(rt, i).asNumber()));
+  }
+
+  return {
+    std::string(jsiParams.getProperty(rt, "attractor").asString(rt).utf8(rt)),
+    jsiParams.getProperty(rt, "a").asNumber(),
+    jsiParams.getProperty(rt, "b").asNumber(),
+    jsiParams.getProperty(rt, "c").asNumber(),
+    jsiParams.getProperty(rt, "d").asNumber(),
+    jsiParams.getProperty(rt, "hue").asNumber(),
+    jsiParams.getProperty(rt, "saturation").asNumber(),
+    jsiParams.getProperty(rt, "brightness").asNumber(),
+    background,
+    jsiParams.getProperty(rt, "scale").asNumber(),
+    jsiParams.getProperty(rt, "left").asNumber(),
+    jsiParams.getProperty(rt, "top").asNumber()
+  };
 }
 
 jsi::Value
@@ -494,26 +484,8 @@ NativeAttractorCalc::calculateAttractor(
 
   int pointsToCalculate
 ) {
-  // 0. Parse AttractorParameters
-  AttractorParameters attractorParams;
-  std::string attractor = attractorParameters.getProperty(rt, "attractor").asString(rt).utf8(rt);
-  double a = attractorParameters.getProperty(rt, "a").asNumber();
-  double b = attractorParameters.getProperty(rt, "b").asNumber();
-  double c = attractorParameters.getProperty(rt, "c").asNumber();
-  double d = attractorParameters.getProperty(rt, "d").asNumber();
-  double hue = attractorParameters.getProperty(rt, "hue").asNumber();
-  double saturation = attractorParameters.getProperty(rt, "saturation").asNumber();
-  double brightness = attractorParameters.getProperty(rt, "brightness").asNumber();
-  double scale = attractorParameters.getProperty(rt, "scale").asNumber();
-  double top = attractorParameters.getProperty(rt, "top").asNumber();
-  double left = attractorParameters.getProperty(rt, "left").asNumber();
-
-  jsi::Array backgroundArray =
-    attractorParameters.getProperty(rt, "background").asObject(rt).asArray(rt);
-  std::vector<int> background;
-  for (size_t i = 0; i < backgroundArray.size(rt); ++i) {
-    background.push_back(static_cast<int>(backgroundArray.getValueAtIndex(rt, i).asNumber()));
-  }
+  // Extract parameters from JSI object
+  AttractorParameters attractorParams = extractAttractorParameters(rt, attractorParameters);
 
   // 1. Validate and get the ArrayBuffer
   if (!densityBuffer.isArrayBuffer(rt)) {
@@ -542,18 +514,7 @@ NativeAttractorCalc::calculateAttractor(
        timestamp,
        densityBufferPtr,
        imageBufferPtr,
-       attractor,
-       a,
-       b,
-       c,
-       d,
-       hue,
-       saturation,
-       brightness,
-       background,
-       scale,
-       left,
-       top,
+       attractorParams,  // Pass the extracted AttractorParameters
        width,
        height,
        x,
@@ -568,24 +529,13 @@ NativeAttractorCalc::calculateAttractor(
         auto rejectFunc =
           std::make_shared<jsi::Function>(args[1].asObject(runtime).asFunction(runtime));
 
-        // 5. Start the attractor calculation in a separate thread
-        startAttractorCalculationThread(
+        // Create the thread parameters
+        StartAttractorCalculationThreadParams threadParams = {
           timestamp,
           densityBufferPtr,
           imageBufferPtr,
           highQuality,
-          attractor,
-          a,
-          b,
-          c,
-          d,
-          hue,
-          saturation,
-          brightness,
-          background,
-          scale,
-          left,
-          top,
+          attractorParams,  // Use the AttractorParameters struct that was passed in capture
           width,
           height,
           x,
@@ -594,8 +544,10 @@ NativeAttractorCalc::calculateAttractor(
           pointsToCalculate,
           resolveFunc,
           rejectFunc
-        );
+        };
 
+        // Start the attractor calculation in a separate thread
+        startAttractorCalculationThread(threadParams);
         return jsi::Value::undefined();
       }
     )
