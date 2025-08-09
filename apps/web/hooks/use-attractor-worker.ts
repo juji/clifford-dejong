@@ -9,8 +9,7 @@ interface AttractorWorkerParams extends AttractorParameters {
   startY: number;
   width: number;
   height: number;
-  offsetX: number;
-  offsetY: number;
+  // Note: Using 'left' and 'top' from AttractorParameters instead of offsetX/Y
 }
 
 interface AttractorResult {
@@ -20,9 +19,10 @@ interface AttractorResult {
   duration: number;
   width: number;
   height: number;
+  // Using standard AttractorParameters properties
   scale: number;
-  offsetX: number;
-  offsetY: number;
+  left: number;  // Instead of offsetX
+  top: number;   // Instead of offsetY
   metadata: {
     attractor: AttractorParameters['attractor'];
     params: Pick<AttractorParameters, 'a' | 'b' | 'c' | 'd'>;
@@ -136,21 +136,14 @@ export function useAttractorWorker() {
    */
   const prepareWorkerParams = useCallback((baseParams: AttractorParameters, renderParams: Partial<AttractorWorkerParams> = {}) => {
     return {
-      // Use the core parameters
-      attractor: baseParams.attractor,
-      a: baseParams.a,
-      b: baseParams.b,
-      c: baseParams.c,
-      d: baseParams.d,
-      // Default rendering parameters
+      // Use all core parameters
+      ...baseParams,
+      // Add default rendering parameters
       iterations: 1000000,
       startX: 0,
       startY: 0,
       width: 800,
       height: 800,
-      scale: baseParams.scale,
-      offsetX: 400,
-      offsetY: 400,
       // Override with any provided render params
       ...renderParams
     } as AttractorWorkerParams;
