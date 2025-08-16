@@ -241,7 +241,7 @@ NativeAttractorCalc::getLowQualityPoint(double hue, double saturation, double br
 
 double
 NativeAttractorCalc::smoothing(double num, double scale) {
-  const double factor = 0.2;
+  const double factor = 0.222;
   // Use C++ random to match JavaScript's Math.random() < 0.5 behavior
   return num +
     (static_cast<double>(std::rand()) / RAND_MAX < 0.5 ? -factor : factor) * (1.0 / scale);
