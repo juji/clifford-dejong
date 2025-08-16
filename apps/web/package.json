@@ -11,10 +11,9 @@
     "lint": "next lint --max-warnings 0",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
-    "generate-favicon": "node scripts/generate-favicon.js",
     "build:wasm": "cd wasm && chmod +x build.sh && ./build.sh",
-    "build:wasm:dev": "cd wasm && chmod +x build.sh && ./build.sh --debug",
-    "build:wasm:verbose": "cd wasm && chmod +x build.sh && ./build.sh --debug --verbose",
+    "generate-favicon": "node scripts/generate-favicon.js",
+    "build:wasm:dev": "cd wasm && chmod +x build-attractor.sh && ./build-attractor.sh",
     "watch:wasm": "chokidar \"wasm/**/*.cpp\" -c \"pnpm run build:wasm:dev\""
   },
   "dependencies": {

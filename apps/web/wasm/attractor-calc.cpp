@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------
 // WebAssembly Attractor Calculator Module
-// 
+//
 // This module implements Clifford and deJong attractors in C++ compiled to WebAssembly
 // It provides the same functionality as the React Native native module but runs in browsers
 // through WebAssembly.
@@ -244,15 +244,18 @@ dejong(double x, double y, double a, double b, double c, double d) {
 
 // AttractorCalculator class to manage attractor calculations in WASM
 class AttractorCalculator {
-public:
-  AttractorCalculator() {}
+ public:
+  AttractorCalculator() {
+  }
 
-  std::string getBuildNumber() {
+  std::string
+  getBuildNumber() {
     return version;
   }
 
   // Calculate attractor points and return density and image data
-  emscripten::val calculateAttractor(
+  emscripten::val
+  calculateAttractor(
     emscripten::val jsAttractorParams,
     emscripten::val jsDensityBuffer,
     emscripten::val jsImageBuffer,
@@ -266,13 +269,14 @@ public:
   ) {
     // Extract parameters from JS object
     AttractorParameters attractorParams = extractAttractorParameters(jsAttractorParams);
-    
+
     // Get buffer pointers from JS using typed arrays directly
     emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
     emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(jsImageBuffer);
 
     // Get attractor function based on type
-    std::function<std::pair<double, double>(double, double, double, double, double, double)> attractorFunc;
+    std::function<std::pair<double, double>(double, double, double, double, double, double)>
+      attractorFunc;
     if (attractorParams.attractor == "clifford") {
       attractorFunc = clifford;
     } else if (attractorParams.attractor == "dejong") {
@@ -280,7 +284,10 @@ public:
     } else {
       // Return error object
       emscripten::val error = emscripten::val::object();
-      error.set("error", "Invalid attractor type: " + attractorParams.attractor + ". Must be 'clifford' or 'dejong'.");
+      error.set(
+        "error",
+        "Invalid attractor type: " + attractorParams.attractor + ". Must be 'clifford' or 'dejong'."
+      );
       return error;
     }
 
@@ -323,16 +330,17 @@ public:
     result.set("x", x);
     result.set("y", y);
     result.set("pointsAdded", pointsToCalculate);
-    
+
     return result;
   }
 
-private:
+ private:
   // Extract parameters from JS object
-  AttractorParameters extractAttractorParameters(emscripten::val jsParams) {
+  AttractorParameters
+  extractAttractorParameters(emscripten::val jsParams) {
     emscripten::val jsBackground = jsParams["background"];
     std::vector<int> background;
-    
+
     for (int i = 0; i < jsBackground["length"].as<int>(); i++) {
       background.push_back(jsBackground[i].as<int>());
     }
@@ -354,7 +362,8 @@ private:
   }
 
   // Accumulate density function
-  void accumulateDensity(
+  void
+  accumulateDensity(
     emscripten::val& densityArray,
     size_t densitySize,
     int& maxDensity,
@@ -366,25 +375,18 @@ private:
     const AttractorParameters& attractorParams,
     const double centerX,
     const double centerY,
-    const std::function<std::pair<double, double>(double, double, double, double, double, double)>& fn
+    const std::function<std::pair<double, double>(double, double, double, double, double, double)>&
+      fn
   ) {
     int i = 0;
     while (i < pointsToCalculate) {
-      auto next = fn(
-        x,
-        y,
-        attractorParams.a,
-        attractorParams.b,
-        attractorParams.c,
-        attractorParams.d
-      );
-      x = next.first;
-      y = next.second;
+      auto next =
+        fn(x, y, attractorParams.a, attractorParams.b, attractorParams.c, attractorParams.d);
+      x = smoothing(next.first, attractorParams.scale);
+      y = smoothing(next.second, attractorParams.scale);
 
-      double sx = smoothing(x, attractorParams.scale);
-      double sy = smoothing(y, attractorParams.scale);
-      double screenX = sx * attractorParams.scale;
-      double screenY = sy * attractorParams.scale;
+      double screenX = x * attractorParams.scale;
+      double screenY = y * attractorParams.scale;
       int px = static_cast<int>(std::floor(centerX + screenX));
       int py = static_cast<int>(std::floor(centerY + screenY));
 
@@ -395,7 +397,7 @@ private:
           int currentVal = densityArray[idx].as<int>();
           int newVal = currentVal + 1;
           densityArray.set(idx, newVal);
-          
+
           if (newVal > maxDensity) {
             maxDensity = newVal;
           }
@@ -407,7 +409,8 @@ private:
   }
 
   // Create image data function
-  void createImageData(
+  void
+  createImageData(
     emscripten::val& imageArray,
     int imageSize,
     const emscripten::val& densityArray,
@@ -444,9 +447,7 @@ private:
           imageArray.set(i, colorData);
         } else {
           uint32_t colorData = getLowQualityPoint(
-            attractorParams.hue,
-            attractorParams.saturation,
-            attractorParams.brightness
+            attractorParams.hue, attractorParams.saturation, attractorParams.brightness
           );
           imageArray.set(i, colorData);
         }
@@ -471,8 +472,9 @@ enum PerformanceRating {
 };
 
 // Rate performance function
-double ratePerformance() {
-  const int num_iterations = 10000000;  // 10 million iterations for a quicker test
+double
+ratePerformance() {
+  const int num_iterations = 1000000;  // 1 million iterations for a quicker test
   volatile double result = 0.0;
 
   auto start = std::chrono::high_resolution_clock::now();
@@ -491,22 +493,22 @@ double ratePerformance() {
   double score = num_iterations / elapsed.count();
 
   // These thresholds are calibrated based on typical performance ranges
-  PerformanceRating rating;
-  if (score > 500000) {
-    rating = VERY_FAST;
-  } else if (score > 200000) {
-    rating = FAST;
-  } else if (score > 50000) {
-    rating = MEDIUM;
-  } else if (score > 10000) {
-    rating = SLOW;
-  } else {
-    rating = VERY_SLOW;
-  }
+  PerformanceRating rating = VERY_FAST;
+  // if (score > 200000) {
+  //   rating = VERY_FAST;
+  // } else if (score > 100000) {
+  //   rating = FAST;
+  // } else if (score > 50000) {
+  //   rating = MEDIUM;
+  // } else if (score > 10000) {
+  //   rating = SLOW;
+  // } else {
+  //   rating = VERY_SLOW;
+  // }
   return static_cast<double>(rating);
 }
 
-} // namespace attractor
+}  // namespace attractor
 
 // Emscripten bindings
 EMSCRIPTEN_BINDINGS(attractor_module) {
@@ -514,9 +516,9 @@ EMSCRIPTEN_BINDINGS(attractor_module) {
     .constructor<>()
     .function("getBuildNumber", &attractor::AttractorCalculator::getBuildNumber)
     .function("calculateAttractor", &attractor::AttractorCalculator::calculateAttractor);
-  
+
   emscripten::function("ratePerformance", &attractor::ratePerformance);
-  
+
   // Enum binding
   emscripten::enum_<attractor::PerformanceRating>("PerformanceRating")
     .value("VERY_SLOW", attractor::PerformanceRating::VERY_SLOW)

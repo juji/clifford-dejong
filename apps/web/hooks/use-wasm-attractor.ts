@@ -128,6 +128,7 @@ export function useWasmAttractor() {
 
     // Clean up on unmount
     return () => {
+      console.log("clean up");
       if (worker) {
         worker.postMessage({ type: "terminate" });
         worker.terminate();

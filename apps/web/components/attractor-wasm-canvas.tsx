@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useWasmAttractor } from "../hooks/use-wasm-attractor";
 import { useAttractorStore } from "@repo/state/attractor-store";
 import { useUIStore } from "../store/ui-store";
+import { DEFAULT_SCALE } from "@/lib/constants";
 
 export function AttractorWasmCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -71,11 +72,19 @@ export function AttractorWasmCanvas() {
 
   // Calculate attractor when parameters change or canvas is resized
   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx?.clearRect(0, 0, canvas.width, canvas.height);
+
     let cancelCalculation: (() => void) | false | undefined;
     const timeout = setTimeout(() => {
       if (isReady && canvasRef.current) {
         cancelCalculation = calculateAttractor(
-          attractorParams,
+          {
+            ...attractorParams,
+            scale: attractorParams.scale * DEFAULT_SCALE,
+          },
           {
             onProgress: (progressValue) => {
               // Update UI store progress
@@ -99,6 +108,9 @@ export function AttractorWasmCanvas() {
           {
             width: canvasSize.width,
             height: canvasSize.height,
+            iterations: 5_000_000,
+            totalItterations: 20_000_000,
+            highQuality: true,
           },
         );
       }
@@ -111,11 +123,12 @@ export function AttractorWasmCanvas() {
       }
       if (timeout) clearTimeout(timeout);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isReady,
     attractorParams,
     canvasSize,
-    calculateAttractor,
+    // calculateAttractor,
     renderCanvas,
     setProgress,
   ]);
