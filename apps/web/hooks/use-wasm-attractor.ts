@@ -53,6 +53,7 @@ export function useWasmAttractor() {
     // Set up message handling
     worker.onmessage = (e) => {
       const { type, ...data } = e.data;
+      console.log("Message from worker:", e.data);
 
       switch (type) {
         case "ready":
