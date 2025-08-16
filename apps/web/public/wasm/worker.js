@@ -1,5 +1,5 @@
 // Web Worker for Attractor Calculations using WebAssembly
-import "./attractor-calc.mjs";
+import AttractorModule from "./attractor-calc.mjs";
 
 // Initialize the WebAssembly module
 let wasmModule = null;
@@ -13,9 +13,10 @@ self.onmessage = async function (e) {
     case "init":
       try {
         // Load the WebAssembly module
+        // console.log('init from worker', AttractorModule);
         if (!wasmModule) {
-          const AttractorModule = await self.AttractorModule();
-          wasmModule = new AttractorModule.AttractorCalculator();
+          const moduleInstance = await AttractorModule();
+          wasmModule = new moduleInstance.AttractorCalculator();
           self.postMessage({ type: "initialized" });
         }
       } catch (error) {
@@ -51,8 +52,8 @@ self.onmessage = async function (e) {
 
       try {
         // Call the standalone ratePerformance function from the module
-        const AttractorModule = self.AttractorModule();
-        const rating = AttractorModule.ratePerformance();
+        const moduleInstance = await AttractorModule();
+        const rating = moduleInstance.ratePerformance();
         self.postMessage({
           type: "performance-result",
           rating,
