@@ -1,9 +1,11 @@
+"use client";
+
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useWasmAttractor } from "../hooks/use-wasm-attractor";
 import { useAttractorStore } from "@repo/state/attractor-store";
 import { useUIStore } from "../store/ui-store";
 
-export default function AttractorWasmCanvas() {
+export function AttractorWasmCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const {
     isReady,
@@ -23,16 +25,21 @@ export default function AttractorWasmCanvas() {
     (state) => state.attractorParameters,
   );
 
-  // Handle window resize
+  // Handle window resize to always keep canvas at 100% of container
   useEffect(() => {
     const handleResize = () => {
       if (canvasRef.current) {
-        const { width, height } = canvasRef.current.getBoundingClientRect();
-        setCanvasSize({ width, height });
+        const parent = canvasRef.current.parentElement;
+        if (parent) {
+          const { width, height } = parent.getBoundingClientRect();
+          setCanvasSize({ width, height });
+        }
       }
     };
 
+    // Also listen to window resize events
     window.addEventListener("resize", handleResize);
+    // Initial size setup
     handleResize();
 
     return () => {
@@ -53,15 +60,13 @@ export default function AttractorWasmCanvas() {
 
     const { imageBuffer } = buffers;
 
-    // Create ImageData from the image buffer
-    const imageData = new ImageData(
-      new Uint8ClampedArray(imageBuffer),
-      canvasSize.width,
-      canvasSize.height,
-    );
+    const imageData = ctx.createImageData(canvasSize.width, canvasSize.height);
+    const dst = new Uint32Array(imageData.data.buffer);
+    dst.set(new Uint32Array(imageBuffer));
+    ctx.putImageData(imageData, 0, 0);
 
     // Draw the image data to the canvas
-    ctx.putImageData(imageData, 0, 0);
+    // ctx.putImageData(imageData, 0, 0);
   }, [canvasSize, getBuffers]);
 
   // Calculate attractor when parameters change or canvas is resized
@@ -116,12 +121,16 @@ export default function AttractorWasmCanvas() {
   ]);
 
   return (
-    <div className="relative w-full h-full">
+    <div
+      className="absolute w-full h-full overflow-hidden"
+      style={{ width: "100%", height: "100%" }}
+    >
       <canvas
         ref={canvasRef}
         width={canvasSize.width}
         height={canvasSize.height}
-        className="w-full h-full"
+        className="w-full h-full object-contain block"
+        style={{ width: "100%", height: "100%" }}
       />
 
       {!isReady && (
