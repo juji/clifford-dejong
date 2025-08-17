@@ -65,9 +65,6 @@ export function AttractorWasmCanvas() {
     const dst = new Uint32Array(imageData.data.buffer);
     dst.set(new Uint32Array(imageBuffer));
     ctx.putImageData(imageData, 0, 0);
-
-    // Draw the image data to the canvas
-    // ctx.putImageData(imageData, 0, 0);
   }, [canvasSize, getBuffers]);
 
   // Calculate attractor when parameters change or canvas is resized
@@ -86,11 +83,13 @@ export function AttractorWasmCanvas() {
             scale: attractorParams.scale * DEFAULT_SCALE,
           },
           {
-            onProgress: (progressValue) => {
+            onProgress: (progressValue, wasDrawn) => {
               // Update UI store progress
               setProgress(progressValue);
               // Update canvas as calculation progresses
-              renderCanvas();
+              if (wasDrawn) {
+                renderCanvas();
+              }
             },
             onComplete: (result) => {
               // Don't update if cancelled
@@ -108,12 +107,14 @@ export function AttractorWasmCanvas() {
           {
             width: canvasSize.width,
             height: canvasSize.height,
-            iterations: 1_000_000,
-            totalItterations: 20_000_000,
+            iterations: 500_000,
+            totalItterations: 50_000_000,
             highQuality: true,
-            // iterations: 100_000,
+            drawOn: 2_000_000,
+            // iterations: 50_000,
             // totalItterations: 100_000,
             // highQuality: false,
+            // drawOn: 50_000,
           },
         );
       }

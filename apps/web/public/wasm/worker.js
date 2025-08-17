@@ -115,6 +115,7 @@ function performAttractorCalculation(data) {
       top,
       iterations = 1000000,
       totalItterations = 20000000,
+      drawOn = 1000000,
       width = 800,
       height = 800,
       highQuality = true,
@@ -142,7 +143,7 @@ function performAttractorCalculation(data) {
     };
 
     const totalLoops = Math.ceil(totalItterations / iterations);
-    const drawOn = Math.floor(totalLoops / 5);
+    const drawOnLoop = Math.floor(totalItterations / drawOn);
     let loopCount = 0;
     let currentX = 0;
     let currentY = 0;
@@ -150,6 +151,9 @@ function performAttractorCalculation(data) {
     let result;
 
     while (loopCount < totalLoops && isCalculatingCopy === isCalculating) {
+      const isDrawing =
+        loopCount % drawOnLoop === 0 || loopCount === totalLoops - 1;
+
       result = wasmModule.calculateAttractor(
         attractorParams,
         densityBuffer,
@@ -163,7 +167,7 @@ function performAttractorCalculation(data) {
         iterations,
 
         // limit draw times
-        loopCount % drawOn === 0 || loopCount === totalLoops - 1,
+        isDrawing,
       );
 
       // Update for next iteration using returned values
@@ -175,6 +179,7 @@ function performAttractorCalculation(data) {
         self.postMessage({
           type: "result",
           progress: loopCount / totalLoops,
+          wasDrawn: isDrawing,
         });
       } else if (result && result.error) {
         throw new Error(result.error);
@@ -193,6 +198,7 @@ function performAttractorCalculation(data) {
         type: "result",
         duration,
         progress: 1,
+        wasDrawn: true,
       });
     }
   } catch (error) {

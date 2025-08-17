@@ -18,7 +18,7 @@ interface AttractorCalculationResult {
 }
 
 interface AttractorCallbacks {
-  onProgress?: (progress: number) => void;
+  onProgress?: (progress: number, wasDrawn: boolean) => void;
   onComplete?: (result: AttractorCalculationResult) => void;
   onError?: (error: any) => void;
   onBusy?: () => void;
@@ -71,7 +71,7 @@ export function useWasmAttractor() {
           if (data.progress !== undefined) {
             setProgress(data.progress);
             if (callbacksRef.current.onProgress) {
-              callbacksRef.current.onProgress(data.progress);
+              callbacksRef.current.onProgress(data.progress, data.wasDrawn);
             }
 
             // If progress is 1, calculation is complete
@@ -149,6 +149,7 @@ export function useWasmAttractor() {
         height?: number;
         iterations?: number;
         totalItterations?: number;
+        drawOn?: number;
         highQuality?: boolean;
       },
     ) => {
@@ -179,15 +180,9 @@ export function useWasmAttractor() {
       const width = options?.width || 800;
       const height = options?.height || 800;
 
-      // Create new shared buffers if needed or size has changed
-      if (
-        !densityBufferRef.current ||
-        !imageBufferRef.current ||
-        densityBufferRef.current.byteLength !== width * height * 4
-      ) {
-        densityBufferRef.current = new SharedArrayBuffer(width * height * 4);
-        imageBufferRef.current = new SharedArrayBuffer(width * height * 4);
-      }
+      // Create new shared buffers
+      densityBufferRef.current = new SharedArrayBuffer(width * height * 4);
+      imageBufferRef.current = new SharedArrayBuffer(width * height * 4);
 
       workerRef.current.postMessage({
         type: "calculate",
@@ -197,6 +192,7 @@ export function useWasmAttractor() {
           height,
           iterations: options?.iterations || 1000000,
           totalItterations: options?.totalItterations || 20000000,
+          drawOn: options?.drawOn || 1000000,
           highQuality:
             options?.highQuality !== undefined ? options.highQuality : true,
           densityBuffer: densityBufferRef.current,
