@@ -11,7 +11,7 @@
     "lint": "next lint --max-warnings 0",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
-    "build:wasm": "cd wasm && chmod +x build.sh && ./build.sh",
+    "build:wasm": "cd wasm && chmod +x build-attractor.sh && ./build-attractor.sh",
     "generate-favicon": "node scripts/generate-favicon.js",
     "build:wasm:dev": "cd wasm && chmod +x build-attractor.sh && ./build-attractor.sh",
     "watch:wasm": "chokidar \"wasm/**/*.cpp\" -c \"pnpm run build:wasm:dev\""
