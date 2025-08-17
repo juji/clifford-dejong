@@ -265,7 +265,8 @@ class AttractorCalculator {
     double x,
     double y,
     int maxDensity,
-    int pointsToCalculate
+    int pointsToCalculate,
+    bool shouldDraw
   ) {
     // Extract parameters from JS object
     AttractorParameters attractorParams = extractAttractorParameters(jsAttractorParams);
@@ -314,15 +315,17 @@ class AttractorCalculator {
     );
 
     // Create image data
-    createImageData(
-      imageArray,
-      width * height,
-      densityArray,
-      densitySize,
-      maxDensity,
-      highQuality,
-      attractorParams
-    );
+    if (shouldDraw) {
+      createImageData(
+        imageArray,
+        width * height,
+        densityArray,
+        densitySize,
+        maxDensity,
+        highQuality,
+        attractorParams
+      );
+    }
 
     // Return result object
     emscripten::val result = emscripten::val::object();

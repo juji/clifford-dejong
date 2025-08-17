@@ -108,9 +108,12 @@ export function AttractorWasmCanvas() {
           {
             width: canvasSize.width,
             height: canvasSize.height,
-            iterations: 5_000_000,
+            iterations: 1_000_000,
             totalItterations: 20_000_000,
             highQuality: true,
+            // iterations: 100_000,
+            // totalItterations: 100_000,
+            // highQuality: false,
           },
         );
       }

@@ -142,6 +142,7 @@ function performAttractorCalculation(data) {
     };
 
     const totalLoops = Math.ceil(totalItterations / iterations);
+    const drawOn = Math.floor(totalLoops / 5);
     let loopCount = 0;
     let currentX = 0;
     let currentY = 0;
@@ -160,6 +161,9 @@ function performAttractorCalculation(data) {
         currentY, // Pass current x,y state
         currentMaxDensity, // Pass current maxDensity
         iterations,
+
+        // limit draw times
+        loopCount % drawOn === 0 || loopCount === totalLoops - 1,
       );
 
       // Update for next iteration using returned values
