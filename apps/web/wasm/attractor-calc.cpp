@@ -42,6 +42,21 @@ struct AttractorParameters {
   double top;
 };
 
+// Context for accumulating density into a typed array (WASM side)
+struct AccumulationContext {
+  emscripten::val densityArray;  // Uint32Array view
+  emscripten::val infoArray;     // Int32Array view [maxDensity, cancelFlag]
+  double x;
+  double y;
+  int pointsToCalculate;
+  int w;
+  int h;
+  AttractorParameters attractorParams;
+  double centerX;
+  double centerY;
+  std::function<std::pair<double, double>(double, double, double, double, double, double)> fn;
+};
+
 // Version information
 std::string version = "2.0.1";
 
@@ -279,43 +294,37 @@ extractAttractorParameters(emscripten::val jsParams) {
 
 // Accumulate density function
 void
-accumulateDensity(
-  emscripten::val& densityArray,
-  emscripten::val& infoArray,
-  double& x,
-  double& y,
-  const int pointsToCalculate,
-  const int w,
-  const int h,
-  const AttractorParameters& attractorParams,
-  const double centerX,
-  const double centerY,
-  const std::function<std::pair<double, double>(double, double, double, double, double, double)>& fn
-) {
+accumulateDensity(AccumulationContext& context) {
   int i = 0;
-  int densitySize = w * h;
+  int densitySize = context.w * context.h;
 
-  while (i < pointsToCalculate && infoArray[1].as<int>() == 0) {
-    auto next =
-      fn(x, y, attractorParams.a, attractorParams.b, attractorParams.c, attractorParams.d);
-    x = smoothing(next.first, attractorParams.scale);
-    y = smoothing(next.second, attractorParams.scale);
+  while (i < context.pointsToCalculate && context.infoArray[1].as<int>() == 0) {
+    auto next = context.fn(
+      context.x,
+      context.y,
+      context.attractorParams.a,
+      context.attractorParams.b,
+      context.attractorParams.c,
+      context.attractorParams.d
+    );
+    context.x = smoothing(next.first, context.attractorParams.scale);
+    context.y = smoothing(next.second, context.attractorParams.scale);
 
-    double screenX = x * attractorParams.scale;
-    double screenY = y * attractorParams.scale;
-    int px = static_cast<int>(std::floor(centerX + screenX));
-    int py = static_cast<int>(std::floor(centerY + screenY));
+    double screenX = context.x * context.attractorParams.scale;
+    double screenY = context.y * context.attractorParams.scale;
+    int px = static_cast<int>(std::floor(context.centerX + screenX));
+    int py = static_cast<int>(std::floor(context.centerY + screenY));
 
-    if (px >= 0 && px < w && py >= 0 && py < h) {
-      int idx = py * w + px;
+    if (px >= 0 && px < context.w && py >= 0 && py < context.h) {
+      int idx = py * context.w + px;
       if (idx >= 0 && idx < densitySize) {
         // Get current value, increment it, and update the array
-        int currentVal = densityArray[idx].as<int>();
+        int currentVal = context.densityArray[idx].as<int>();
         int newVal = currentVal + 1;
-        densityArray.set(idx, newVal);
+        context.densityArray.set(idx, newVal);
 
-        if (newVal > infoArray[0].as<int>()) {
-          infoArray.set(0, newVal);
+        if (newVal > context.infoArray[0].as<int>()) {
+          context.infoArray.set(0, newVal);
         }
       }
     }
@@ -420,24 +429,25 @@ calculateAttractorDensity(
   double centerY = height / 2.0 + attractorParams.top;
 
   // Accumulate density
-  accumulateDensity(
-    densityArray,
-    infoArray,
-    x,
-    y,
-    pointsToCalculate,
-    width,
-    height,
-    attractorParams,
-    centerX,
-    centerY,
-    attractorFunc
-  );
+  AccumulationContext ctx = {
+    .densityArray = densityArray,
+    .infoArray = infoArray,
+    .x = x,
+    .y = y,
+    .pointsToCalculate = pointsToCalculate,
+    .w = width,
+    .h = height,
+    .attractorParams = attractorParams,
+    .centerX = centerX,
+    .centerY = centerY,
+    .fn = attractorFunc
+  };
+  accumulateDensity(ctx);
 
   // Return result object
   emscripten::val result = emscripten::val::object();
-  result.set("x", x);
-  result.set("y", y);
+  result.set("x", ctx.x);
+  result.set("y", ctx.y);
   result.set("pointsAdded", pointsToCalculate);
 
   return result;
@@ -517,19 +527,20 @@ calculateAttractor(
   double centerY = height / 2.0 + attractorParams.top;
 
   // Accumulate density
-  accumulateDensity(
-    densityArray,
-    infoArray,
-    x,
-    y,
-    pointsToCalculate,
-    width,
-    height,
-    attractorParams,
-    centerX,
-    centerY,
-    attractorFunc
-  );
+  AccumulationContext ctx = {
+    .densityArray = densityArray,
+    .infoArray = infoArray,
+    .x = x,
+    .y = y,
+    .pointsToCalculate = pointsToCalculate,
+    .w = width,
+    .h = height,
+    .attractorParams = attractorParams,
+    .centerX = centerX,
+    .centerY = centerY,
+    .fn = attractorFunc
+  };
+  accumulateDensity(ctx);
 
   // Create image data
   if (shouldDraw) {
@@ -540,8 +551,8 @@ calculateAttractor(
 
   // Return result object
   emscripten::val result = emscripten::val::object();
-  result.set("x", x);
-  result.set("y", y);
+  result.set("x", ctx.x);
+  result.set("y", ctx.y);
   result.set("pointsAdded", pointsToCalculate);
 
   return result;
