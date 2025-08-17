@@ -57,6 +57,17 @@ struct AccumulationContext {
   std::function<std::pair<double, double>(double, double, double, double, double, double)> fn;
 };
 
+// Context for image data creation (WASM side)
+struct ImageDataCreationContext {
+  emscripten::val imageArray;  // Uint32Array view
+  int imageSize;
+  emscripten::val densityArray;  // Uint32Array view
+  emscripten::val infoArray;     // Int32Array view [maxDensity, cancelFlag]
+  int maxDensity;
+  bool highQuality;
+  AttractorParameters attractorParams;
+};
+
 // Version information
 std::string version = "2.0.1";
 
@@ -335,54 +346,51 @@ accumulateDensity(AccumulationContext& context) {
 
 // Create image data function
 void
-createImageData(
-  emscripten::val& imageArray,
-  int imageSize,
-  const emscripten::val& densityArray,
-  emscripten::val& infoArray,
-  bool highQuality,
-  const AttractorParameters& attractorParams
-) {
-  int loopLimit = imageSize;
-  int maxDensity = infoArray[0].as<int>();
+createImageData(ImageDataCreationContext& context) {
+  int loopLimit = context.imageSize;
 
   uint32_t bgColor = 0;
-  if (!attractorParams.background.empty()) {
-    uint32_t bgA = attractorParams.background.size() > 3 ? attractorParams.background[3] : 255;
-    uint32_t bgB = attractorParams.background.size() > 2 ? attractorParams.background[2] : 0;
-    uint32_t bgG = attractorParams.background.size() > 1 ? attractorParams.background[1] : 0;
-    uint32_t bgR = attractorParams.background[0];
+  if (!context.attractorParams.background.empty()) {
+    uint32_t bgA =
+      context.attractorParams.background.size() > 3 ? context.attractorParams.background[3] : 255;
+    uint32_t bgB =
+      context.attractorParams.background.size() > 2 ? context.attractorParams.background[2] : 0;
+    uint32_t bgG =
+      context.attractorParams.background.size() > 1 ? context.attractorParams.background[1] : 0;
+    uint32_t bgR = context.attractorParams.background[0];
     bgColor = (bgA << 24) | (bgB << 16) | (bgG << 8) | bgR;
   }
 
-  if (infoArray[1].as<int>() != 0) {
+  if (context.infoArray[1].as<int>() != 0) {
     // Cancel the operation
     return;
   }
 
   int i = 0;
-  while (i < loopLimit && infoArray[1].as<int>() == 0) {
-    int dval = densityArray[i].as<int>();
+  while (i < loopLimit && context.infoArray[1].as<int>() == 0) {
+    int dval = context.densityArray[i].as<int>();
     if (dval > 0) {
-      if (highQuality) {
+      if (context.highQuality) {
         uint32_t colorData = getColorData(
           dval,
-          maxDensity,
-          attractorParams.hue,
-          attractorParams.saturation,
-          attractorParams.brightness,
+          context.maxDensity,
+          context.attractorParams.hue,
+          context.attractorParams.saturation,
+          context.attractorParams.brightness,
           1.0,
-          attractorParams.background
+          context.attractorParams.background
         );
-        imageArray.set(i, colorData);
+        context.imageArray.set(i, colorData);
       } else {
         uint32_t colorData = getLowQualityPoint(
-          attractorParams.hue, attractorParams.saturation, attractorParams.brightness
+          context.attractorParams.hue,
+          context.attractorParams.saturation,
+          context.attractorParams.brightness
         );
-        imageArray.set(i, colorData);
+        context.imageArray.set(i, colorData);
       }
     } else {
-      imageArray.set(i, bgColor);
+      context.imageArray.set(i, bgColor);
     }
     i++;
   }
@@ -475,9 +483,18 @@ createAttractorImage(
   emscripten::val infoArray = emscripten::val::global("Int32Array").new_(jsInfoBuffer);
 
   // Create image data
-  createImageData(
-    imageArray, width * height, densityArray, infoArray, highQuality, attractorParams
-  );
+  {
+    ImageDataCreationContext imgCtx = {
+      .imageArray = imageArray,
+      .imageSize = width * height,
+      .densityArray = densityArray,
+      .infoArray = infoArray,
+      .maxDensity = infoArray[0].as<int>(),
+      .highQuality = highQuality,
+      .attractorParams = attractorParams
+    };
+    createImageData(imgCtx);
+  }
 
   return emscripten::val::object();
 }
@@ -544,9 +561,16 @@ calculateAttractor(
 
   // Create image data
   if (shouldDraw) {
-    createImageData(
-      imageArray, width * height, densityArray, infoArray, highQuality, attractorParams
-    );
+    ImageDataCreationContext imgCtx = {
+      .imageArray = imageArray,
+      .imageSize = width * height,
+      .densityArray = densityArray,
+      .infoArray = infoArray,
+      .maxDensity = infoArray[0].as<int>(),
+      .highQuality = highQuality,
+      .attractorParams = attractorParams
+    };
+    createImageData(imgCtx);
   }
 
   // Return result object
