@@ -39,7 +39,7 @@ self.onmessage = async function (e) {
         });
         return;
       }
-      performAttractorCalculation(data);
+      performAttractorDensityCalculation(data);
       break;
 
     case "performance-test":
@@ -96,10 +96,8 @@ self.onmessage = async function (e) {
  * This function handles the main calculation loop and reports progress
  * @param {Object} data - The calculation parameters
  */
-function performAttractorCalculation(data) {
+function performAttractorDensityCalculation(data) {
   try {
-    const isCalculatingCopy = isCalculating;
-
     const {
       attractor,
       a,
@@ -118,7 +116,11 @@ function performAttractorCalculation(data) {
       height = 800,
       densityBuffer = new SharedArrayBuffer(width * height * 4),
       maxDensityBuffer = new SharedArrayBuffer(4),
+      cancelBuffer = new SharedArrayBuffer(1),
     } = data;
+
+    // Call the WebAssembly function
+    const start = performance.now();
 
     // Create parameters object matching the C++ implementation
     const attractorParams = {
@@ -138,37 +140,43 @@ function performAttractorCalculation(data) {
 
     let currentX = 0;
     let currentY = 0;
-    let currentMaxDensity = 0;
     let result;
+
+    // emscripten::val jsAttractorParams,
+    // emscripten::val jsDensityBuffer,
+    // emscripten::val jsMaxDensityBuffer,
+    // int width,
+    // int height,
+    // double x,
+    // double y,
+    // int pointsToCalculate
 
     result = wasmModule.calculateAttractorDensity(
       attractorParams,
       densityBuffer,
       maxDensityBuffer,
+      cancelBuffer,
       width,
       height,
       currentX,
-      currentY,
-
+      currentY, // Pass current x,y state
       iterations,
     );
 
-    if (result && !result.error && isCalculatingCopy === isCalculating) {
-      currentX = result.x;
-      currentY = result.y;
+    console.log("calc done in", performance.now() - start, "ms");
 
-      self.postMessage({
-        type: "result",
-      });
-    } else if (result && result.error) {
-      throw new Error(result.error);
-    }
+    //
+    self.postMessage({
+      type: "done",
+    });
   } catch (error) {
     self.postMessage({
       type: "error",
       message: "Error calculating attractor",
       error: error.toString(),
     });
+  } finally {
+    isCalculating = false;
   }
 }
 

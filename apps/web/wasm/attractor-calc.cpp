@@ -259,6 +259,7 @@ class AttractorCalculator {
     emscripten::val jsAttractorParams,
     emscripten::val jsDensityBuffer,
     emscripten::val jsMaxDensityBuffer,
+    emscripten::val jsCancelBuffer,
     int width,
     int height,
     double x,
@@ -272,6 +273,7 @@ class AttractorCalculator {
     emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
     emscripten::val maxDensityArray =
       emscripten::val::global("Uint32Array").new_(jsMaxDensityBuffer);
+    emscripten::val cancelArray = emscripten::val::global("Uint8Array").new_(jsCancelBuffer);
 
     // Get attractor function based on type
     std::function<std::pair<double, double>(double, double, double, double, double, double)>
@@ -306,7 +308,8 @@ class AttractorCalculator {
       attractorParams,
       centerX,
       centerY,
-      attractorFunc
+      attractorFunc,
+      cancelArray
     );
 
     // Return result object
@@ -323,12 +326,13 @@ class AttractorCalculator {
     emscripten::val jsAttractorParams,
     emscripten::val jsDensityBuffer,
     emscripten::val jsImageBuffer,
+    emscripten::val jsMaxDensityBuffer,
+    emscripten::val jsCancelBuffer,
     bool highQuality,
     int width,
     int height,
     double x,
     double y,
-    emscripten::val jsMaxDensityBuffer,
     int pointsToCalculate
   ) {
     // Extract parameters from JS object
@@ -339,10 +343,17 @@ class AttractorCalculator {
     emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(jsImageBuffer);
     emscripten::val maxDensityArray =
       emscripten::val::global("Uint32Array").new_(jsMaxDensityBuffer);
+    emscripten::val cancelArray = emscripten::val::global("Uint8Array").new_(jsCancelBuffer);
 
     // Create image data
     createImageData(
-      imageArray, width * height, densityArray, maxDensityArray, highQuality, attractorParams
+      imageArray,
+      width * height,
+      densityArray,
+      maxDensityArray,
+      highQuality,
+      attractorParams,
+      cancelArray
     );
 
     return emscripten::val::object();
@@ -355,6 +366,7 @@ class AttractorCalculator {
     emscripten::val jsDensityBuffer,
     emscripten::val jsMaxDensityBuffer,
     emscripten::val jsImageBuffer,
+    emscripten::val jsCancelBuffer,
     bool highQuality,
     int width,
     int height,
@@ -371,6 +383,7 @@ class AttractorCalculator {
     emscripten::val maxDensityArray =
       emscripten::val::global("Uint32Array").new_(jsMaxDensityBuffer);
     emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(jsImageBuffer);
+    emscripten::val cancelArray = emscripten::val::global("Uint8Array").new_(jsCancelBuffer);
 
     // Get attractor function based on type
     std::function<std::pair<double, double>(double, double, double, double, double, double)>
@@ -405,13 +418,20 @@ class AttractorCalculator {
       attractorParams,
       centerX,
       centerY,
-      attractorFunc
+      attractorFunc,
+      cancelArray
     );
 
     // Create image data
     if (shouldDraw) {
       createImageData(
-        imageArray, width * height, densityArray, maxDensityArray, highQuality, attractorParams
+        imageArray,
+        width * height,
+        densityArray,
+        maxDensityArray,
+        highQuality,
+        attractorParams,
+        cancelArray
       );
     }
 
@@ -465,12 +485,13 @@ class AttractorCalculator {
     const double centerX,
     const double centerY,
     const std::function<std::pair<double, double>(double, double, double, double, double, double)>&
-      fn
+      fn,
+    emscripten::val& cancelArray
   ) {
     int i = 0;
     int densitySize = w * h;
 
-    while (i < pointsToCalculate) {
+    while (i < pointsToCalculate && cancelArray[0].as<int>() == 0) {
       auto next =
         fn(x, y, attractorParams.a, attractorParams.b, attractorParams.c, attractorParams.d);
       x = smoothing(next.first, attractorParams.scale);
@@ -507,7 +528,8 @@ class AttractorCalculator {
     const emscripten::val& densityArray,
     emscripten::val& maxDensityArray,
     bool highQuality,
-    const AttractorParameters& attractorParams
+    const AttractorParameters& attractorParams,
+    emscripten::val& cancelArray
   ) {
     int loopLimit = imageSize;
     int maxDensity = maxDensityArray[0].as<int>();
@@ -521,8 +543,13 @@ class AttractorCalculator {
       bgColor = (bgA << 24) | (bgB << 16) | (bgG << 8) | bgR;
     }
 
+    if (cancelArray[0].as<int>() == 1) {
+      // Cancel the operation
+      return;
+    }
+
     int i = 0;
-    while (i < loopLimit) {
+    while (i < loopLimit && cancelArray[0].as<int>() == 0) {
       int dval = densityArray[i].as<int>();
       if (dval > 0) {
         if (highQuality) {

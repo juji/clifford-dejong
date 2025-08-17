@@ -122,6 +122,7 @@ function performAttractorCalculation(data) {
       densityBuffer = new SharedArrayBuffer(width * height * 4),
       imageBuffer = new SharedArrayBuffer(width * height * 4),
       maxDensityBuffer = new SharedArrayBuffer(4),
+      cancelBuffer = new SharedArrayBuffer(1),
     } = data;
 
     // Call the WebAssembly function
@@ -159,6 +160,7 @@ function performAttractorCalculation(data) {
         densityBuffer,
         maxDensityBuffer,
         imageBuffer,
+        cancelBuffer,
         highQuality,
         width,
         height,
