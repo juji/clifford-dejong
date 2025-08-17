@@ -6,8 +6,9 @@
 // through WebAssembly.
 //
 // The module exposes:
-// - AttractorCalculator class with calculation methods
-// - Performance rating functions to determine device capabilities
+// - Calculation functions for attractors (calculateAttractor, calculateAttractorDensity)
+// - Image creation function (createAttractorImage)
+// - Performance rating function to determine device capabilities (ratePerformance)
 //------------------------------------------------------------------------------
 
 #include <emscripten/bind.h>
@@ -242,317 +243,309 @@ dejong(double x, double y, double a, double b, double c, double d) {
   return {std::sin(a * y) - std::cos(b * x), std::sin(c * x) - std::cos(d * y)};
 }
 
-// AttractorCalculator class to manage attractor calculations in WASM
-class AttractorCalculator {
- public:
-  AttractorCalculator() {
+// Standalone utility functions to manage attractor calculations in WASM
+
+// Get build version
+std::string
+getBuildNumber() {
+  return version;
+}
+
+// Extract parameters from JS object
+AttractorParameters
+extractAttractorParameters(emscripten::val jsParams) {
+  emscripten::val jsBackground = jsParams["background"];
+  std::vector<int> background;
+
+  for (int i = 0; i < jsBackground["length"].as<int>(); i++) {
+    background.push_back(jsBackground[i].as<int>());
   }
 
-  std::string
-  getBuildNumber() {
-    return version;
-  }
+  return {
+    jsParams["attractor"].as<std::string>(),
+    jsParams["a"].as<double>(),
+    jsParams["b"].as<double>(),
+    jsParams["c"].as<double>(),
+    jsParams["d"].as<double>(),
+    jsParams["hue"].as<double>(),
+    jsParams["saturation"].as<double>(),
+    jsParams["brightness"].as<double>(),
+    background,
+    jsParams["scale"].as<double>(),
+    jsParams["left"].as<double>(),
+    jsParams["top"].as<double>()
+  };
+}
 
-  // accumulate attractor density
-  emscripten::val
-  calculateAttractorDensity(
-    emscripten::val jsAttractorParams,
-    emscripten::val jsDensityBuffer,
-    emscripten::val jsInfoBuffer,
-    int width,
-    int height,
-    double x,
-    double y,
-    int pointsToCalculate
-  ) {
-    // Extract parameters from JS object
-    AttractorParameters attractorParams = extractAttractorParameters(jsAttractorParams);
+// Accumulate density function
+void
+accumulateDensity(
+  emscripten::val& densityArray,
+  emscripten::val& infoArray,
+  double& x,
+  double& y,
+  const int pointsToCalculate,
+  const int w,
+  const int h,
+  const AttractorParameters& attractorParams,
+  const double centerX,
+  const double centerY,
+  const std::function<std::pair<double, double>(double, double, double, double, double, double)>& fn
+) {
+  int i = 0;
+  int densitySize = w * h;
 
-    // Get buffer pointers from JS using typed arrays directly
-    emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
-    emscripten::val infoArray = emscripten::val::global("Int32Array").new_(jsInfoBuffer);
+  while (i < pointsToCalculate && infoArray[1].as<int>() == 0) {
+    auto next =
+      fn(x, y, attractorParams.a, attractorParams.b, attractorParams.c, attractorParams.d);
+    x = smoothing(next.first, attractorParams.scale);
+    y = smoothing(next.second, attractorParams.scale);
 
-    // Get attractor function based on type
-    std::function<std::pair<double, double>(double, double, double, double, double, double)>
-      attractorFunc;
-    if (attractorParams.attractor == "clifford") {
-      attractorFunc = clifford;
-    } else if (attractorParams.attractor == "dejong") {
-      attractorFunc = dejong;
-    } else {
-      // Return error object
-      emscripten::val error = emscripten::val::object();
-      error.set(
-        "error",
-        "Invalid attractor type: " + attractorParams.attractor + ". Must be 'clifford' or 'dejong'."
-      );
-      return error;
+    double screenX = x * attractorParams.scale;
+    double screenY = y * attractorParams.scale;
+    int px = static_cast<int>(std::floor(centerX + screenX));
+    int py = static_cast<int>(std::floor(centerY + screenY));
+
+    if (px >= 0 && px < w && py >= 0 && py < h) {
+      int idx = py * w + px;
+      if (idx >= 0 && idx < densitySize) {
+        // Get current value, increment it, and update the array
+        int currentVal = densityArray[idx].as<int>();
+        int newVal = currentVal + 1;
+        densityArray.set(idx, newVal);
+
+        if (newVal > infoArray[0].as<int>()) {
+          infoArray.set(0, newVal);
+        }
+      }
     }
 
-    // Initialize calculation variables
-    double centerX = width / 2.0 + attractorParams.left;
-    double centerY = height / 2.0 + attractorParams.top;
+    i++;
+  }
+}
 
-    // Accumulate density
-    accumulateDensity(
-      densityArray,
-      infoArray,
-      x,
-      y,
-      pointsToCalculate,
-      width,
-      height,
-      attractorParams,
-      centerX,
-      centerY,
-      attractorFunc
-    );
+// Create image data function
+void
+createImageData(
+  emscripten::val& imageArray,
+  int imageSize,
+  const emscripten::val& densityArray,
+  emscripten::val& infoArray,
+  bool highQuality,
+  const AttractorParameters& attractorParams
+) {
+  int loopLimit = imageSize;
+  int maxDensity = infoArray[0].as<int>();
 
-    // Return result object
-    emscripten::val result = emscripten::val::object();
-    result.set("x", x);
-    result.set("y", y);
-    result.set("pointsAdded", pointsToCalculate);
-
-    return result;
+  uint32_t bgColor = 0;
+  if (!attractorParams.background.empty()) {
+    uint32_t bgA = attractorParams.background.size() > 3 ? attractorParams.background[3] : 255;
+    uint32_t bgB = attractorParams.background.size() > 2 ? attractorParams.background[2] : 0;
+    uint32_t bgG = attractorParams.background.size() > 1 ? attractorParams.background[1] : 0;
+    uint32_t bgR = attractorParams.background[0];
+    bgColor = (bgA << 24) | (bgB << 16) | (bgG << 8) | bgR;
   }
 
-  emscripten::val
-  createAttractorImage(
-    emscripten::val jsAttractorParams,
-    emscripten::val jsDensityBuffer,
-    emscripten::val jsImageBuffer,
-    emscripten::val jsInfoBuffer,
-    bool highQuality,
-    int width,
-    int height,
-    double x,
-    double y,
-    int pointsToCalculate
-  ) {
-    // Extract parameters from JS object
-    AttractorParameters attractorParams = extractAttractorParameters(jsAttractorParams);
+  if (infoArray[1].as<int>() != 0) {
+    // Cancel the operation
+    return;
+  }
 
-    // Get buffer pointers from JS using typed arrays directly
-    emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
-    emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(jsImageBuffer);
-    emscripten::val infoArray = emscripten::val::global("Int32Array").new_(jsInfoBuffer);
+  int i = 0;
+  while (i < loopLimit && infoArray[1].as<int>() == 0) {
+    int dval = densityArray[i].as<int>();
+    if (dval > 0) {
+      if (highQuality) {
+        uint32_t colorData = getColorData(
+          dval,
+          maxDensity,
+          attractorParams.hue,
+          attractorParams.saturation,
+          attractorParams.brightness,
+          1.0,
+          attractorParams.background
+        );
+        imageArray.set(i, colorData);
+      } else {
+        uint32_t colorData = getLowQualityPoint(
+          attractorParams.hue, attractorParams.saturation, attractorParams.brightness
+        );
+        imageArray.set(i, colorData);
+      }
+    } else {
+      imageArray.set(i, bgColor);
+    }
+    i++;
+  }
+}
 
-    // Create image data
+// Accumulate attractor density
+emscripten::val
+calculateAttractorDensity(
+  emscripten::val jsAttractorParams,
+  emscripten::val jsDensityBuffer,
+  emscripten::val jsInfoBuffer,
+  int width,
+  int height,
+  double x,
+  double y,
+  int pointsToCalculate
+) {
+  // Extract parameters from JS object
+  AttractorParameters attractorParams = extractAttractorParameters(jsAttractorParams);
+
+  // Get buffer pointers from JS using typed arrays directly
+  emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
+  emscripten::val infoArray = emscripten::val::global("Int32Array").new_(jsInfoBuffer);
+
+  // Get attractor function based on type
+  std::function<std::pair<double, double>(double, double, double, double, double, double)>
+    attractorFunc;
+  if (attractorParams.attractor == "clifford") {
+    attractorFunc = clifford;
+  } else if (attractorParams.attractor == "dejong") {
+    attractorFunc = dejong;
+  } else {
+    // Return error object
+    emscripten::val error = emscripten::val::object();
+    error.set(
+      "error",
+      "Invalid attractor type: " + attractorParams.attractor + ". Must be 'clifford' or 'dejong'."
+    );
+    return error;
+  }
+
+  // Initialize calculation variables
+  double centerX = width / 2.0 + attractorParams.left;
+  double centerY = height / 2.0 + attractorParams.top;
+
+  // Accumulate density
+  accumulateDensity(
+    densityArray,
+    infoArray,
+    x,
+    y,
+    pointsToCalculate,
+    width,
+    height,
+    attractorParams,
+    centerX,
+    centerY,
+    attractorFunc
+  );
+
+  // Return result object
+  emscripten::val result = emscripten::val::object();
+  result.set("x", x);
+  result.set("y", y);
+  result.set("pointsAdded", pointsToCalculate);
+
+  return result;
+}
+
+emscripten::val
+createAttractorImage(
+  emscripten::val jsAttractorParams,
+  emscripten::val jsDensityBuffer,
+  emscripten::val jsImageBuffer,
+  emscripten::val jsInfoBuffer,
+  bool highQuality,
+  int width,
+  int height,
+  double x,
+  double y,
+  int pointsToCalculate
+) {
+  // Extract parameters from JS object
+  AttractorParameters attractorParams = extractAttractorParameters(jsAttractorParams);
+
+  // Get buffer pointers from JS using typed arrays directly
+  emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
+  emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(jsImageBuffer);
+  emscripten::val infoArray = emscripten::val::global("Int32Array").new_(jsInfoBuffer);
+
+  // Create image data
+  createImageData(
+    imageArray, width * height, densityArray, infoArray, highQuality, attractorParams
+  );
+
+  return emscripten::val::object();
+}
+
+// Calculate attractor points and return density and image data
+emscripten::val
+calculateAttractor(
+  emscripten::val jsAttractorParams,
+  emscripten::val jsDensityBuffer,
+  emscripten::val jsImageBuffer,
+  emscripten::val jsInfoBuffer,
+  bool highQuality,
+  int width,
+  int height,
+  double x,
+  double y,
+  int pointsToCalculate,
+  bool shouldDraw
+) {
+  // Extract parameters from JS object
+  AttractorParameters attractorParams = extractAttractorParameters(jsAttractorParams);
+
+  // Get buffer pointers from JS using typed arrays directly
+  emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
+  emscripten::val infoArray = emscripten::val::global("Int32Array").new_(jsInfoBuffer);
+  emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(jsImageBuffer);
+
+  // Get attractor function based on type
+  std::function<std::pair<double, double>(double, double, double, double, double, double)>
+    attractorFunc;
+  if (attractorParams.attractor == "clifford") {
+    attractorFunc = clifford;
+  } else if (attractorParams.attractor == "dejong") {
+    attractorFunc = dejong;
+  } else {
+    // Return error object
+    emscripten::val error = emscripten::val::object();
+    error.set(
+      "error",
+      "Invalid attractor type: " + attractorParams.attractor + ". Must be 'clifford' or 'dejong'."
+    );
+    return error;
+  }
+
+  // Initialize calculation variables
+  double centerX = width / 2.0 + attractorParams.left;
+  double centerY = height / 2.0 + attractorParams.top;
+
+  // Accumulate density
+  accumulateDensity(
+    densityArray,
+    infoArray,
+    x,
+    y,
+    pointsToCalculate,
+    width,
+    height,
+    attractorParams,
+    centerX,
+    centerY,
+    attractorFunc
+  );
+
+  // Create image data
+  if (shouldDraw) {
     createImageData(
       imageArray, width * height, densityArray, infoArray, highQuality, attractorParams
     );
-
-    return emscripten::val::object();
   }
 
-  // Calculate attractor points and return density and image data
-  emscripten::val
-  calculateAttractor(
-    emscripten::val jsAttractorParams,
-    emscripten::val jsDensityBuffer,
-    emscripten::val jsImageBuffer,
-    emscripten::val jsInfoBuffer,
-    bool highQuality,
-    int width,
-    int height,
-    double x,
-    double y,
-    int pointsToCalculate,
-    bool shouldDraw
-  ) {
-    // Extract parameters from JS object
-    AttractorParameters attractorParams = extractAttractorParameters(jsAttractorParams);
+  // Return result object
+  emscripten::val result = emscripten::val::object();
+  result.set("x", x);
+  result.set("y", y);
+  result.set("pointsAdded", pointsToCalculate);
 
-    // Get buffer pointers from JS using typed arrays directly
-    emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
-    emscripten::val infoArray = emscripten::val::global("Int32Array").new_(jsInfoBuffer);
-    emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(jsImageBuffer);
-
-    // Get attractor function based on type
-    std::function<std::pair<double, double>(double, double, double, double, double, double)>
-      attractorFunc;
-    if (attractorParams.attractor == "clifford") {
-      attractorFunc = clifford;
-    } else if (attractorParams.attractor == "dejong") {
-      attractorFunc = dejong;
-    } else {
-      // Return error object
-      emscripten::val error = emscripten::val::object();
-      error.set(
-        "error",
-        "Invalid attractor type: " + attractorParams.attractor + ". Must be 'clifford' or 'dejong'."
-      );
-      return error;
-    }
-
-    // Initialize calculation variables
-    double centerX = width / 2.0 + attractorParams.left;
-    double centerY = height / 2.0 + attractorParams.top;
-
-    // Accumulate density
-    accumulateDensity(
-      densityArray,
-      infoArray,
-      x,
-      y,
-      pointsToCalculate,
-      width,
-      height,
-      attractorParams,
-      centerX,
-      centerY,
-      attractorFunc
-    );
-
-    // Create image data
-    if (shouldDraw) {
-      createImageData(
-        imageArray, width * height, densityArray, infoArray, highQuality, attractorParams
-      );
-    }
-
-    // Return result object
-    emscripten::val result = emscripten::val::object();
-    result.set("x", x);
-    result.set("y", y);
-    result.set("pointsAdded", pointsToCalculate);
-
-    return result;
-  }
-
- private:
-  // Extract parameters from JS object
-  AttractorParameters
-  extractAttractorParameters(emscripten::val jsParams) {
-    emscripten::val jsBackground = jsParams["background"];
-    std::vector<int> background;
-
-    for (int i = 0; i < jsBackground["length"].as<int>(); i++) {
-      background.push_back(jsBackground[i].as<int>());
-    }
-
-    return {
-      jsParams["attractor"].as<std::string>(),
-      jsParams["a"].as<double>(),
-      jsParams["b"].as<double>(),
-      jsParams["c"].as<double>(),
-      jsParams["d"].as<double>(),
-      jsParams["hue"].as<double>(),
-      jsParams["saturation"].as<double>(),
-      jsParams["brightness"].as<double>(),
-      background,
-      jsParams["scale"].as<double>(),
-      jsParams["left"].as<double>(),
-      jsParams["top"].as<double>()
-    };
-  }
-
-  // Accumulate density function
-  void
-  accumulateDensity(
-    emscripten::val& densityArray,
-    emscripten::val& infoArray,
-    double& x,
-    double& y,
-    const int pointsToCalculate,
-    const int w,
-    const int h,
-    const AttractorParameters& attractorParams,
-    const double centerX,
-    const double centerY,
-    const std::function<std::pair<double, double>(double, double, double, double, double, double)>&
-      fn
-  ) {
-    int i = 0;
-    int densitySize = w * h;
-
-    while (i < pointsToCalculate && infoArray[1].as<int>() == 0) {
-      auto next =
-        fn(x, y, attractorParams.a, attractorParams.b, attractorParams.c, attractorParams.d);
-      x = smoothing(next.first, attractorParams.scale);
-      y = smoothing(next.second, attractorParams.scale);
-
-      double screenX = x * attractorParams.scale;
-      double screenY = y * attractorParams.scale;
-      int px = static_cast<int>(std::floor(centerX + screenX));
-      int py = static_cast<int>(std::floor(centerY + screenY));
-
-      if (px >= 0 && px < w && py >= 0 && py < h) {
-        int idx = py * w + px;
-        if (idx >= 0 && idx < densitySize) {
-          // Get current value, increment it, and update the array
-          int currentVal = densityArray[idx].as<int>();
-          int newVal = currentVal + 1;
-          densityArray.set(idx, newVal);
-
-          if (newVal > infoArray[0].as<int>()) {
-            infoArray.set(0, newVal);
-          }
-        }
-      }
-
-      i++;
-    }
-  }
-
-  // Create image data function
-  void
-  createImageData(
-    emscripten::val& imageArray,
-    int imageSize,
-    const emscripten::val& densityArray,
-    emscripten::val& infoArray,
-    bool highQuality,
-    const AttractorParameters& attractorParams
-  ) {
-    int loopLimit = imageSize;
-    int maxDensity = infoArray[0].as<int>();
-
-    uint32_t bgColor = 0;
-    if (!attractorParams.background.empty()) {
-      uint32_t bgA = attractorParams.background.size() > 3 ? attractorParams.background[3] : 255;
-      uint32_t bgB = attractorParams.background.size() > 2 ? attractorParams.background[2] : 0;
-      uint32_t bgG = attractorParams.background.size() > 1 ? attractorParams.background[1] : 0;
-      uint32_t bgR = attractorParams.background[0];
-      bgColor = (bgA << 24) | (bgB << 16) | (bgG << 8) | bgR;
-    }
-
-    if (infoArray[1].as<int>() != 0) {
-      // Cancel the operation
-      return;
-    }
-
-    int i = 0;
-    while (i < loopLimit && infoArray[1].as<int>() == 0) {
-      int dval = densityArray[i].as<int>();
-      if (dval > 0) {
-        if (highQuality) {
-          uint32_t colorData = getColorData(
-            dval,
-            maxDensity,
-            attractorParams.hue,
-            attractorParams.saturation,
-            attractorParams.brightness,
-            1.0,
-            attractorParams.background
-          );
-          imageArray.set(i, colorData);
-        } else {
-          uint32_t colorData = getLowQualityPoint(
-            attractorParams.hue, attractorParams.saturation, attractorParams.brightness
-          );
-          imageArray.set(i, colorData);
-        }
-      } else {
-        imageArray.set(i, bgColor);
-      }
-      i++;
-    }
-  }
-
-  // Methods that work with JavaScript arrays directly - these are the only ones we need
-};
+  return result;
+}
 
 // Performance rating enum (matching the native implementation)
 enum PerformanceRating {
@@ -605,15 +598,11 @@ ratePerformance() {
 
 // Emscripten bindings
 EMSCRIPTEN_BINDINGS(attractor_module) {
-  emscripten::class_<attractor::AttractorCalculator>("AttractorCalculator")
-    .constructor<>()
-    .function("getBuildNumber", &attractor::AttractorCalculator::getBuildNumber)
-    .function("calculateAttractor", &attractor::AttractorCalculator::calculateAttractor)
-    .function(
-      "calculateAttractorDensity", &attractor::AttractorCalculator::calculateAttractorDensity
-    )
-    .function("createAttractorImage", &attractor::AttractorCalculator::createAttractorImage);
-
+  // Export all functions directly
+  emscripten::function("getBuildNumber", &attractor::getBuildNumber);
+  emscripten::function("calculateAttractor", &attractor::calculateAttractor);
+  emscripten::function("calculateAttractorDensity", &attractor::calculateAttractorDensity);
+  emscripten::function("createAttractorImage", &attractor::createAttractorImage);
   emscripten::function("ratePerformance", &attractor::ratePerformance);
 
   // Enum binding

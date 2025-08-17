@@ -16,8 +16,7 @@ self.onmessage = async function (e) {
         // Load the WebAssembly module
         // console.log('init from worker', AttractorModule);
         if (!wasmModule) {
-          const moduleInstance = await AttractorModule();
-          wasmModule = new moduleInstance.AttractorCalculator();
+          wasmModule = await AttractorModule();
           self.postMessage({ type: "initialized" });
         }
       } catch (error) {
@@ -53,8 +52,7 @@ self.onmessage = async function (e) {
 
       try {
         // Call the standalone ratePerformance function from the module
-        const moduleInstance = await AttractorModule();
-        const rating = moduleInstance.ratePerformance();
+        const rating = wasmModule.ratePerformance();
         self.postMessage({
           type: "performance-result",
           rating,
@@ -165,7 +163,6 @@ function performAttractorCalculation(data) {
         currentX,
         currentY, // Pass current x,y state
         iterations,
-
         // limit draw times
         isDrawing,
       );

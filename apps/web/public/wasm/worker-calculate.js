@@ -15,8 +15,7 @@ self.onmessage = async function (e) {
         // Load the WebAssembly module
         // console.log('init from worker', AttractorModule);
         if (!wasmModule) {
-          const moduleInstance = await AttractorModule();
-          wasmModule = new moduleInstance.AttractorCalculator();
+          wasmModule = await AttractorModule();
           self.postMessage({ type: "initialized" });
         }
       } catch (error) {
@@ -88,8 +87,7 @@ function performAttractorDensityCalculation(data) {
       width = 800,
       height = 800,
       densityBuffer = new SharedArrayBuffer(width * height * 4),
-      maxDensityBuffer = new SharedArrayBuffer(4),
-      cancelBuffer = new SharedArrayBuffer(1),
+      infoBuffer = new SharedArrayBuffer(3 * 4), // maxDensity, cancel, done
     } = data;
 
     // Call the WebAssembly function
@@ -124,11 +122,12 @@ function performAttractorDensityCalculation(data) {
     // double y,
     // int pointsToCalculate
 
+    // Use the info buffer from parameters
+
     result = wasmModule.calculateAttractorDensity(
       attractorParams,
       densityBuffer,
-      maxDensityBuffer,
-      cancelBuffer,
+      infoBuffer,
       width,
       height,
       currentX,
