@@ -7,7 +7,9 @@
         "${workspaceFolder}/apps/chaoscanvas/catch",
         "${workspaceFolder}/node_modules/react-native/ReactCommon",
         "${workspaceFolder}/node_modules/react-native/React",
-        "${workspaceFolder}/node_modules/react-native/sdks/hermes/API"
+        "${workspaceFolder}/node_modules/react-native/sdks/hermes/API",
+        "/opt/homebrew/Cellar/emscripten/4.0.12/libexec/system/include",
+        "/opt/homebrew/Cellar/emscripten/4.0.12/libexec/cache/sysroot/include"
       ],
       "defines": [],
       "macFrameworkPath": [
