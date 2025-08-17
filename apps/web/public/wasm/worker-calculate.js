@@ -3,7 +3,6 @@ import AttractorModule from "./attractor-calc.mjs";
 
 // Initialize the WebAssembly module
 let wasmModule = null;
-let isCalculating = null;
 
 // Handle messages from the main thread
 self.onmessage = async function (e) {
@@ -40,32 +39,6 @@ self.onmessage = async function (e) {
         return;
       }
       performAttractorDensityCalculation(data);
-      break;
-
-    case "performance-test":
-      if (!wasmModule) {
-        self.postMessage({
-          type: "error",
-          message: "WebAssembly module not initialized",
-        });
-        return;
-      }
-
-      try {
-        // Call the standalone ratePerformance function from the module
-        const moduleInstance = await AttractorModule();
-        const rating = moduleInstance.ratePerformance();
-        self.postMessage({
-          type: "performance-result",
-          rating,
-        });
-      } catch (error) {
-        self.postMessage({
-          type: "error",
-          message: "Error running performance test",
-          error: error.toString(),
-        });
-      }
       break;
 
     case "cancel":

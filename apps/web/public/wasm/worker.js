@@ -121,8 +121,7 @@ function performAttractorCalculation(data) {
       highQuality = true,
       densityBuffer = new SharedArrayBuffer(width * height * 4),
       imageBuffer = new SharedArrayBuffer(width * height * 4),
-      maxDensityBuffer = new SharedArrayBuffer(4),
-      cancelBuffer = new SharedArrayBuffer(1),
+      infoBuffer = new SharedArrayBuffer(3 * 4), // uint32: maxDensity, cancel, done
     } = data;
 
     // Call the WebAssembly function
@@ -158,9 +157,8 @@ function performAttractorCalculation(data) {
       result = wasmModule.calculateAttractor(
         attractorParams,
         densityBuffer,
-        maxDensityBuffer,
         imageBuffer,
-        cancelBuffer,
+        infoBuffer,
         highQuality,
         width,
         height,
