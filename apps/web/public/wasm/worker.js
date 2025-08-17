@@ -152,7 +152,8 @@ function performAttractorCalculation(data) {
       const isDrawing =
         loopCount % drawOnLoop === 0 || loopCount === totalLoops - 1;
 
-      result = wasmModule.calculateAttractor(
+      // Call the function using the struct-based approach
+      result = wasmModule.calculateAttractor({
         attractorParams,
         densityBuffer,
         imageBuffer,
@@ -160,12 +161,11 @@ function performAttractorCalculation(data) {
         highQuality,
         width,
         height,
-        currentX,
-        currentY, // Pass current x,y state
-        iterations,
-        // limit draw times
-        isDrawing,
-      );
+        x: currentX,
+        y: currentY,
+        pointsToCalculate: iterations,
+        shouldDraw: isDrawing,
+      });
 
       // Update for next iteration using returned values
       if (result && !result.error && isCalculatingCopy === isCalculating) {

@@ -497,28 +497,46 @@ createAttractorImage(
   return emscripten::val::object();
 }
 
-// Calculate attractor points and return density and image data
+// Calculation context struct to encapsulate all parameters for attractor calculation
+struct AttractorCalculationContext {
+  emscripten::val attractorParams;
+  emscripten::val densityBuffer;
+  emscripten::val imageBuffer;
+  emscripten::val infoBuffer;
+  bool highQuality;
+  int width;
+  int height;
+  double x;
+  double y;
+  int pointsToCalculate;
+  bool shouldDraw;
+};
+
+// Calculate attractor points and return density and image data using a struct-based approach
 emscripten::val
-calculateAttractor(
-  emscripten::val jsAttractorParams,
-  emscripten::val jsDensityBuffer,
-  emscripten::val jsImageBuffer,
-  emscripten::val jsInfoBuffer,
-  bool highQuality,
-  int width,
-  int height,
-  double x,
-  double y,
-  int pointsToCalculate,
-  bool shouldDraw
-) {
+calculateAttractor(emscripten::val jsCtx) {
+  // Extract all parameters from the JavaScript object
+  AttractorCalculationContext ctx = {
+    .attractorParams = jsCtx["attractorParams"],
+    .densityBuffer = jsCtx["densityBuffer"],
+    .imageBuffer = jsCtx["imageBuffer"],
+    .infoBuffer = jsCtx["infoBuffer"],
+    .highQuality = jsCtx["highQuality"].as<bool>(),
+    .width = jsCtx["width"].as<int>(),
+    .height = jsCtx["height"].as<int>(),
+    .x = jsCtx["x"].as<double>(),
+    .y = jsCtx["y"].as<double>(),
+    .pointsToCalculate = jsCtx["pointsToCalculate"].as<int>(),
+    .shouldDraw = jsCtx["shouldDraw"].as<bool>()
+  };
+
   // Extract parameters from JS object
-  AttractorParameters attractorParams = extractAttractorParameters(jsAttractorParams);
+  AttractorParameters attractorParams = extractAttractorParameters(ctx.attractorParams);
 
   // Get buffer pointers from JS using typed arrays directly
-  emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
-  emscripten::val infoArray = emscripten::val::global("Int32Array").new_(jsInfoBuffer);
-  emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(jsImageBuffer);
+  emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(ctx.densityBuffer);
+  emscripten::val infoArray = emscripten::val::global("Int32Array").new_(ctx.infoBuffer);
+  emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(ctx.imageBuffer);
 
   // Get attractor function based on type
   std::function<std::pair<double, double>(double, double, double, double, double, double)>
@@ -538,34 +556,34 @@ calculateAttractor(
   }
 
   // Initialize calculation variables
-  double centerX = width / 2.0 + attractorParams.left;
-  double centerY = height / 2.0 + attractorParams.top;
+  double centerX = ctx.width / 2.0 + attractorParams.left;
+  double centerY = ctx.height / 2.0 + attractorParams.top;
 
   // Accumulate density
-  AccumulationContext ctx = {
+  AccumulationContext accumCtx = {
     .densityArray = densityArray,
     .infoArray = infoArray,
-    .x = x,
-    .y = y,
-    .pointsToCalculate = pointsToCalculate,
-    .w = width,
-    .h = height,
+    .x = ctx.x,
+    .y = ctx.y,
+    .pointsToCalculate = ctx.pointsToCalculate,
+    .w = ctx.width,
+    .h = ctx.height,
     .attractorParams = attractorParams,
     .centerX = centerX,
     .centerY = centerY,
     .fn = attractorFunc
   };
-  accumulateDensity(ctx);
+  accumulateDensity(accumCtx);
 
   // Create image data
-  if (shouldDraw) {
+  if (ctx.shouldDraw) {
     ImageDataCreationContext imgCtx = {
       .imageArray = imageArray,
-      .imageSize = width * height,
+      .imageSize = ctx.width * ctx.height,
       .densityArray = densityArray,
       .infoArray = infoArray,
       .maxDensity = infoArray[0].as<int>(),
-      .highQuality = highQuality,
+      .highQuality = ctx.highQuality,
       .attractorParams = attractorParams
     };
     createImageData(imgCtx);
@@ -573,9 +591,9 @@ calculateAttractor(
 
   // Return result object
   emscripten::val result = emscripten::val::object();
-  result.set("x", ctx.x);
-  result.set("y", ctx.y);
-  result.set("pointsAdded", pointsToCalculate);
+  result.set("x", accumCtx.x);
+  result.set("y", accumCtx.y);
+  result.set("pointsAdded", ctx.pointsToCalculate);
 
   return result;
 }
@@ -633,6 +651,7 @@ ratePerformance() {
 EMSCRIPTEN_BINDINGS(attractor_module) {
   // Export all functions directly
   emscripten::function("getBuildNumber", &attractor::getBuildNumber);
+  // Bind the struct-based calculateAttractor function
   emscripten::function("calculateAttractor", &attractor::calculateAttractor);
   emscripten::function("calculateAttractorDensity", &attractor::calculateAttractorDensity);
   emscripten::function("createAttractorImage", &attractor::createAttractorImage);
