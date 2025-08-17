@@ -113,19 +113,12 @@ function performAttractorCalculation(data) {
       scale,
       left,
       top,
-      iterations = 1000000,
-      totalItterations = 20000000,
-      drawOn = 1000000,
+      iterations = 20000000,
       width = 800,
       height = 800,
-      highQuality = true,
       densityBuffer = new SharedArrayBuffer(width * height * 4),
-      imageBuffer = new SharedArrayBuffer(width * height * 4),
       maxDensityBuffer = new SharedArrayBuffer(4),
     } = data;
-
-    // Call the WebAssembly function
-    const start = performance.now();
 
     // Create parameters object matching the C++ implementation
     const attractorParams = {
@@ -143,62 +136,32 @@ function performAttractorCalculation(data) {
       top,
     };
 
-    const totalLoops = Math.ceil(totalItterations / iterations);
-    const drawOnLoop = Math.floor(totalItterations / drawOn);
-    let loopCount = 0;
     let currentX = 0;
     let currentY = 0;
+    let currentMaxDensity = 0;
     let result;
 
-    while (loopCount < totalLoops && isCalculatingCopy === isCalculating) {
-      const isDrawing =
-        loopCount % drawOnLoop === 0 || loopCount === totalLoops - 1;
+    result = wasmModule.calculateAttractorDensity(
+      attractorParams,
+      densityBuffer,
+      maxDensityBuffer,
+      width,
+      height,
+      currentX,
+      currentY,
 
-      result = wasmModule.calculateAttractor(
-        attractorParams,
-        densityBuffer,
-        maxDensityBuffer,
-        imageBuffer,
-        highQuality,
-        width,
-        height,
-        currentX,
-        currentY, // Pass current x,y state
-        iterations,
+      iterations,
+    );
 
-        // limit draw times
-        isDrawing,
-      );
+    if (result && !result.error && isCalculatingCopy === isCalculating) {
+      currentX = result.x;
+      currentY = result.y;
 
-      // Update for next iteration using returned values
-      if (result && !result.error && isCalculatingCopy === isCalculating) {
-        currentX = result.x;
-        currentY = result.y;
-
-        self.postMessage({
-          type: "result",
-          progress: loopCount / totalLoops,
-          wasDrawn: isDrawing,
-        });
-      } else if (result && result.error) {
-        throw new Error(result.error);
-      }
-
-      loopCount++;
-    }
-
-    if (isCalculatingCopy === isCalculating) {
-      const end = performance.now();
-      const duration = end - start;
-
-      // Send the result with duration
-      // as a mark that this is the end of the calculation
       self.postMessage({
         type: "result",
-        duration,
-        progress: 1,
-        wasDrawn: true,
       });
+    } else if (result && result.error) {
+      throw new Error(result.error);
     }
   } catch (error) {
     self.postMessage({
@@ -206,8 +169,6 @@ function performAttractorCalculation(data) {
       message: "Error calculating attractor",
       error: error.toString(),
     });
-  } finally {
-    isCalculating = false;
   }
 }
 

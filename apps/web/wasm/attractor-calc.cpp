@@ -253,9 +253,76 @@ class AttractorCalculator {
     return version;
   }
 
-  // Calculate attractor points and return density and image data
+  // accumulate attractor density
   emscripten::val
-  calculateAttractor(
+  calculateAttractorDensity(
+    emscripten::val jsAttractorParams,
+    emscripten::val jsDensityBuffer,
+    emscripten::val jsMaxDensityBuffer,
+    int width,
+    int height,
+    double x,
+    double y,
+    int pointsToCalculate
+  ) {
+    // Extract parameters from JS object
+    AttractorParameters attractorParams = extractAttractorParameters(jsAttractorParams);
+
+    // Get buffer pointers from JS using typed arrays directly
+    emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
+    emscripten::val maxDensityArray =
+      emscripten::val::global("Uint32Array").new_(jsMaxDensityBuffer);
+
+    // Get attractor function based on type
+    std::function<std::pair<double, double>(double, double, double, double, double, double)>
+      attractorFunc;
+    if (attractorParams.attractor == "clifford") {
+      attractorFunc = clifford;
+    } else if (attractorParams.attractor == "dejong") {
+      attractorFunc = dejong;
+    } else {
+      // Return error object
+      emscripten::val error = emscripten::val::object();
+      error.set(
+        "error",
+        "Invalid attractor type: " + attractorParams.attractor + ". Must be 'clifford' or 'dejong'."
+      );
+      return error;
+    }
+
+    // Initialize calculation variables
+    size_t densitySize = width * height;
+
+    double centerX = width / 2.0 + attractorParams.left;
+    double centerY = height / 2.0 + attractorParams.top;
+
+    // Accumulate density
+    accumulateDensity(
+      densityArray,
+      densitySize,
+      maxDensityArray,
+      x,
+      y,
+      pointsToCalculate,
+      width,
+      height,
+      attractorParams,
+      centerX,
+      centerY,
+      attractorFunc
+    );
+
+    // Return result object
+    emscripten::val result = emscripten::val::object();
+    result.set("x", x);
+    result.set("y", y);
+    result.set("pointsAdded", pointsToCalculate);
+
+    return result;
+  }
+
+  emscripten::val
+  createAttractorImage(
     emscripten::val jsAttractorParams,
     emscripten::val jsDensityBuffer,
     emscripten::val jsImageBuffer,
@@ -264,7 +331,44 @@ class AttractorCalculator {
     int height,
     double x,
     double y,
-    int maxDensity,
+    emscripten::val maxDensityArray,
+    int pointsToCalculate
+  ) {
+    // Extract parameters from JS object
+    AttractorParameters attractorParams = extractAttractorParameters(jsAttractorParams);
+
+    // Get buffer pointers from JS using typed arrays directly
+    emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
+    emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(jsImageBuffer);
+
+    size_t densitySize = width * height;
+
+    // Create image data
+    createImageData(
+      imageArray,
+      width * height,
+      densityArray,
+      densitySize,
+      maxDensityArray,
+      highQuality,
+      attractorParams
+    );
+
+    return emscripten::val::object();
+  }
+
+  // Calculate attractor points and return density and image data
+  emscripten::val
+  calculateAttractor(
+    emscripten::val jsAttractorParams,
+    emscripten::val jsDensityBuffer,
+    emscripten::val jsMaxDensityBuffer,
+    emscripten::val jsImageBuffer,
+    bool highQuality,
+    int width,
+    int height,
+    double x,
+    double y,
     int pointsToCalculate,
     bool shouldDraw
   ) {
@@ -273,6 +377,8 @@ class AttractorCalculator {
 
     // Get buffer pointers from JS using typed arrays directly
     emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
+    emscripten::val maxDensityArray =
+      emscripten::val::global("Uint32Array").new_(jsMaxDensityBuffer);
     emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(jsImageBuffer);
 
     // Get attractor function based on type
@@ -302,7 +408,7 @@ class AttractorCalculator {
     accumulateDensity(
       densityArray,
       densitySize,
-      maxDensity,
+      maxDensityArray,
       x,
       y,
       pointsToCalculate,
@@ -321,7 +427,7 @@ class AttractorCalculator {
         width * height,
         densityArray,
         densitySize,
-        maxDensity,
+        maxDensityArray,
         highQuality,
         attractorParams
       );
@@ -329,7 +435,7 @@ class AttractorCalculator {
 
     // Return result object
     emscripten::val result = emscripten::val::object();
-    result.set("maxDensity", maxDensity);
+    result.set("maxDensity", maxDensityArray[0].as<int>());
     result.set("x", x);
     result.set("y", y);
     result.set("pointsAdded", pointsToCalculate);
@@ -369,7 +475,7 @@ class AttractorCalculator {
   accumulateDensity(
     emscripten::val& densityArray,
     size_t densitySize,
-    int& maxDensity,
+    emscripten::val& maxDensityArray,
     double& x,
     double& y,
     const int pointsToCalculate,
@@ -382,6 +488,7 @@ class AttractorCalculator {
       fn
   ) {
     int i = 0;
+
     while (i < pointsToCalculate) {
       auto next =
         fn(x, y, attractorParams.a, attractorParams.b, attractorParams.c, attractorParams.d);
@@ -401,8 +508,8 @@ class AttractorCalculator {
           int newVal = currentVal + 1;
           densityArray.set(idx, newVal);
 
-          if (newVal > maxDensity) {
-            maxDensity = newVal;
+          if (newVal > maxDensityArray[0].as<int>()) {
+            maxDensityArray.set(0, newVal);
           }
         }
       }
@@ -418,11 +525,12 @@ class AttractorCalculator {
     int imageSize,
     const emscripten::val& densityArray,
     size_t densitySize,
-    int maxDensity,
+    emscripten::val& maxDensityArray,
     bool highQuality,
     const AttractorParameters& attractorParams
   ) {
     int loopLimit = imageSize;
+    int maxDensity = maxDensityArray[0].as<int>();
 
     uint32_t bgColor = 0;
     if (!attractorParams.background.empty()) {
