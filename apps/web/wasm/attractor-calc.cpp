@@ -63,7 +63,6 @@ struct ImageDataCreationContext {
   int imageSize;
   emscripten::val densityArray;  // Uint32Array view
   emscripten::val infoArray;     // Int32Array view [maxDensity, cancelFlag]
-  int maxDensity;
   bool highQuality;
   AttractorParameters attractorParams;
 };
@@ -373,7 +372,7 @@ createImageData(ImageDataCreationContext& context) {
       if (context.highQuality) {
         uint32_t colorData = getColorData(
           dval,
-          context.maxDensity,
+          context.infoArray[0].as<int>(),
           context.attractorParams.hue,
           context.attractorParams.saturation,
           context.attractorParams.brightness,
@@ -520,7 +519,6 @@ createAttractorImage(emscripten::val jsCtx) {
     .imageSize = ctx.width * ctx.height,
     .densityArray = densityArray,
     .infoArray = infoArray,
-    .maxDensity = infoArray[0].as<int>(),
     .highQuality = ctx.highQuality,
     .attractorParams = attractorParams
   };
@@ -614,7 +612,6 @@ calculateAttractor(emscripten::val jsCtx) {
       .imageSize = ctx.width * ctx.height,
       .densityArray = densityArray,
       .infoArray = infoArray,
-      .maxDensity = infoArray[0].as<int>(),
       .highQuality = ctx.highQuality,
       .attractorParams = attractorParams
     };
