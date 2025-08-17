@@ -28,8 +28,6 @@ self.onmessage = async function (e) {
       break;
 
     case "calculate":
-      isCalculating = new Date().toISOString();
-
       if (!wasmModule) {
         self.postMessage({
           type: "error",
@@ -42,7 +40,6 @@ self.onmessage = async function (e) {
 
     case "cancel":
       // Cancel the current calculation
-      isCalculating = false;
       self.postMessage({
         type: "result",
         progress: 0,
@@ -87,7 +84,7 @@ function performAttractorDensityCalculation(data) {
       width = 800,
       height = 800,
       densityBuffer = new SharedArrayBuffer(width * height * 4),
-      infoBuffer = new SharedArrayBuffer(3 * 4), // maxDensity, cancel, done
+      infoBuffer = new SharedArrayBuffer(3 * 4), // uint32: maxDensity, cancel, done
     } = data;
 
     // Call the WebAssembly function
@@ -109,31 +106,16 @@ function performAttractorDensityCalculation(data) {
       top,
     };
 
-    let currentX = 0;
-    let currentY = 0;
-    let result;
-
-    // emscripten::val jsAttractorParams,
-    // emscripten::val jsDensityBuffer,
-    // emscripten::val jsMaxDensityBuffer,
-    // int width,
-    // int height,
-    // double x,
-    // double y,
-    // int pointsToCalculate
-
-    // Use the info buffer from parameters
-
-    result = wasmModule.calculateAttractorDensity(
+    wasmModule.calculateAttractorDensity({
       attractorParams,
       densityBuffer,
       infoBuffer,
       width,
       height,
-      currentX,
-      currentY, // Pass current x,y state
-      iterations,
-    );
+      x: 0,
+      y: 0,
+      pointsToCalculate: iterations,
+    });
 
     console.log("calc done in", performance.now() - start, "ms");
 
@@ -147,8 +129,6 @@ function performAttractorDensityCalculation(data) {
       message: "Error calculating attractor",
       error: error.toString(),
     });
-  } finally {
-    isCalculating = false;
   }
 }
 
