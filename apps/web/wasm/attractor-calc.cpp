@@ -291,15 +291,12 @@ class AttractorCalculator {
     }
 
     // Initialize calculation variables
-    size_t densitySize = width * height;
-
     double centerX = width / 2.0 + attractorParams.left;
     double centerY = height / 2.0 + attractorParams.top;
 
     // Accumulate density
     accumulateDensity(
       densityArray,
-      densitySize,
       maxDensityArray,
       x,
       y,
@@ -331,7 +328,7 @@ class AttractorCalculator {
     int height,
     double x,
     double y,
-    emscripten::val maxDensityArray,
+    emscripten::val jsMaxDensityBuffer,
     int pointsToCalculate
   ) {
     // Extract parameters from JS object
@@ -340,18 +337,12 @@ class AttractorCalculator {
     // Get buffer pointers from JS using typed arrays directly
     emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(jsDensityBuffer);
     emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(jsImageBuffer);
-
-    size_t densitySize = width * height;
+    emscripten::val maxDensityArray =
+      emscripten::val::global("Uint32Array").new_(jsMaxDensityBuffer);
 
     // Create image data
     createImageData(
-      imageArray,
-      width * height,
-      densityArray,
-      densitySize,
-      maxDensityArray,
-      highQuality,
-      attractorParams
+      imageArray, width * height, densityArray, maxDensityArray, highQuality, attractorParams
     );
 
     return emscripten::val::object();
@@ -399,15 +390,12 @@ class AttractorCalculator {
     }
 
     // Initialize calculation variables
-    size_t densitySize = width * height;
-
     double centerX = width / 2.0 + attractorParams.left;
     double centerY = height / 2.0 + attractorParams.top;
 
     // Accumulate density
     accumulateDensity(
       densityArray,
-      densitySize,
       maxDensityArray,
       x,
       y,
@@ -423,19 +411,12 @@ class AttractorCalculator {
     // Create image data
     if (shouldDraw) {
       createImageData(
-        imageArray,
-        width * height,
-        densityArray,
-        densitySize,
-        maxDensityArray,
-        highQuality,
-        attractorParams
+        imageArray, width * height, densityArray, maxDensityArray, highQuality, attractorParams
       );
     }
 
     // Return result object
     emscripten::val result = emscripten::val::object();
-    result.set("maxDensity", maxDensityArray[0].as<int>());
     result.set("x", x);
     result.set("y", y);
     result.set("pointsAdded", pointsToCalculate);
@@ -474,7 +455,6 @@ class AttractorCalculator {
   void
   accumulateDensity(
     emscripten::val& densityArray,
-    size_t densitySize,
     emscripten::val& maxDensityArray,
     double& x,
     double& y,
@@ -488,6 +468,7 @@ class AttractorCalculator {
       fn
   ) {
     int i = 0;
+    int densitySize = w * h;
 
     while (i < pointsToCalculate) {
       auto next =
@@ -502,7 +483,7 @@ class AttractorCalculator {
 
       if (px >= 0 && px < w && py >= 0 && py < h) {
         int idx = py * w + px;
-        if (idx >= 0 && idx < static_cast<int>(densitySize)) {
+        if (idx >= 0 && idx < densitySize) {
           // Get current value, increment it, and update the array
           int currentVal = densityArray[idx].as<int>();
           int newVal = currentVal + 1;
@@ -524,7 +505,6 @@ class AttractorCalculator {
     emscripten::val& imageArray,
     int imageSize,
     const emscripten::val& densityArray,
-    size_t densitySize,
     emscripten::val& maxDensityArray,
     bool highQuality,
     const AttractorParameters& attractorParams
@@ -626,7 +606,11 @@ EMSCRIPTEN_BINDINGS(attractor_module) {
   emscripten::class_<attractor::AttractorCalculator>("AttractorCalculator")
     .constructor<>()
     .function("getBuildNumber", &attractor::AttractorCalculator::getBuildNumber)
-    .function("calculateAttractor", &attractor::AttractorCalculator::calculateAttractor);
+    .function("calculateAttractor", &attractor::AttractorCalculator::calculateAttractor)
+    .function(
+      "calculateAttractorDensity", &attractor::AttractorCalculator::calculateAttractorDensity
+    )
+    .function("createAttractorImage", &attractor::AttractorCalculator::createAttractorImage);
 
   emscripten::function("ratePerformance", &attractor::ratePerformance);
 
