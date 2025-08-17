@@ -39,7 +39,7 @@ export function getBuildNumber(): string;
  *
  * @param attractorParams Parameters for the attractor
  * @param densityBuffer A TypedArray buffer to store point density information
- * @param infoBuffer A TypedArray buffer for storing info like maxDensity
+ * @param infoBuffer A Uint32Array buffer for storing info like maxDensity
  * @param width The width of the target image
  * @param height The height of the target image
  * @param x The initial x coordinate
@@ -49,8 +49,8 @@ export function getBuildNumber(): string;
  */
 export function calculateAttractorDensity(
   attractorParams: AttractorParameters,
-  densityBuffer: Uint32Array | Int32Array,
-  infoBuffer: Uint32Array | Int32Array,
+  densityBuffer: Uint32Array,
+  infoBuffer: Uint32Array,
   width: number,
   height: number,
   x: number,
@@ -62,9 +62,9 @@ export function calculateAttractorDensity(
  * Creates an attractor image from density data
  *
  * @param attractorParams Parameters for the attractor
- * @param densityBuffer A TypedArray buffer with point density information
- * @param imageBuffer A TypedArray buffer to store the generated image data
- * @param infoBuffer A TypedArray buffer with info like maxDensity
+ * @param densityBuffer A Uint32Array buffer with point density information
+ * @param imageBuffer A Uint32Array buffer to store the generated image data
+ * @param infoBuffer A Uint32Array buffer with info like maxDensity
  * @param highQuality Whether to use high quality rendering
  * @param width The width of the target image
  * @param height The height of the target image
@@ -75,9 +75,9 @@ export function calculateAttractorDensity(
  */
 export function createAttractorImage(
   attractorParams: AttractorParameters,
-  densityBuffer: Uint32Array | Int32Array,
-  imageBuffer: Uint32Array | Int32Array,
-  infoBuffer: Uint32Array | Int32Array,
+  densityBuffer: Uint32Array,
+  imageBuffer: Uint32Array,
+  infoBuffer: Uint32Array,
   highQuality: boolean,
   width: number,
   height: number,
@@ -90,9 +90,9 @@ export function createAttractorImage(
  * Calculates points for the specified attractor and updates image data
  *
  * @param attractorParams Parameters for the attractor
- * @param densityBuffer A TypedArray buffer to store point density information
- * @param imageBuffer A TypedArray buffer to store the generated image data
- * @param infoBuffer A TypedArray buffer with info like maxDensity
+ * @param densityBuffer A Uint32Array buffer to store point density information
+ * @param imageBuffer A Uint32Array buffer to store the generated image data
+ * @param infoBuffer A Uint32Array buffer with info like maxDensity
  * @param highQuality Whether to use high quality rendering
  * @param width The width of the target image
  * @param height The height of the target image
@@ -104,9 +104,9 @@ export function createAttractorImage(
  */
 export function calculateAttractor(
   attractorParams: AttractorParameters,
-  densityBuffer: Uint32Array | Int32Array,
-  imageBuffer: Uint32Array | Int32Array,
-  infoBuffer: Uint32Array | Int32Array,
+  densityBuffer: Uint32Array,
+  imageBuffer: Uint32Array,
+  infoBuffer: Uint32Array,
   highQuality: boolean,
   width: number,
   height: number,

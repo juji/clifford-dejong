@@ -45,7 +45,7 @@ struct AttractorParameters {
 // Context for accumulating density into a typed array (WASM side)
 struct AccumulationContext {
   emscripten::val densityArray;  // Uint32Array view
-  emscripten::val infoArray;     // Int32Array view [maxDensity, cancelFlag]
+  emscripten::val infoArray;     // Uint32Array view [maxDensity, cancelFlag]
   double x;
   double y;
   int pointsToCalculate;
@@ -62,7 +62,7 @@ struct ImageDataCreationContext {
   emscripten::val imageArray;  // Uint32Array view
   int imageSize;
   emscripten::val densityArray;  // Uint32Array view
-  emscripten::val infoArray;     // Int32Array view [maxDensity, cancelFlag]
+  emscripten::val infoArray;     // Uint32Array view [maxDensity, cancelFlag]
   bool highQuality;
   AttractorParameters attractorParams;
 };
@@ -427,7 +427,7 @@ calculateAttractorDensity(emscripten::val jsCtx) {
 
   // Get buffer pointers from JS using typed arrays directly
   emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(ctx.densityBuffer);
-  emscripten::val infoArray = emscripten::val::global("Int32Array").new_(ctx.infoBuffer);
+  emscripten::val infoArray = emscripten::val::global("Uint32Array").new_(ctx.infoBuffer);
 
   // Get attractor function based on type
   std::function<std::pair<double, double>(double, double, double, double, double, double)>
@@ -511,7 +511,7 @@ createAttractorImage(emscripten::val jsCtx) {
   // Get buffer pointers from JS using typed arrays directly
   emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(ctx.densityBuffer);
   emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(ctx.imageBuffer);
-  emscripten::val infoArray = emscripten::val::global("Int32Array").new_(ctx.infoBuffer);
+  emscripten::val infoArray = emscripten::val::global("Uint32Array").new_(ctx.infoBuffer);
 
   // Create image data
   ImageDataCreationContext imgCtx = {
@@ -565,7 +565,7 @@ calculateAttractor(emscripten::val jsCtx) {
 
   // Get buffer pointers from JS using typed arrays directly
   emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(ctx.densityBuffer);
-  emscripten::val infoArray = emscripten::val::global("Int32Array").new_(ctx.infoBuffer);
+  emscripten::val infoArray = emscripten::val::global("Uint32Array").new_(ctx.infoBuffer);
   emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(ctx.imageBuffer);
 
   // Get attractor function based on type
