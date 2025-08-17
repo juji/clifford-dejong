@@ -483,18 +483,16 @@ createAttractorImage(
   emscripten::val infoArray = emscripten::val::global("Int32Array").new_(jsInfoBuffer);
 
   // Create image data
-  {
-    ImageDataCreationContext imgCtx = {
-      .imageArray = imageArray,
-      .imageSize = width * height,
-      .densityArray = densityArray,
-      .infoArray = infoArray,
-      .maxDensity = infoArray[0].as<int>(),
-      .highQuality = highQuality,
-      .attractorParams = attractorParams
-    };
-    createImageData(imgCtx);
-  }
+  ImageDataCreationContext imgCtx = {
+    .imageArray = imageArray,
+    .imageSize = width * height,
+    .densityArray = densityArray,
+    .infoArray = infoArray,
+    .maxDensity = infoArray[0].as<int>(),
+    .highQuality = highQuality,
+    .attractorParams = attractorParams
+  };
+  createImageData(imgCtx);
 
   return emscripten::val::object();
 }
