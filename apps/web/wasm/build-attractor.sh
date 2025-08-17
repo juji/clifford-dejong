@@ -3,6 +3,9 @@
 # Build script for attractor-calc.cpp WebAssembly module
 echo "Building attractor-calc.wasm..."
 
+# Exit on error
+set -e
+
 # Create output directory if it doesn't exist
 mkdir -p ../public/wasm
 
@@ -26,7 +29,14 @@ emcc \
   --bind \
   -o ../public/wasm/attractor-calc.mjs
 
+# Check if build was successful
+if [ $? -ne 0 ]; then
+  echo "Error: Build failed!"
+  exit 1
+fi
+
 echo "Build complete. Files generated:"
 echo " - ../public/wasm/attractor-calc.mjs"
 echo " - ../public/wasm/attractor-calc.wasm"
 echo " - ../public/wasm/attractor-calc.wasm.map (source map)"
+exit 0
