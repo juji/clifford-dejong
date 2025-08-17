@@ -43,5 +43,6 @@
     "vector": "cpp",
     "memory": "cpp",
     "*.inc": "cpp"
-  }
+  },
+  "C_Cpp.default.compilerPath": "/usr/bin/clang++"
 }
