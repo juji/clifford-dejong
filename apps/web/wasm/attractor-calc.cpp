@@ -45,7 +45,8 @@ struct AttractorParameters {
 // Context for accumulating density into a typed array (WASM side)
 struct AccumulationContext {
   emscripten::val densityArray;  // Uint32Array view
-  emscripten::val infoArray;     // Uint32Array view [maxDensity, cancelFlag]
+  emscripten::val
+    infoArray;  // Uint32Array view [maxDensity, cancelFlag, doneFlag, progress (0-100)]
   double x;
   double y;
   int pointsToCalculate;
@@ -62,7 +63,8 @@ struct ImageDataCreationContext {
   emscripten::val imageArray;  // Uint32Array view
   int imageSize;
   emscripten::val densityArray;  // Uint32Array view
-  emscripten::val infoArray;     // Uint32Array view [maxDensity, cancelFlag]
+  emscripten::val
+    infoArray;  // Uint32Array view [maxDensity, cancelFlag, doneFlag, progress (0-100)]
   bool highQuality;
   AttractorParameters attractorParams;
 };
@@ -340,6 +342,15 @@ accumulateDensity(AccumulationContext& context) {
     }
 
     i++;
+
+    if (i % 10000 == 0 || i == context.pointsToCalculate - 1) {
+      // Update progress, this will result in <100 to let other process define what 100 is
+      int newProgress =
+        static_cast<int>(i / static_cast<double>(context.pointsToCalculate) * 100.0);
+      if (newProgress != context.infoArray[3].as<int>()) {
+        context.infoArray.set(3, newProgress);
+      }
+    }
   }
 }
 
@@ -484,9 +495,6 @@ struct AttractorImageContext {
   bool highQuality;
   int width;
   int height;
-  double x;
-  double y;
-  int pointsToCalculate;
 };
 
 emscripten::val
@@ -499,10 +507,7 @@ createAttractorImage(emscripten::val jsCtx) {
     .infoBuffer = jsCtx["infoBuffer"],
     .highQuality = jsCtx["highQuality"].as<bool>(),
     .width = jsCtx["width"].as<int>(),
-    .height = jsCtx["height"].as<int>(),
-    .x = jsCtx["x"].as<double>(),
-    .y = jsCtx["y"].as<double>(),
-    .pointsToCalculate = jsCtx["pointsToCalculate"].as<int>()
+    .height = jsCtx["height"].as<int>()
   };
 
   // Extract parameters from JS object

@@ -3,17 +3,24 @@ import AttractorModule from "./attractor-calc.mjs";
 
 // Initialize the WebAssembly module
 let wasmModule = null;
+let offscreenCanvas = null;
 
 // Handle messages from the main thread
 self.onmessage = async function (e) {
   const { type, data } = e.data;
-  console.log("Worker Calculate received message:", type, data);
+  console.log("Worker Draw received message:", type, data);
 
   switch (type) {
     case "init":
       try {
+        if (!data.canvas) {
+          throw new Error("Offscreen canvas not provided");
+        }
+
+        // load the offscreen canvas
+        offscreenCanvas = data.canvas;
+
         // Load the WebAssembly module
-        // console.log('init from worker', AttractorModule);
         if (!wasmModule) {
           wasmModule = await AttractorModule();
           self.postMessage({ type: "initialized" });
@@ -27,7 +34,7 @@ self.onmessage = async function (e) {
       }
       break;
 
-    case "calculate":
+    case "draw":
       if (!wasmModule) {
         self.postMessage({
           type: "error",
@@ -35,7 +42,20 @@ self.onmessage = async function (e) {
         });
         return;
       }
-      performAttractorDensityCalculation(data);
+
+      if (!offscreenCanvas) {
+        self.postMessage({
+          type: "error",
+          message: "Offscreen canvas not initialized",
+        });
+        return;
+      }
+
+      offscreenCanvas.width = data.width;
+      offscreenCanvas.height = data.height;
+      const ctx = offscreenCanvas.getContext("2d");
+      ctx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      performAttractorDrawing(data);
       break;
 
     case "terminate":
@@ -56,7 +76,7 @@ self.onmessage = async function (e) {
  * This function handles the main calculation loop and reports progress
  * @param {Object} data - The calculation parameters
  */
-function performAttractorDensityCalculation(data) {
+async function performAttractorDrawing(data) {
   try {
     const {
       attractor,
@@ -71,10 +91,11 @@ function performAttractorDensityCalculation(data) {
       scale,
       left,
       top,
-      iterations = 20000000,
       width = 800,
       height = 800,
+      highQuality = false,
       densityBuffer = new SharedArrayBuffer(width * height * 4),
+      imageBuffer = new SharedArrayBuffer(width * height * 4),
       infoBuffer = new SharedArrayBuffer(4 * 4), // uint32: maxDensity, cancel, done, progress (0-100)
     } = data;
 
@@ -97,22 +118,64 @@ function performAttractorDensityCalculation(data) {
       top,
     };
 
-    wasmModule.calculateAttractorDensity({
-      attractorParams,
-      densityBuffer,
-      infoBuffer,
-      width,
-      height,
-      x: 0,
-      y: 0,
-      pointsToCalculate: iterations,
-    });
+    // emscripten::val attractorParams;
+    // emscripten::val densityBuffer;
+    // emscripten::val imageBuffer;
+    // emscripten::val infoBuffer;
+    // bool highQuality;
+    // int width;
+    // int height;
 
-    console.log("calc done in", performance.now() - start, "ms");
-
-    // update the doneFlag
     const info = new Uint32Array(infoBuffer);
-    info[2] = 1;
+    const ctx = offscreenCanvas.getContext("2d");
+    const imageData = ctx.createImageData(width, height);
+    const dst = new Uint32Array(imageData.data.buffer);
+    const imageView = new Uint32Array(imageBuffer);
+
+    while (
+      !info[2] && // not done
+      !info[1] // not canceled
+    ) {
+      wasmModule.createAttractorImage({
+        attractorParams,
+        densityBuffer,
+        imageBuffer,
+        infoBuffer,
+        highQuality,
+        width,
+        height,
+      });
+
+      dst.set(imageView);
+      ctx.putImageData(imageData, 0, 0);
+      self.postMessage({ type: "progress", progress: info[3] / 100 });
+
+      // Add a short sleep to prevent CPU hogging
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+
+    if (!info[1]) {
+      wasmModule.createAttractorImage({
+        attractorParams,
+        densityBuffer,
+        imageBuffer,
+        infoBuffer,
+        highQuality,
+        width,
+        height,
+      });
+
+      // update the doneFlag and progress
+      info[2] = 0;
+      info[3] = 100;
+
+      // set final image data
+      dst.set(imageView);
+      offscreenCtx.putImageData(imageData, 0, 0);
+      self.postMessage({ type: "progress", progress: info[3] / 100 });
+    }
+
+    console.log("draw done in", performance.now() - start, "ms");
 
     //
     self.postMessage({ type: "done" });

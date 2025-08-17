@@ -119,7 +119,7 @@ function performAttractorCalculation(data) {
       highQuality = true,
       densityBuffer = new SharedArrayBuffer(width * height * 4),
       imageBuffer = new SharedArrayBuffer(width * height * 4),
-      infoBuffer = new SharedArrayBuffer(3 * 4), // uint32: maxDensity, cancel, done
+      infoBuffer = new SharedArrayBuffer(4 * 4), // uint32: maxDensity, cancel, done, progress (0-100)
     } = data;
 
     // Call the WebAssembly function
