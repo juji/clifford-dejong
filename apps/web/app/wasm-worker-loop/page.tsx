@@ -1,5 +1,5 @@
 "use client";
-import { WasmOffscreenCanvas } from "@/components/attractor-canvas-dynamic/wasm-offscreen-canvas";
+import { WasmLoopCanvas } from "@/components/attractor-canvas-dynamic/wasm-loop-canvas";
 import { Footer } from "@/components/footer";
 // import { Header } from "@/components/header";
 import { ProgressIndicator } from "@/components/progress-indicator";
@@ -31,11 +31,11 @@ export default function WasmWorker() {
     >
       {/* <Header /> */}
       <p className="fixed top-2 z-10 left-2">
-        Lab: WASM Worker &gt; draw & calc
+        Lab: WASM Worker &gt; single loop
       </p>
       <ProgressIndicator />
       <main className={styles.mainContent}>
-        <WasmOffscreenCanvas />
+        <WasmLoopCanvas />
       </main>
       <Footer />
     </div>

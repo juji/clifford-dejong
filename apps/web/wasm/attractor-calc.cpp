@@ -42,33 +42,6 @@ struct AttractorParameters {
   double top;
 };
 
-// Context for accumulating density into a typed array (WASM side)
-struct AccumulationContext {
-  emscripten::val densityArray;  // Uint32Array view
-  emscripten::val
-    infoArray;  // Uint32Array view [maxDensity, cancelFlag, doneFlag, progress (0-100)]
-  double x;
-  double y;
-  int pointsToCalculate;
-  int w;
-  int h;
-  AttractorParameters attractorParams;
-  double centerX;
-  double centerY;
-  std::function<std::pair<double, double>(double, double, double, double, double, double)> fn;
-};
-
-// Context for image data creation (WASM side)
-struct ImageDataCreationContext {
-  emscripten::val imageArray;  // Uint32Array view
-  int imageSize;
-  emscripten::val densityArray;  // Uint32Array view
-  emscripten::val
-    infoArray;  // Uint32Array view [maxDensity, cancelFlag, doneFlag, progress (0-100)]
-  bool highQuality;
-  AttractorParameters attractorParams;
-};
-
 // Version information
 std::string version = "2.0.1";
 
@@ -304,6 +277,23 @@ extractAttractorParameters(emscripten::val jsParams) {
   };
 }
 
+// Context for accumulating density into a typed array (WASM side)
+struct AccumulationContext {
+  emscripten::val densityArray;  // Uint32Array view
+  emscripten::val
+    infoArray;  // Uint32Array view [maxDensity, cancelFlag, doneFlag, progress (0-100)]
+  double x;
+  double y;
+  int pointsToCalculate;
+  int w;
+  int h;
+  AttractorParameters attractorParams;
+  double centerX;
+  double centerY;
+  std::function<std::pair<double, double>(double, double, double, double, double, double)> fn;
+  bool updateProgress;
+};
+
 // Accumulate density function
 void
 accumulateDensity(AccumulationContext& context) {
@@ -343,7 +333,7 @@ accumulateDensity(AccumulationContext& context) {
 
     i++;
 
-    if (i % 100000 == 0 || i == context.pointsToCalculate - 1) {
+    if (context.updateProgress && (i % 100000 == 0 || i == context.pointsToCalculate - 1)) {
       // Update progress, this will result in <100 to let other process define what 100 is
       int newProgress =
         static_cast<int>(i / static_cast<double>(context.pointsToCalculate) * 100.0);
@@ -353,6 +343,17 @@ accumulateDensity(AccumulationContext& context) {
     }
   }
 }
+
+// Context for image data creation (WASM side)
+struct ImageDataCreationContext {
+  emscripten::val imageArray;  // Uint32Array view
+  int imageSize;
+  emscripten::val densityArray;  // Uint32Array view
+  emscripten::val
+    infoArray;  // Uint32Array view [maxDensity, cancelFlag, doneFlag, progress (0-100)]
+  bool highQuality;
+  AttractorParameters attractorParams;
+};
 
 // Create image data function
 void
@@ -404,6 +405,119 @@ createImageData(ImageDataCreationContext& context) {
     }
     i++;
   }
+}
+
+// Context for density calculation
+struct AttractorLoopContext {
+  emscripten::val attractorParams;
+  emscripten::val densityBuffer;
+  emscripten::val infoBuffer;
+  emscripten::val imageBuffer;
+  bool highQuality;
+  int pointsToCalculate;
+  int width;
+  int height;
+  double x;
+  double y;
+  int loopNum;
+  int drawAt;
+};
+
+emscripten::val
+calculateAttractorLoop(emscripten::val jsCtx) {
+  AttractorLoopContext ctx = {
+    .attractorParams = jsCtx["attractorParams"],
+    .densityBuffer = jsCtx["densityBuffer"],
+    .infoBuffer = jsCtx["infoBuffer"],
+    .imageBuffer = jsCtx["imageBuffer"],
+    .highQuality = jsCtx["highQuality"].as<bool>(),
+    .pointsToCalculate = jsCtx["pointsToCalculate"].as<int>(),
+    .width = jsCtx["width"].as<int>(),
+    .height = jsCtx["height"].as<int>(),
+    .x = jsCtx["x"].as<double>(),
+    .y = jsCtx["y"].as<double>(),
+    .loopNum = jsCtx["loopNum"].as<int>(),
+    .drawAt = jsCtx["drawAt"].as<int>()
+  };
+
+  // Extract parameters from JS object
+  AttractorParameters attractorParams = extractAttractorParameters(ctx.attractorParams);
+
+  // Get buffer pointers from JS using typed arrays directly
+  emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(ctx.densityBuffer);
+  emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(ctx.imageBuffer);
+  emscripten::val infoArray = emscripten::val::global("Uint32Array").new_(ctx.infoBuffer);
+
+  // Get attractor function based on type
+  std::function<std::pair<double, double>(double, double, double, double, double, double)>
+    attractorFunc;
+  if (attractorParams.attractor == "clifford") {
+    attractorFunc = clifford;
+  } else if (attractorParams.attractor == "dejong") {
+    attractorFunc = dejong;
+  } else {
+    // Return error object
+    emscripten::val error = emscripten::val::object();
+    error.set(
+      "error",
+      "Invalid attractor type: " + attractorParams.attractor + ". Must be 'clifford' or 'dejong'."
+    );
+    return error;
+  }
+
+  // Initialize calculation variables
+  double centerX = ctx.width / 2.0 + attractorParams.left;
+  double centerY = ctx.height / 2.0 + attractorParams.top;
+
+  int pointsToCalculate =
+    static_cast<int>(ctx.pointsToCalculate / static_cast<double>(ctx.loopNum));
+  int num = 0;
+
+  // Accumulate density
+  AccumulationContext accumCtx = {
+    .densityArray = densityArray,
+    .infoArray = infoArray,
+    .x = ctx.x,
+    .y = ctx.y,
+    .pointsToCalculate = pointsToCalculate,
+    .w = ctx.width,
+    .h = ctx.height,
+    .attractorParams = attractorParams,
+    .centerX = centerX,
+    .centerY = centerY,
+    .fn = attractorFunc,
+    .updateProgress = false
+  };
+
+  // Create image data
+  ImageDataCreationContext imgCtx = {
+    .imageArray = imageArray,
+    .imageSize = ctx.width * ctx.height,
+    .densityArray = densityArray,
+    .infoArray = infoArray,
+    .highQuality = ctx.highQuality,
+    .attractorParams = attractorParams
+  };
+
+  int totalLoop = 0;
+  while (num < ctx.loopNum) {
+    accumulateDensity(accumCtx);
+    if ((totalLoop % ctx.drawAt) == 0) {
+      createImageData(imgCtx);
+    }
+    totalLoop = totalLoop + pointsToCalculate;
+    num++;
+
+    // update progress
+    infoArray.set(3, static_cast<int>(num / static_cast<double>(ctx.loopNum) * 100.0));
+  }
+
+  emscripten::val result = emscripten::val::object();
+  result.set("x", accumCtx.x);
+  result.set("y", accumCtx.y);
+  result.set("pointsAdded", ctx.pointsToCalculate);
+
+  return result;
 }
 
 // Context for density calculation
@@ -473,7 +587,8 @@ calculateAttractorDensity(emscripten::val jsCtx) {
     .attractorParams = attractorParams,
     .centerX = centerX,
     .centerY = centerY,
-    .fn = attractorFunc
+    .fn = attractorFunc,
+    .updateProgress = true
   };
   accumulateDensity(accumCtx);
 
@@ -606,7 +721,8 @@ calculateAttractor(emscripten::val jsCtx) {
     .attractorParams = attractorParams,
     .centerX = centerX,
     .centerY = centerY,
-    .fn = attractorFunc
+    .fn = attractorFunc,
+    .updateProgress = true
   };
   accumulateDensity(accumCtx);
 
@@ -689,7 +805,7 @@ EMSCRIPTEN_BINDINGS(attractor_module) {
   emscripten::function("calculateAttractor", &attractor::calculateAttractor);
   emscripten::function("calculateAttractorDensity", &attractor::calculateAttractorDensity);
   emscripten::function("createAttractorImage", &attractor::createAttractorImage);
-  emscripten::function("ratePerformance", &attractor::ratePerformance);
+  emscripten::function("calculateAttractorLoop", &attractor::calculateAttractorLoop);
 
   // Enum binding
   emscripten::enum_<attractor::PerformanceRating>("PerformanceRating")
