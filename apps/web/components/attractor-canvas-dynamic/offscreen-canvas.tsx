@@ -61,8 +61,8 @@ export function OffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
         const time = performance.now() - (timeRef.current || 0);
         console.log("OffscreenCanvas draw time:", time, "ms");
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [canvasSize],
   );
 
