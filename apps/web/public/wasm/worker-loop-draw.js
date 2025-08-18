@@ -119,7 +119,7 @@ async function performAttractorDraw(data) {
         requestAnimationFrame(draw);
       } else {
         console.log("draw done in", performance.now() - start, "ms");
-        self.postMessage({ type: "done" });
+        if (!info[1]) self.postMessage({ type: "done" });
       }
     });
   } catch (error) {

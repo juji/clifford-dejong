@@ -14,6 +14,7 @@ export function WasmLoopCanvas({ ariaLabel }: { ariaLabel?: string }) {
   const canvasSize = useUIStore((s) => s.canvasSize);
   const qualityMode = useUIStore((s) => s.qualityMode);
   const setProgress = useUIStore((s) => s.setProgress);
+  const setImageUrl = useUIStore((s) => s.setImageUrl);
   const [init, setInit] = useState(false);
   const [ready, setReady] = useState(false);
 
@@ -102,6 +103,8 @@ export function WasmLoopCanvas({ ariaLabel }: { ariaLabel?: string }) {
       }
       if (e.data.type === "done") {
         console.log("Worker Draw Done");
+        if (canvasRef.current)
+          setImageUrl(canvasRef.current.toDataURL("image/png"));
       }
       if (e.data.type === "progress") {
         // console.log("Worker Draw Progress:", e.data.progress);
