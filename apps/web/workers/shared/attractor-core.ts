@@ -100,9 +100,9 @@ export function calculateAttractorPoints({
   let x = Math.random() * 2 - 1; // Random start in range [-1, 1]
   let y = Math.random() * 2 - 1; // Random start in range [-1, 1]
 
-  console.log("initial", { x, y });
-  console.log("points", points);
-  console.log("interval", interval);
+  // console.log("initial", { x, y });
+  // console.log("points", points);
+  // console.log("interval", interval);
 
   const densityPixels = new Uint32Array(width * height);
   let maxDensity = 0;
