@@ -113,7 +113,7 @@ async function performAttractorLoopCalculation(data) {
     // int loopNum;
 
     const loopNum = 100;
-    const drawAt = 5000000;
+    const drawAt = iterations / 20;
     console.log("loopNum: ", loopNum);
     console.log("drawAt: ", drawAt);
 
