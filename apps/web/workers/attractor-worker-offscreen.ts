@@ -295,6 +295,8 @@ function runAttractor({
         progress: progressVal,
         qualityMode,
       });
+
+      if (isDone) shouldStop = true;
     },
   });
 

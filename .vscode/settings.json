@@ -42,7 +42,25 @@
     "variant": "cpp",
     "vector": "cpp",
     "memory": "cpp",
-    "*.inc": "cpp"
+    "*.inc": "cpp",
+    "__tree": "cpp",
+    "bitset": "cpp",
+    "cfenv": "cpp",
+    "charconv": "cpp",
+    "cinttypes": "cpp",
+    "deque": "cpp",
+    "forward_list": "cpp",
+    "istream": "cpp",
+    "list": "cpp",
+    "map": "cpp",
+    "print": "cpp",
+    "queue": "cpp",
+    "set": "cpp",
+    "shared_mutex": "cpp",
+    "sstream": "cpp",
+    "stack": "cpp",
+    "unordered_set": "cpp",
+    "algorithm": "cpp"
   },
   "C_Cpp.default.compilerPath": "/usr/bin/clang++"
 }

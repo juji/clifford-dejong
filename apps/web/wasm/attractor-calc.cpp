@@ -12,6 +12,7 @@
 //------------------------------------------------------------------------------
 
 #include <emscripten/bind.h>
+#include <emscripten/val.h>
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -279,9 +280,10 @@ extractAttractorParameters(emscripten::val jsParams) {
 
 // Context for accumulating density into a typed array (WASM side)
 struct AccumulationContext {
-  emscripten::val densityArray;  // Uint32Array view
-  emscripten::val
-    infoArray;  // Uint32Array view [maxDensity, cancelFlag, doneFlag, progress (0-100)]
+  emscripten::val* jsDensityArray;         // Pointer to JS Uint32Array view (nullable)
+  std::vector<uint32_t>* cppDensityArray;  // Pointer to std::vector<uint32_t> (nullable)
+  emscripten::val* jsInfoArray;            // Pointer to JS Uint32Array view (nullable)
+  std::vector<uint32_t>* cppInfoArray;     // Pointer to std::vector<uint32_t> (nullable)
   double x;
   double y;
   int pointsToCalculate;
@@ -300,7 +302,46 @@ accumulateDensity(AccumulationContext& context) {
   int i = 0;
   int densitySize = context.w * context.h;
 
-  while (i < context.pointsToCalculate && context.infoArray[1].as<int>() == 0) {
+  // Helper functions to access info array values
+  auto getCancelFlag = [&]() -> int {
+    if (context.jsInfoArray)
+      return (*context.jsInfoArray)[1].as<int>();
+    if (context.cppInfoArray)
+      return (*context.cppInfoArray)[1];
+    return 0;
+  };
+
+  auto getMaxDensity = [&]() -> int {
+    if (context.jsInfoArray)
+      return (*context.jsInfoArray)[0].as<int>();
+    if (context.cppInfoArray)
+      return (*context.cppInfoArray)[0];
+    return 0;
+  };
+
+  auto setMaxDensity = [&](uint32_t value) {
+    if (context.jsInfoArray)
+      context.jsInfoArray->set(0, value);
+    if (context.cppInfoArray)
+      (*context.cppInfoArray)[0] = value;
+  };
+
+  auto getProgress = [&]() -> int {
+    if (context.jsInfoArray)
+      return (*context.jsInfoArray)[3].as<int>();
+    if (context.cppInfoArray)
+      return (*context.cppInfoArray)[3];
+    return 0;
+  };
+
+  auto setProgress = [&](int value) {
+    if (context.jsInfoArray)
+      context.jsInfoArray->set(3, value);
+    if (context.cppInfoArray)
+      (*context.cppInfoArray)[3] = value;
+  };
+
+  while (i < context.pointsToCalculate && getCancelFlag() == 0) {
     auto next = context.fn(
       context.x,
       context.y,
@@ -320,13 +361,24 @@ accumulateDensity(AccumulationContext& context) {
     if (px >= 0 && px < context.w && py >= 0 && py < context.h) {
       int idx = py * context.w + px;
       if (idx >= 0 && idx < densitySize) {
-        // Get current value, increment it, and update the array
-        int currentVal = context.densityArray[idx].as<int>();
-        int newVal = currentVal + 1;
-        context.densityArray.set(idx, newVal);
+        // Handle both JS and C++ array types
+        if (context.jsDensityArray) {
+          // Use JS array
+          int currentVal = (*context.jsDensityArray)[idx].as<int>();
+          int newVal = currentVal + 1;
+          context.jsDensityArray->set(idx, newVal);
 
-        if (newVal > context.infoArray[0].as<int>()) {
-          context.infoArray.set(0, newVal);
+          if (newVal > getMaxDensity()) {
+            setMaxDensity(newVal);
+          }
+        } else if (context.cppDensityArray) {
+          // Use C++ vector
+          (*context.cppDensityArray)[idx]++;
+          uint32_t newVal = (*context.cppDensityArray)[idx];
+
+          if (newVal > getMaxDensity()) {
+            setMaxDensity(newVal);
+          }
         }
       }
     }
@@ -337,8 +389,8 @@ accumulateDensity(AccumulationContext& context) {
       // Update progress, this will result in <100 to let other process define what 100 is
       int newProgress =
         static_cast<int>(i / static_cast<double>(context.pointsToCalculate) * 100.0);
-      if (newProgress != context.infoArray[3].as<int>()) {
-        context.infoArray.set(3, newProgress);
+      if (newProgress != getProgress()) {
+        setProgress(newProgress);
       }
     }
   }
@@ -346,11 +398,13 @@ accumulateDensity(AccumulationContext& context) {
 
 // Context for image data creation (WASM side)
 struct ImageDataCreationContext {
-  emscripten::val imageArray;  // Uint32Array view
+  emscripten::val* jsImageArray;         // Pointer to JS Uint32Array view (nullable)
+  std::vector<uint32_t>* cppImageArray;  // Pointer to std::vector<uint32_t> (nullable)
   int imageSize;
-  emscripten::val densityArray;  // Uint32Array view
-  emscripten::val
-    infoArray;  // Uint32Array view [maxDensity, cancelFlag, doneFlag, progress (0-100)]
+  emscripten::val* jsDensityArray;         // Pointer to JS Uint32Array view (nullable)
+  std::vector<uint32_t>* cppDensityArray;  // Pointer to std::vector<uint32_t> (nullable)
+  emscripten::val* jsInfoArray;            // Pointer to JS Uint32Array view (nullable)
+  std::vector<uint32_t>* cppInfoArray;     // Pointer to std::vector<uint32_t> (nullable)
   bool highQuality;
   AttractorParameters attractorParams;
 };
@@ -372,36 +426,78 @@ createImageData(ImageDataCreationContext& context) {
     bgColor = (bgA << 24) | (bgB << 16) | (bgG << 8) | bgR;
   }
 
-  if (context.infoArray[1].as<int>() != 0) {
+  // Helper functions to access info array values
+  auto getCancelFlag = [&]() -> int {
+    if (context.jsInfoArray)
+      return (*context.jsInfoArray)[1].as<int>();
+    if (context.cppInfoArray)
+      return (*context.cppInfoArray)[1];
+    return 0;
+  };
+
+  auto getMaxDensity = [&]() -> int {
+    if (context.jsInfoArray)
+      return (*context.jsInfoArray)[0].as<int>();
+    if (context.cppInfoArray)
+      return (*context.cppInfoArray)[0];
+    return 1;
+  };
+
+  if (getCancelFlag() != 0) {
     // Cancel the operation
     return;
   }
 
   int i = 0;
-  while (i < loopLimit && context.infoArray[1].as<int>() == 0) {
-    int dval = context.densityArray[i].as<int>();
+  while (i < loopLimit && getCancelFlag() == 0) {
+    int dval = 0;
+
+    // Handle both JS and C++ array types for density data
+    if (context.jsDensityArray) {
+      dval = (*context.jsDensityArray)[i].as<int>();
+    } else if (context.cppDensityArray) {
+      dval = (*context.cppDensityArray)[i];
+    }
+
     if (dval > 0) {
       if (context.highQuality) {
         uint32_t colorData = getColorData(
           dval,
-          context.infoArray[0].as<int>(),
+          getMaxDensity(),
           context.attractorParams.hue,
           context.attractorParams.saturation,
           context.attractorParams.brightness,
           1.0,
           context.attractorParams.background
         );
-        context.imageArray.set(i, colorData);
+
+        // Handle both JS and C++ array types for image output
+        if (context.jsImageArray) {
+          context.jsImageArray->set(i, colorData);
+        } else if (context.cppImageArray) {
+          (*context.cppImageArray)[i] = colorData;
+        }
       } else {
         uint32_t colorData = getLowQualityPoint(
           context.attractorParams.hue,
           context.attractorParams.saturation,
           context.attractorParams.brightness
         );
-        context.imageArray.set(i, colorData);
+
+        // Handle both JS and C++ array types for image output
+        if (context.jsImageArray) {
+          context.jsImageArray->set(i, colorData);
+        } else if (context.cppImageArray) {
+          (*context.cppImageArray)[i] = colorData;
+        }
       }
     } else {
-      context.imageArray.set(i, bgColor);
+      // Handle both JS and C++ array types for image output
+      if (context.jsImageArray) {
+        context.jsImageArray->set(i, bgColor);
+      } else if (context.cppImageArray) {
+        (*context.cppImageArray)[i] = bgColor;
+      }
     }
     i++;
   }
@@ -444,9 +540,14 @@ calculateAttractorLoop(emscripten::val jsCtx) {
   AttractorParameters attractorParams = extractAttractorParameters(ctx.attractorParams);
 
   // Get buffer pointers from JS using typed arrays directly
-  emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(ctx.densityBuffer);
+  // emscripten::val densityArray = emscripten::val::global("Uint32Array").new_(ctx.densityBuffer);
   emscripten::val imageArray = emscripten::val::global("Uint32Array").new_(ctx.imageBuffer);
   emscripten::val infoArray = emscripten::val::global("Uint32Array").new_(ctx.infoBuffer);
+
+  // Create C++ vector for fast computation (initialize to zero)
+  std::vector<uint32_t> uint32DensityArray(ctx.width * ctx.height, 0);
+  std::vector<uint32_t> uint32ImageArray(ctx.width * ctx.height, 0);
+  std::vector<uint32_t> uint32InfoArray(infoArray["length"].as<int>(), 0);
 
   // Get attractor function based on type
   std::function<std::pair<double, double>(double, double, double, double, double, double)>
@@ -475,8 +576,10 @@ calculateAttractorLoop(emscripten::val jsCtx) {
 
   // Accumulate density
   AccumulationContext accumCtx = {
-    .densityArray = densityArray,
-    .infoArray = infoArray,
+    .jsDensityArray = nullptr,
+    .cppDensityArray = &uint32DensityArray,
+    .jsInfoArray = nullptr,
+    .cppInfoArray = &uint32InfoArray,
     .x = ctx.x,
     .y = ctx.y,
     .pointsToCalculate = pointsToCalculate,
@@ -491,10 +594,13 @@ calculateAttractorLoop(emscripten::val jsCtx) {
 
   // Create image data
   ImageDataCreationContext imgCtx = {
-    .imageArray = imageArray,
+    .jsImageArray = nullptr,
+    .cppImageArray = &uint32ImageArray,
     .imageSize = ctx.width * ctx.height,
-    .densityArray = densityArray,
-    .infoArray = infoArray,
+    .jsDensityArray = nullptr,
+    .cppDensityArray = &uint32DensityArray,
+    .jsInfoArray = nullptr,
+    .cppInfoArray = &uint32InfoArray,
     .highQuality = ctx.highQuality,
     .attractorParams = attractorParams
   };
@@ -502,14 +608,24 @@ calculateAttractorLoop(emscripten::val jsCtx) {
   int totalLoop = 0;
   while (num < ctx.loopNum) {
     accumulateDensity(accumCtx);
-    if ((totalLoop % ctx.drawAt) == 0) {
+
+    if ((totalLoop % ctx.drawAt) == 0 || num == ctx.loopNum - 1) {
       createImageData(imgCtx);
+      // Copy C++ image data to JavaScript array for display
+      int i = 0;
+      while (i < imgCtx.imageSize) {
+        imageArray.set(i, (*imgCtx.cppImageArray)[i]);
+        i++;
+      }
     }
     totalLoop = totalLoop + pointsToCalculate;
     num++;
 
-    // update progress
-    infoArray.set(3, static_cast<int>(num / static_cast<double>(ctx.loopNum) * 100.0));
+    // Copy progress
+    infoArray.set(3, static_cast<uint32_t>(num / static_cast<double>(ctx.loopNum) * 100.0));
+
+    // Copy cancelation
+    uint32InfoArray[1] = infoArray[1].as<int>();
   }
 
   emscripten::val result = emscripten::val::object();
@@ -577,8 +693,10 @@ calculateAttractorDensity(emscripten::val jsCtx) {
 
   // Accumulate density
   AccumulationContext accumCtx = {
-    .densityArray = densityArray,
-    .infoArray = infoArray,
+    .jsDensityArray = &densityArray,
+    .cppDensityArray = nullptr,
+    .jsInfoArray = &infoArray,
+    .cppInfoArray = nullptr,
     .x = ctx.x,
     .y = ctx.y,
     .pointsToCalculate = ctx.pointsToCalculate,
@@ -635,10 +753,13 @@ createAttractorImage(emscripten::val jsCtx) {
 
   // Create image data
   ImageDataCreationContext imgCtx = {
-    .imageArray = imageArray,
+    .jsImageArray = &imageArray,
+    .cppImageArray = nullptr,
     .imageSize = ctx.width * ctx.height,
-    .densityArray = densityArray,
-    .infoArray = infoArray,
+    .jsDensityArray = &densityArray,
+    .cppDensityArray = nullptr,
+    .jsInfoArray = &infoArray,
+    .cppInfoArray = nullptr,
     .highQuality = ctx.highQuality,
     .attractorParams = attractorParams
   };
@@ -711,8 +832,10 @@ calculateAttractor(emscripten::val jsCtx) {
 
   // Accumulate density
   AccumulationContext accumCtx = {
-    .densityArray = densityArray,
-    .infoArray = infoArray,
+    .jsDensityArray = &densityArray,
+    .cppDensityArray = nullptr,
+    .jsInfoArray = &infoArray,
+    .cppInfoArray = nullptr,
     .x = ctx.x,
     .y = ctx.y,
     .pointsToCalculate = ctx.pointsToCalculate,
@@ -729,10 +852,13 @@ calculateAttractor(emscripten::val jsCtx) {
   // Create image data
   if (ctx.shouldDraw) {
     ImageDataCreationContext imgCtx = {
-      .imageArray = imageArray,
+      .jsImageArray = &imageArray,
+      .cppImageArray = nullptr,
       .imageSize = ctx.width * ctx.height,
-      .densityArray = densityArray,
-      .infoArray = infoArray,
+      .jsDensityArray = &densityArray,
+      .cppDensityArray = nullptr,
+      .jsInfoArray = &infoArray,
+      .cppInfoArray = nullptr,
       .highQuality = ctx.highQuality,
       .attractorParams = attractorParams
     };
