@@ -17,7 +17,6 @@ emcc \
   -O3 \
   -gsource-map \
   -s WASM=1 \
-  -s ALLOW_MEMORY_GROWTH=1 \
   -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] \
   -s EXPORT_ES6=1 \
   -s MODULARIZE=1 \
