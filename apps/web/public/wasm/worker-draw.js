@@ -154,6 +154,7 @@ async function performAttractorDrawing(data) {
       await new Promise((resolve) => setTimeout(resolve, 300));
     }
 
+    // if not cancelled
     if (!info[1]) {
       wasmModule.createAttractorImage({
         attractorParams,

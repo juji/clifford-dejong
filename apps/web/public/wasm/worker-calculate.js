@@ -108,11 +108,13 @@ function performAttractorDensityCalculation(data) {
       pointsToCalculate: iterations,
     });
 
-    console.log("calc done in", performance.now() - start, "ms");
-
-    // update the doneFlag
     const info = new Uint32Array(infoBuffer);
-    info[2] = 1;
+    // if(!canceled)
+    if (!info[1]) {
+      console.log("calc done in", performance.now() - start, "ms");
+      // update the doneFlag
+      info[2] = 1;
+    }
 
     //
     self.postMessage({ type: "done" });
