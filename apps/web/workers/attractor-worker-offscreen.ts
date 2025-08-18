@@ -212,6 +212,8 @@ function runAttractor({
 }: AttractorRunParams) {
   shouldStop = false;
 
+  console.log("left", left, "top", top);
+
   // Get calculation parameters from shared helpers
   const interval = getInterval(points, progressInterval);
   const batchSize = getBatchSize(points, qualityMode);

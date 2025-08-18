@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 
 export type WorkerSupport =
+  | "wasm"
   | "offscreen"
   | "shared-array"
   | "worker"
@@ -33,7 +34,20 @@ export function useWorkerSupport() {
       typeof window.URL !== "undefined" &&
       typeof window.URL.createObjectURL === "function";
 
-    if (isOffscreenCanvasSupported && isWorkerSupported) {
+    // Check if wasm is supported
+    const isWasmSupported =
+      typeof window !== "undefined" &&
+      typeof WebAssembly !== "undefined" &&
+      typeof WebAssembly.instantiate === "function";
+
+    if (
+      isWasmSupported &&
+      isSharedArrayBufferSupported &&
+      isOffscreenCanvasSupported &&
+      isWorkerSupported
+    ) {
+      setSupported("wasm");
+    } else if (isOffscreenCanvasSupported && isWorkerSupported) {
       setSupported("offscreen");
     } else if (isSharedArrayBufferSupported && isWorkerSupported) {
       setSupported("shared-array");

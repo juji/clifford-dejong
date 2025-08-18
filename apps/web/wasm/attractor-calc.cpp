@@ -567,8 +567,8 @@ calculateAttractorLoop(emscripten::val jsCtx) {
   }
 
   // Initialize calculation variables
-  double centerX = ctx.width / 2.0 + attractorParams.left;
-  double centerY = ctx.height / 2.0 + attractorParams.top;
+  double centerX = ctx.width / 2.0 + attractorParams.left * ctx.width;
+  double centerY = ctx.height / 2.0 + attractorParams.top * ctx.height;
 
   int pointsToCalculate =
     static_cast<int>(ctx.pointsToCalculate / static_cast<double>(ctx.loopNum));
@@ -609,6 +609,10 @@ calculateAttractorLoop(emscripten::val jsCtx) {
   while (num < ctx.loopNum) {
     accumulateDensity(accumCtx);
 
+    if (infoArray[1].as<int>() != 0) {
+      break;
+    }
+
     if ((totalLoop % ctx.drawAt) == 0 || num == ctx.loopNum - 1) {
       createImageData(imgCtx);
       // Copy C++ image data to JavaScript array for display
@@ -618,6 +622,11 @@ calculateAttractorLoop(emscripten::val jsCtx) {
         i++;
       }
     }
+
+    if (infoArray[1].as<int>() != 0) {
+      break;
+    }
+
     totalLoop = totalLoop + pointsToCalculate;
     num++;
 
