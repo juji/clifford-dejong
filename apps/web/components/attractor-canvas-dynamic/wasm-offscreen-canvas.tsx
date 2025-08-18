@@ -104,7 +104,7 @@ export function WasmOffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
         console.log("Worker Draw Done");
       }
       if (e.data.type === "progress") {
-        console.log("Worker Draw Progress:", e.data.progress);
+        // console.log("Worker Draw Progress:", e.data.progress);
         setProgress(e.data.progress);
       }
     };
@@ -140,7 +140,9 @@ export function WasmOffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
         workerDrawRef.current?.postMessage(
           {
             type: "init",
-            canvas: offscreen,
+            data: {
+              canvas: offscreen,
+            },
           },
           [offscreen],
         );
@@ -153,7 +155,10 @@ export function WasmOffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
   }, [init]);
 
   useEffect(() => {
-    if (!init && canvasSize?.height && canvasSize?.width) setInit(true);
+    if (!init && canvasSize?.height && canvasSize?.width) {
+      console.log("set init");
+      setInit(true);
+    }
   }, [init, canvasSize]);
 
   useEffect(() => {

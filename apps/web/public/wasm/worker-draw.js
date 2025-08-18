@@ -26,6 +26,7 @@ self.onmessage = async function (e) {
           self.postMessage({ type: "initialized" });
         }
       } catch (error) {
+        console.error(error);
         self.postMessage({
           type: "error",
           message: "Failed to initialize WebAssembly module",
@@ -132,10 +133,7 @@ async function performAttractorDrawing(data) {
     const dst = new Uint32Array(imageData.data.buffer);
     const imageView = new Uint32Array(imageBuffer);
 
-    while (
-      !info[2] && // not done
-      !info[1] // not canceled
-    ) {
+    requestAnimationFrame(function draw() {
       wasmModule.createAttractorImage({
         attractorParams,
         densityBuffer,
@@ -148,39 +146,20 @@ async function performAttractorDrawing(data) {
 
       dst.set(imageView);
       ctx.putImageData(imageData, 0, 0);
-      self.postMessage({ type: "progress", progress: info[3] / 100 });
+      self.postMessage({ type: "progress", progress: info[3] });
 
-      // Add a short sleep to prevent CPU hogging
-      await new Promise((resolve) => setTimeout(resolve, 300));
-    }
-
-    // if not cancelled
-    if (!info[1]) {
-      wasmModule.createAttractorImage({
-        attractorParams,
-        densityBuffer,
-        imageBuffer,
-        infoBuffer,
-        highQuality,
-        width,
-        height,
-      });
-
-      // update the doneFlag and progress
-      info[2] = 0;
-      info[3] = 100;
-
-      // set final image data
-      dst.set(imageView);
-      offscreenCtx.putImageData(imageData, 0, 0);
-      self.postMessage({ type: "progress", progress: info[3] / 100 });
-    }
-
-    console.log("draw done in", performance.now() - start, "ms");
-
-    //
-    self.postMessage({ type: "done" });
+      if (
+        !info[2] && // not done
+        !info[1] // not canceled
+      )
+        requestAnimationFrame(draw);
+      else {
+        console.log("draw done in", performance.now() - start, "ms");
+        self.postMessage({ type: "done" });
+      }
+    });
   } catch (error) {
+    console.error(error);
     self.postMessage({
       type: "error",
       message: "Error calculating attractor",

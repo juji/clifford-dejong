@@ -196,6 +196,8 @@ function performAttractorCalculation(data) {
         progress: 1,
         wasDrawn: true,
       });
+
+      console.log("Attractor calculation done in", duration, "ms");
     }
   } catch (error) {
     self.postMessage({

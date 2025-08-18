@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useRef, useEffect, useCallback } from "react";
 import { useUIStore } from "@/store/ui-store";
@@ -21,40 +21,50 @@ export function OffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const workerRef = useRef<Worker | null>(null);
   const setImageUrl = useUIStore((s) => s.setImageUrl);
+  const timeRef = useRef<number | null>(null);
 
-  const handleWorkerMessage = useCallback((e: MessageEvent) => {
-    const { type, progress, qualityMode } = e.data;
-    if(!canvasRef.current) return;
-    if(!workerRef.current) return;
-    if(!canvasSize) return;
+  const handleWorkerMessage = useCallback(
+    (e: MessageEvent) => {
+      const { type, progress, qualityMode } = e.data;
+      if (!canvasRef.current) return;
+      if (!workerRef.current) return;
+      if (!canvasSize) return;
 
-    if(type === "ready") {
-      const canvas = canvasRef.current;
-      const offscreen = canvas.transferControlToOffscreen();
-      workerRef.current.postMessage({
-        type: "init",
-        params: attractorParameters,
-        canvas: offscreen,
-        width: canvasSize.width,
-        height: canvasSize.height,
-        progressInterval: qualityMode === "low" ? LOW_QUALITY_INTERVAL : 1,
-        qualityMode,
-        points: qualityMode === "low" ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
-        defaultScale: DEFAULT_SCALE,
-      },[offscreen]);
-      return;
-    }
-    
-    setProgress(progress);
-    if(!progress){
-      setImageUrl(null);
-    }
+      if (type === "ready") {
+        const canvas = canvasRef.current;
+        const offscreen = canvas.transferControlToOffscreen();
+        timeRef.current = performance.now();
+        workerRef.current.postMessage(
+          {
+            type: "init",
+            canvas: offscreen,
+            width: canvasSize.width,
+            height: canvasSize.height,
+            params: attractorParameters,
+            progressInterval: qualityMode === "low" ? LOW_QUALITY_INTERVAL : 1,
+            qualityMode,
+            points: qualityMode === "low" ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
+            defaultScale: DEFAULT_SCALE,
+          },
+          [offscreen],
+        );
+        return;
+      }
 
-    if(type === "done" && canvasRef.current && qualityMode === "high") {
-      setImageUrl(canvasRef.current.toDataURL("image/png"));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[canvasSize])
+      setProgress(progress);
+      if (!progress) {
+        setImageUrl(null);
+      }
+
+      if (type === "done" && canvasRef.current && qualityMode === "high") {
+        setImageUrl(canvasRef.current.toDataURL("image/png"));
+        const time = performance.now() - (timeRef.current || 0);
+        console.log("OffscreenCanvas draw time:", time, "ms");
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [canvasSize],
+  );
 
   // handle parameters change
   useEffect(() => {
@@ -63,7 +73,7 @@ export function OffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
       type: "update",
       params: attractorParameters,
     });
-  },[ attractorParameters ])
+  }, [attractorParameters]);
 
   // when canvas size changes
   useEffect(() => {
@@ -73,7 +83,6 @@ export function OffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
       width: canvasSize?.width,
       height: canvasSize?.height,
     });
-    
   }, [canvasSize]);
 
   // canvas visibility change
@@ -83,7 +92,6 @@ export function OffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
         type: "start",
       });
     }
-    
   }, [canvasVisible]);
 
   // qualityMode from store
@@ -97,7 +105,6 @@ export function OffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
       points: qualityMode === "low" ? LOW_QUALITY_POINTS : DEFAULT_POINTS,
       qualityMode,
     });
-    
   }, [qualityMode]);
 
   // initiate
@@ -106,30 +113,31 @@ export function OffscreenCanvas({ ariaLabel }: { ariaLabel?: string }) {
     if (workerRef.current) return;
     if (!canvasRef.current) return;
 
-    const worker = new Worker(new URL("../../workers/attractor-worker-offscreen.ts", import.meta.url), { type: "module" });
+    const worker = new Worker(
+      new URL("../../workers/attractor-worker-offscreen.ts", import.meta.url),
+      { type: "module" },
+    );
     workerRef.current = worker;
 
     worker.onmessage = handleWorkerMessage;
     setOnInitResize(() => {
       worker.postMessage({
-        type: 'stop'
-      })
-    })
+        type: "stop",
+      });
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [benchmarkResult, attractorParameters, canvasSize, handleWorkerMessage]);
 
   useEffect(() => {
     return () => {
-      setOnInitResize(() => {})
-      if(workerRef.current) {
-        workerRef.current.terminate()
-        workerRef.current = null
+      setOnInitResize(() => {});
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
       }
-    }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[])
-
-  
+  }, []);
 
   return benchmarkResult && canvasSize ? (
     <canvas
