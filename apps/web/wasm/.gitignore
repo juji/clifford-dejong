@@ -1,0 +1,11 @@
+# Rust build artifacts
+/target
+/pkg
+
+# Generated WebAssembly files (these will be copied to public/wasm)
+attractor-calc-rust.mjs
+attractor-calc-rust.wasm
+
+# Cargo.lock is kept for reproducible builds in applications
+# but you might want to ignore it in libraries
+# Cargo.lock
