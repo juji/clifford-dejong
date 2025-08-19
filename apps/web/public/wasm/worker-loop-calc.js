@@ -8,7 +8,7 @@ let wasmModule = null;
 // Handle messages from the main thread
 self.onmessage = async function (e) {
   const { type, data } = e.data;
-  console.log("Worker Draw received message:", type, data);
+  console.log("Worker Calc received message:", type, data);
 
   switch (type) {
     case "init":

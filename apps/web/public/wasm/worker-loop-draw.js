@@ -1,8 +1,5 @@
-// Web Worker for Attractor Calculations using WebAssembly
-import AttractorModule from "./attractor-calc.mjs";
+// Web Worker for Attractor Draw
 
-// Initialize the WebAssembly module
-let wasmModule = null;
 let offscreenCanvas = null;
 
 // Handle messages from the main thread
@@ -19,12 +16,7 @@ self.onmessage = async function (e) {
 
         // load the offscreen canvas
         offscreenCanvas = data.canvas;
-
-        // Load the WebAssembly module
-        if (!wasmModule) {
-          wasmModule = await AttractorModule();
-          self.postMessage({ type: "initialized" });
-        }
+        self.postMessage({ type: "initialized" });
       } catch (error) {
         console.error(error);
         self.postMessage({
@@ -36,14 +28,6 @@ self.onmessage = async function (e) {
       break;
 
     case "draw":
-      if (!wasmModule) {
-        self.postMessage({
-          type: "error",
-          message: "WebAssembly module not initialized",
-        });
-        return;
-      }
-
       if (!offscreenCanvas) {
         self.postMessage({
           type: "error",
@@ -60,10 +44,6 @@ self.onmessage = async function (e) {
       break;
 
     case "terminate":
-      if (wasmModule) {
-        // Clean up WebAssembly resources if needed
-        wasmModule = null;
-      }
       self.close();
       break;
 
