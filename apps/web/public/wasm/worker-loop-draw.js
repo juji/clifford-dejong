@@ -72,15 +72,7 @@ self.onmessage = async function (e) {
   }
 };
 
-// To split a 32-bit number back into RGBA components:
-function split32BitToRGBA(value) {
-  const r = value & 0xff; // Bits 0-7   (red)
-  const g = (value >> 8) & 0xff; // Bits 8-15  (green)
-  const b = (value >> 16) & 0xff; // Bits 16-23 (blue)
-  const a = (value >> 24) & 0xff; // Bits 24-31 (alpha)
-
-  return [r, g, b, a];
-}
+let rafs = [];
 
 /**
  * Performs the attractor calculation using WebAssembly
@@ -89,6 +81,10 @@ function split32BitToRGBA(value) {
  */
 async function performAttractorDraw(data) {
   try {
+    // first, remove all rafs
+    rafs.forEach((raf) => cancelAnimationFrame(raf));
+    rafs = [];
+
     const {
       width = 800,
       height = 800,
@@ -248,7 +244,7 @@ async function performAttractorDraw(data) {
         ctx.putImageData(imageData, 0, 0);
 
         if (currentPixel < totalPixels) {
-          requestAnimationFrame(updateGlitch);
+          rafs.push(requestAnimationFrame(updateGlitch));
         } else {
           // Ensure completion - final pass without displacement
           for (let j = 0; j < totalPixels; j++) {
@@ -258,8 +254,6 @@ async function performAttractorDraw(data) {
           finalPassCount++;
           if (onEndTimeout) clearTimeout(onEndTimeout);
           onEndTimeout = setTimeout(() => {
-            // console.log("Final pass completed, count:", finalPassCount);
-            // console.log('Expected final passes:', expectedFinalPasses);
             finalPassCount === expectedFinalPasses &&
               onEnd &&
               typeof onEnd === "function" &&
@@ -269,7 +263,7 @@ async function performAttractorDraw(data) {
         }
       }
 
-      requestAnimationFrame(updateGlitch);
+      rafs.push(requestAnimationFrame(updateGlitch));
     }
 
     function drawSimpleImage() {
@@ -280,12 +274,18 @@ async function performAttractorDraw(data) {
     let wait = true;
     while (wait) {
       if (info[3] === progress) {
-        await new Promise((resolve) => setTimeout(resolve, 1));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       } else {
         progress = info[3];
         self.postMessage({ type: "progress", progress });
 
         if (highQuality) {
+          // occasionally cancel all animations
+          // if(Math.random() < 0.2){
+          //   rafs.forEach(raf => cancelAnimationFrame(raf));
+          //   rafs = [];
+          // }
+
           initializeDestination();
           transitionToNewImage(() => {
             if (finalPassCount === expectedFinalPasses) {
