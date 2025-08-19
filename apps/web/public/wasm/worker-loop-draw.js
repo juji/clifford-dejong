@@ -124,33 +124,140 @@ async function performAttractorDraw(data) {
     // Add tracking for final passes
     let finalPassCount = 0;
     let expectedFinalPasses = 0;
-    function finalizeTransition(onEnd) {
-      const diffCount = expectedFinalPasses - finalPassCount;
-      if (diffCount < 3) {
-        drawSimpleImage();
+    function finalizeTransition() {
+      if (expectedFinalPasses !== finalPassCount) return;
+      console.log("finalizeTransition executed with random block sizes");
+
+      const numSteps = 7;
+      const stepDuration = 7; // Frames for glitch, then 5 for correction
+
+      // Generate random blocks
+      const blocks = [];
+      for (let y = 0; y < height; ) {
+        const blockH = Math.floor(Math.random() * 100) + 30;
+        for (let x = 0; x < width; ) {
+          const blockW = Math.floor(Math.random() * 100) + 200;
+          blocks.push({ x, y, width: blockW, height: blockH });
+          x += blockW;
+        }
+        y += blockH;
       }
 
-      // Final cleanup - ensure everything is perfect
-      if (
-        finalPassCount === expectedFinalPasses &&
-        onEnd &&
-        typeof onEnd === "function"
-      ) {
-        setTimeout(() => {
-          console.log("finalizeTransition executed");
-          onEnd();
-        }, 333);
+      // Shuffle blocks
+      for (let i = blocks.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
       }
+
+      const revealedBlocks = new Set();
+      let frame = 0;
+      let currentStep = 0;
+
+      const animate = () => {
+        if (currentStep >= numSteps) {
+          dst.set(imageView);
+          ctx.putImageData(imageData, 0, 0);
+          self.postMessage({ type: "done", highQuality: true });
+          return;
+        }
+
+        const isGlitchPhase = frame % (stepDuration * 2) < stepDuration;
+
+        if (isGlitchPhase && frame % stepDuration === 0) {
+          // START OF A NEW GLITCH STEP
+          const blocksPerStep = Math.ceil(blocks.length / numSteps);
+          const stepStart = currentStep * blocksPerStep;
+          const stepEnd = Math.min(stepStart + blocksPerStep, blocks.length);
+
+          for (let i = stepStart; i < stepEnd; i++) {
+            const block = blocks[i];
+            if (!block) continue;
+            revealedBlocks.add(block);
+
+            // Apply a random glitch
+            if (Math.random() < 0.5) {
+              // Displacement
+              const offsetX = Math.floor((Math.random() - 0.5) * 150);
+              const offsetY = Math.floor((Math.random() - 0.5) * 150);
+              drawBlock(dst, imageView, block, { offsetX, offsetY });
+            } else {
+              // Skew
+              const skew = (Math.random() - 0.5) * 0.5;
+              drawBlock(dst, imageView, block, { skew });
+            }
+          }
+        } else if (!isGlitchPhase && frame % stepDuration === 0) {
+          // CORRECTION PHASE
+          revealedBlocks.forEach((block) => {
+            drawBlock(dst, imageView, block, {}); // No glitch
+          });
+          currentStep++;
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+        frame++;
+        rafs.push(requestAnimationFrame(animate));
+      };
+
+      const drawBlock = (
+        buffer,
+        source,
+        block,
+        { offsetX = 0, offsetY = 0, skew = 0 },
+      ) => {
+        const { x, y, width: blockW, height: blockH } = block;
+        for (let j = 0; j < blockH; j++) {
+          const skewOffset = skew ? Math.floor(skew * j) : 0;
+          for (let i = 0; i < blockW; i++) {
+            const fromX = x + i;
+            const fromY = y + j;
+            const toX = fromX + offsetX + skewOffset;
+            const toY = fromY + offsetY;
+
+            if (
+              fromX >= 0 &&
+              fromX < width &&
+              fromY >= 0 &&
+              fromY < height &&
+              toX >= 0 &&
+              toX < width &&
+              toY >= 0 &&
+              toY < height
+            ) {
+              const fromIndex = fromY * width + fromX;
+              const toIndex = toY * width + toX;
+              buffer[toIndex] = source[fromIndex];
+            }
+          }
+        }
+      };
+
+      rafs.forEach((raf) => cancelAnimationFrame(raf));
+      rafs = [];
+      rafs.push(requestAnimationFrame(animate));
     }
 
     // Replace the transition buffer section with this:
+
+    const maxParticle = 120000;
+    let numParticlesCreated = 0;
+    let keepAnimating = true;
     function transitionToNewImage(onEnd) {
+      if (numParticlesCreated >= maxParticle) {
+        return;
+      }
+
+      const numParticles = 30000; // Reduced for better performance
+      numParticlesCreated += numParticles;
+
       const particles = [];
-      const numParticles = 30000; // Fixed reasonable number for mobile performance
       expectedFinalPasses++;
 
-      // Create particles from colored pixels
-      for (let i = 0; i < numParticles; i++) {
+      // Create particles from colored pixels with more attempts to ensure we get enough
+      let attempts = numParticles * 3; // Try more indices to ensure enough colored particles
+      let particlesCreated = 0;
+
+      for (let i = 0; i < attempts && particlesCreated < numParticles; i++) {
         const randomIndex = Math.floor(Math.random() * imageView.length);
         if (imageView[randomIndex] !== bg) {
           const originalX = randomIndex % width;
@@ -164,31 +271,55 @@ async function performAttractorDraw(data) {
             y: originalY,
             velocityX: (Math.random() - 0.5) * 15, // Initial velocity
             velocityY: (Math.random() - 0.5) * 15,
-            maxLife: Math.random() * 60 + 30, // Total lifespan
-            life: Math.random() * 60 + 30, // Current life (30-90 frames)
+            // These are kept but no longer used for animation termination
+            maxLife: 60,
+            life: 60,
             size: Math.floor(Math.random() * 2) + 1, // Random size from 1 to 2
           });
+
+          particlesCreated++;
         }
       }
+
+      console.log(
+        `Created ${particles.length} particles for indefinite animation`,
+      );
 
       let frameCount = 0;
 
       function updateParticles() {
         frameCount++;
-
+        let totalVel = 0;
+        let totalVelDenom = 0;
         particles.forEach((particle) => {
-          if (particle.life > 0) {
+          // Always keep particles active, removing life check
+          {
             // Spring physics - calculate acceleration towards original position
             const springStrength = 0.01; // How strong the spring force is
-            const damping = 0.88; // Velocity damping to reduce oscillation
+            let damping = 0.99; // Velocity damping to reduce oscillation
 
             // Calculate distance from original position
-            const deltaX = particle.originalX - particle.x;
-            const deltaY = particle.originalY - particle.y;
+            let deltaX = particle.originalX - particle.x;
+            let deltaY = particle.originalY - particle.y;
+
+            // add to delta, to preevnt speed decrease
+            if (
+              Math.abs(particle.velocityX) < 1 &&
+              Math.abs(particle.velocityY) < 1 &&
+              keepAnimating
+            ) {
+              deltaX *= Math.random() * 3 + 5;
+              deltaY *= Math.random() * 3 + 5;
+            }
 
             // Apply spring force (acceleration towards original position)
             const accelerationX = deltaX * springStrength;
             const accelerationY = deltaY * springStrength;
+
+            // Add some random noise for more dynamic movement
+            // const randomForce = 0.7; // Adjust this value to control the amount of randomness
+            // particle.velocityX += (Math.random() - 0.5) * randomForce;
+            // particle.velocityY += (Math.random() - 0.5) * randomForce;
 
             // Update velocity with acceleration
             particle.velocityX += accelerationX;
@@ -198,6 +329,10 @@ async function performAttractorDraw(data) {
             particle.velocityX *= damping;
             particle.velocityY *= damping;
 
+            totalVel +=
+              Math.abs(particle.velocityX) + Math.abs(particle.velocityY);
+            totalVelDenom += 2;
+
             // Update position with velocity
             particle.x += particle.velocityX;
             particle.y += particle.velocityY;
@@ -206,9 +341,7 @@ async function performAttractorDraw(data) {
             particle.x = Math.max(0, Math.min(width - 1, particle.x));
             particle.y = Math.max(0, Math.min(height - 1, particle.y));
 
-            // Calculate alpha (0 → 1)
-            const alpha = 1 - particle.life / particle.maxLife; // 0 to 1 as particle ages
-
+            // Always maintain full visibility instead of fading out
             // Get original color components
             const originalColor = imageView[particle.startIndex];
             const r = originalColor & 0xff;
@@ -216,9 +349,8 @@ async function performAttractorDraw(data) {
             const b = (originalColor >> 16) & 0xff;
             const a = (originalColor >> 24) & 0xff;
 
-            // Apply parabolic fade
-            const fadedAlpha = Math.floor(a * alpha);
-            const fadedColor = (fadedAlpha << 24) | (b << 16) | (g << 8) | r;
+            // Use full alpha (no fade)
+            const fadedColor = (a << 24) | (b << 16) | (g << 8) | r;
 
             // Draw particle using its individual size with faded color
             let pixelIndex = 0;
@@ -242,17 +374,19 @@ async function performAttractorDraw(data) {
               pixelIndex++;
             }
 
-            particle.life--;
+            // Remove the life decrement to keep particles alive indefinitely
+            // particle.life--;
           }
         });
 
         ctx.putImageData(imageData, 0, 0);
 
-        if (frameCount < 60) {
-          rafs.push(requestAnimationFrame(updateParticles));
-        } else {
+        const velAvg = totalVelDenom ? totalVel / totalVelDenom : Infinity;
+        if (velAvg < 0.5) {
           finalPassCount++;
           finalizeTransition(onEnd);
+        } else {
+          rafs.push(requestAnimationFrame(updateParticles));
         }
       }
 
@@ -273,8 +407,10 @@ async function performAttractorDraw(data) {
         self.postMessage({ type: "progress", progress });
 
         if (highQuality) {
+          // Always recreate animation on progress updates
+          if (progress === 100) keepAnimating = false;
           transitionToNewImage(() => {
-            console.log("All final passes completed");
+            console.log("Sending Done message");
             self.postMessage({ type: "done", highQuality: true });
           });
         } else {
