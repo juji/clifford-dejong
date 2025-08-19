@@ -21,6 +21,7 @@ const OffscreenCanvas = dynamic(
   () => import("./offscreen-canvas").then((v) => v.OffscreenCanvas),
   { ssr: false },
 );
+
 // const WasmLoopCanvas = dynamic(
 //   () => import("./wasm-loop-canvas").then((v) => v.WasmLoopCanvas),
 //   { ssr: false },
@@ -73,5 +74,6 @@ export function AttractorCanvasDynamic({ ariaLabel }: { ariaLabel?: string }) {
     <OffscreenCanvas ariaLabel={ariaLabel} />
   ) : workerSupport === "wasm" ? (
     <RustWasmLoopCanvas ariaLabel={ariaLabel} />
-  ) : null;
+  ) : // <WasmLoopCanvas ariaLabel={ariaLabel} />
+  null;
 }

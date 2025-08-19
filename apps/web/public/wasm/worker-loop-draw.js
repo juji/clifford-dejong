@@ -40,6 +40,9 @@ self.onmessage = async function (e) {
       offscreenCanvas.height = data.height;
       const ctx = offscreenCanvas.getContext("2d");
       ctx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      // first, remove all rafs
+      rafs.forEach((raf) => cancelAnimationFrame(raf));
+      rafs = [];
       performAttractorDraw(data);
       break;
 
@@ -61,10 +64,6 @@ let rafs = [];
  */
 async function performAttractorDraw(data) {
   try {
-    // first, remove all rafs
-    rafs.forEach((raf) => cancelAnimationFrame(raf));
-    rafs = [];
-
     const {
       width = 800,
       height = 800,
@@ -378,35 +377,36 @@ async function performAttractorDraw(data) {
       ctx.putImageData(imageData, 0, 0);
     }
 
-    let wait = true;
-    while (wait) {
+    requestAnimationFrame(function run() {
       if (info[3] === progress) {
-        await new Promise((resolve) => setTimeout(resolve, 1));
+        return requestAnimationFrame(run);
+      }
+
+      progress = info[3];
+      self.postMessage({ type: "progress", progress });
+
+      if (highQuality) {
+        // Always recreate animation on progress updates
+        if (progress === 100) keepAnimating = false;
+        transitionToNewImage(() => {
+          console.log("Sending Done message");
+          self.postMessage({ type: "done", highQuality: true });
+        });
       } else {
-        progress = info[3];
-        self.postMessage({ type: "progress", progress });
+        drawSimpleImage();
+      }
 
-        if (highQuality) {
-          // Always recreate animation on progress updates
-          if (progress === 100) keepAnimating = false;
-          transitionToNewImage(() => {
-            console.log("Sending Done message");
-            self.postMessage({ type: "done", highQuality: true });
-          });
-        } else {
-          drawSimpleImage();
-        }
+      if (progress === 100) {
+        console.log("draw done in", performance.now() - start, "ms");
+        wait = false;
 
-        if (progress === 100) {
-          console.log("draw done in", performance.now() - start, "ms");
-          wait = false;
-
-          if (!highQuality) {
-            self.postMessage({ type: "done", highQuality: false });
-          }
+        if (!highQuality) {
+          self.postMessage({ type: "done", highQuality: false });
         }
       }
-    }
+
+      requestAnimationFrame(run);
+    });
   } catch (error) {
     console.error(error);
     self.postMessage({
