@@ -12,7 +12,8 @@ async function downloadSound(url: string) {
 
 // This test downloads a sound file and measures elapsed time.
 // just to let me know how long it takes to download the sound file
-test("sound download: downloads a file and measures elapsed time", async () => {
+// SKIPPED, sound is not needed anymore
+test.skip("sound download: downloads a file and measures elapsed time", async () => {
   // 72
   const bobpop = "https://clifford-dejong.vercel.app/bop-pop.mp3";
   const elapsed = await downloadSound(bobpop);

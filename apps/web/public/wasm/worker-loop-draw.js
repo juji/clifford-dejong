@@ -257,7 +257,7 @@ async function performAttractorDraw(data) {
 
         ctx.putImageData(imageData, 0, 0);
 
-        if (frameCount < 90) {
+        if (frameCount < 60) {
           rafs.push(requestAnimationFrame(updateParticles));
         } else {
           finalizeTransition(onEnd);
