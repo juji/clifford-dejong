@@ -147,9 +147,8 @@ async function performAttractorDraw(data) {
 
     // Replace the transition buffer section with this:
     function transitionToNewImage(onEnd) {
-      // if(expectedFinalPasses) return;
       const particles = [];
-      const numParticles = 50000;
+      const numParticles = 50000; // Fixed reasonable number for mobile performance
       expectedFinalPasses++;
 
       // Create particles from colored pixels
@@ -224,35 +223,25 @@ async function performAttractorDraw(data) {
             const fadedColor = (fadedAlpha << 24) | (b << 16) | (g << 8) | r;
 
             // Draw particle using its individual size with faded color
-            for (
-              let py = -Math.floor(particle.size / 2);
-              py <= Math.floor(particle.size / 2);
-              py++
-            ) {
-              for (
-                let px = -Math.floor(particle.size / 2);
-                px <= Math.floor(particle.size / 2);
-                px++
-              ) {
-                const drawX = Math.floor(particle.x) + px;
-                const drawY = Math.floor(particle.y) + py;
+            let pixelIndex = 0;
+            const particlePixelCount = particle.size * particle.size;
 
-                if (
-                  drawX >= 0 &&
-                  drawX < width &&
-                  drawY >= 0 &&
-                  drawY < height
-                ) {
-                  const drawIndex = drawY * width + drawX;
+            while (pixelIndex < particlePixelCount) {
+              const px =
+                (pixelIndex % particle.size) - Math.floor(particle.size / 2);
+              const py =
+                Math.floor(pixelIndex / particle.size) -
+                Math.floor(particle.size / 2);
 
-                  // Only draw if the faded particle is visible enough
-                  // if (fadedAlpha > 10) {
-                  //   dst[drawIndex] = fadedColor;
-                  // }
+              const drawX = Math.floor(particle.x) + px;
+              const drawY = Math.floor(particle.y) + py;
 
-                  dst[drawIndex] = fadedColor;
-                }
+              if (drawX >= 0 && drawX < width && drawY >= 0 && drawY < height) {
+                const drawIndex = drawY * width + drawX;
+                dst[drawIndex] = fadedColor;
               }
+
+              pixelIndex++;
             }
 
             particle.life--;
