@@ -149,7 +149,7 @@ async function performAttractorDraw(data) {
     function transitionToNewImage(onEnd) {
       // if(expectedFinalPasses) return;
       const particles = [];
-      const numParticles = 500;
+      const numParticles = 1000;
       expectedFinalPasses++;
 
       // Create particles from colored pixels
