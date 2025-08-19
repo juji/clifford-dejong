@@ -124,31 +124,34 @@ async function performAttractorDraw(data) {
     // Add tracking for final passes
     let finalPassCount = 0;
     let expectedFinalPasses = 0;
-    let onEndTimeout = null;
     function finalizeTransition(onEnd) {
-      // Final cleanup - ensure everything is perfect
-      for (let j = 0; j < imageView.length; j++) {
-        dst[j] = imageView[j];
+      const diffCount = expectedFinalPasses - finalPassCount;
+      if (diffCount < 3) {
+        drawSimpleImage();
       }
-      ctx.putImageData(imageData, 0, 0);
 
-      finalPassCount++;
-      if (onEndTimeout) clearTimeout(onEndTimeout);
-      onEndTimeout = setTimeout(() => {
-        if (
-          finalPassCount === expectedFinalPasses &&
-          onEnd &&
-          typeof onEnd === "function"
-        ) {
+      // Final cleanup - ensure everything is perfect
+      console.log(
+        "finalizeTransition called",
+        finalPassCount,
+        expectedFinalPasses,
+      );
+      if (
+        finalPassCount === expectedFinalPasses &&
+        onEnd &&
+        typeof onEnd === "function"
+      ) {
+        setTimeout(() => {
+          console.log("finalizeTransition executed");
           onEnd();
-        }
-      }, 33);
+        }, 33);
+      }
     }
 
     // Replace the transition buffer section with this:
     function transitionToNewImage(onEnd) {
       const particles = [];
-      const numParticles = 50000; // Fixed reasonable number for mobile performance
+      const numParticles = 30000; // Fixed reasonable number for mobile performance
       expectedFinalPasses++;
 
       // Create particles from colored pixels
@@ -248,18 +251,13 @@ async function performAttractorDraw(data) {
           }
         });
 
-        // Fill in remaining pixels gradually
-        const fillRate = Math.floor(imageView.length / 60);
-        for (let i = 0; i < fillRate; i++) {
-          const randomIndex = Math.floor(Math.random() * imageView.length);
-          dst[randomIndex] = imageView[randomIndex];
-        }
-
         ctx.putImageData(imageData, 0, 0);
 
         if (frameCount < 60) {
+          console.log("Requesting next animation frame");
           rafs.push(requestAnimationFrame(updateParticles));
         } else {
+          finalPassCount++;
           finalizeTransition(onEnd);
         }
       }
@@ -268,6 +266,7 @@ async function performAttractorDraw(data) {
     }
 
     function drawSimpleImage() {
+      console.log("Drawing simple image");
       dst.set(imageView);
       ctx.putImageData(imageData, 0, 0);
     }
@@ -281,19 +280,9 @@ async function performAttractorDraw(data) {
         self.postMessage({ type: "progress", progress });
 
         if (highQuality) {
-          // occasionally cancel all animations
-          // if(Math.random() < 0.2){
-          //   rafs.forEach(raf => cancelAnimationFrame(raf));
-          //   rafs = [];
-          // }
-
-          // initializeDestination();
           transitionToNewImage(() => {
-            if (finalPassCount === expectedFinalPasses) {
-              console.log("All final passes completed");
-              drawSimpleImage();
-              self.postMessage({ type: "done", highQuality: true });
-            }
+            console.log("All final passes completed");
+            self.postMessage({ type: "done", highQuality: true });
           });
         } else {
           drawSimpleImage();
