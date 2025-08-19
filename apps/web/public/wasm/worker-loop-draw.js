@@ -148,7 +148,7 @@ async function performAttractorDraw(data) {
     // Replace the transition buffer section with this:
     function transitionToNewImage(onEnd) {
       const particles = [];
-      const numParticles = 70000;
+      const numParticles = 30000;
       expectedFinalPasses++;
 
       // Create particles from colored pixels
