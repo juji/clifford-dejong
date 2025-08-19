@@ -401,7 +401,7 @@ async function performAttractorDraw(data) {
     let wait = true;
     while (wait) {
       if (info[3] === progress) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 1));
       } else {
         progress = info[3];
         self.postMessage({ type: "progress", progress });
