@@ -131,11 +131,6 @@ async function performAttractorDraw(data) {
       }
 
       // Final cleanup - ensure everything is perfect
-      console.log(
-        "finalizeTransition called",
-        finalPassCount,
-        expectedFinalPasses,
-      );
       if (
         finalPassCount === expectedFinalPasses &&
         onEnd &&
@@ -144,7 +139,7 @@ async function performAttractorDraw(data) {
         setTimeout(() => {
           console.log("finalizeTransition executed");
           onEnd();
-        }, 33);
+        }, 333);
       }
     }
 
@@ -254,7 +249,6 @@ async function performAttractorDraw(data) {
         ctx.putImageData(imageData, 0, 0);
 
         if (frameCount < 60) {
-          console.log("Requesting next animation frame");
           rafs.push(requestAnimationFrame(updateParticles));
         } else {
           finalPassCount++;
@@ -266,7 +260,6 @@ async function performAttractorDraw(data) {
     }
 
     function drawSimpleImage() {
-      console.log("Drawing simple image");
       dst.set(imageView);
       ctx.putImageData(imageData, 0, 0);
     }
