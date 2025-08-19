@@ -160,7 +160,9 @@ jobs:
 
       # List output directory to verify it exists
       - name: List build outputs
-        run: ls -la apps/web/out/
+        run: |
+          ls -la apps/web/out/
+          ls -la apps/web/out/wasm
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
