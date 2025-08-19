@@ -112,10 +112,16 @@ async function performAttractorLoopCalculation(data) {
     // double y;
     // int loopNum;
 
-    const loopNum = 100;
-    const drawAt = iterations / 20;
-    console.log("loopNum: ", loopNum);
-    console.log("drawAt: ", drawAt);
+    const loopNum = highQuality ? 100 : 5;
+    const drawAt = highQuality ? iterations / 10 : iterations / 5;
+    console.log(
+      "loopNum: ",
+      loopNum,
+      "drawAt: ",
+      drawAt,
+      "iterations",
+      iterations,
+    );
 
     wasmModule.calculateAttractorLoop({
       attractorParams,

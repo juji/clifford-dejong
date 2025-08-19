@@ -32,6 +32,8 @@ export function WasmLoopCanvas({ ariaLabel }: { ariaLabel?: string }) {
     if (!workerDrawRef.current) return;
     if (!workerCalcRef.current) return;
 
+    setImageUrl(null);
+
     const densityBuffer = new SharedArrayBuffer(
       canvasSize?.width * canvasSize?.height * 4,
     );
@@ -69,6 +71,7 @@ export function WasmLoopCanvas({ ariaLabel }: { ariaLabel?: string }) {
         uint32[1] = 1;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [init, ready, attractorParameters, qualityMode, canvasSize]);
 
   useEffect(() => {
@@ -103,7 +106,7 @@ export function WasmLoopCanvas({ ariaLabel }: { ariaLabel?: string }) {
       }
       if (e.data.type === "done") {
         console.log("Worker Draw Done");
-        if (canvasRef.current)
+        if (canvasRef.current && e.data.highQuality)
           setImageUrl(canvasRef.current.toDataURL("image/png"));
       }
       if (e.data.type === "progress") {

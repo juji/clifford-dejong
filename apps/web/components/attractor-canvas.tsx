@@ -30,7 +30,7 @@ function generateAttractorDescription(params: AttractorParameters): string {
   return `An abstract geometric pattern generated with ${attractorType} attractor. Parameters: a=${a.toFixed(1)}, b=${b.toFixed(1)}, c=${c.toFixed(1)}, d=${d.toFixed(1)}. Colors: hue=${hue}°, saturation=${saturation}%, brightness=${brightness}%.`;
 }
 
-function AttractorImage(){
+function AttractorImage() {
   const imageUrl = useUIStore((s) => s.imageUrl);
   return (
     // this is for safari to show the image in the background
@@ -41,7 +41,7 @@ function AttractorImage(){
         alt=""
         aria-hidden="true"
         role="presentation"
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         style={{ touchAction: "none" }}
       />
     ) : null
@@ -54,13 +54,13 @@ export function AttractorCanvas() {
   // Zustand selectors for attractor state
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
   const canvasVisible = useUIStore((s) => s.canvasVisible);
-  
+
   // Generate accessible description for the attractor visualization
   const ariaLabel = useMemo(
     () => generateAttractorDescription(attractorParameters),
     [attractorParameters],
   );
-  
+
   // handle pointer conrtrol
   usePointerControl(containerRef);
 
@@ -76,7 +76,7 @@ export function AttractorCanvas() {
         `flex items-center justify-center 
         w-full h-full fixed top-0 left-0 
         ${canvasVisible ? "opacity-100" : "opacity-0"} 
-        cursor-grab active:cursor-grabbing`
+        cursor-grab active:cursor-grabbing`,
       )}
       ref={containerRef}
       style={
