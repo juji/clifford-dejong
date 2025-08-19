@@ -121,149 +121,120 @@ async function performAttractorDraw(data) {
       ctx.putImageData(imageData, 0, 0);
     }
 
-    // Replace the transition buffer section with this:
     // Add tracking for final passes
     let finalPassCount = 0;
     let expectedFinalPasses = 0;
     let onEndTimeout = null;
+    function finalizeTransition(onEnd) {
+      // Ensure final image is perfect
+      for (let j = 0; j < imageView.length; j++) {
+        dst[j] = imageView[j];
+      }
+      ctx.putImageData(imageData, 0, 0);
+
+      finalPassCount++;
+      if (onEndTimeout) clearTimeout(onEndTimeout);
+      onEndTimeout = setTimeout(() => {
+        if (
+          finalPassCount === expectedFinalPasses &&
+          onEnd &&
+          typeof onEnd === "function"
+        ) {
+          onEnd();
+        }
+      }, 33);
+    }
+
+    // Replace the transition buffer section with this:
     function transitionToNewImage(onEnd) {
-      const totalPixels = imageView.length;
-      let currentPixel = 0;
+      const particles = [];
+      const numParticles = 800;
       expectedFinalPasses++;
 
-      function updateGlitch() {
-        // Create fewer but much larger glitchy blocks with displacement
-        for (let i = 0; i < 2; i++) {
-          // Fewer blocks per frame
-          const blockStart = Math.floor(Math.random() * totalPixels);
-          const blockSize = Math.floor(Math.random() * 3000) + 1000; // Much larger blocks (1000-4000 pixels)
-          const blockEnd = Math.min(blockStart + blockSize, totalPixels);
-
-          for (
-            let j = blockStart;
-            j < blockEnd && currentPixel < totalPixels;
-            j++
-          ) {
-            const sourcePixel = imageView[j];
-
-            // Only displace non-background pixels
-            if (sourcePixel !== bg) {
-              // Calculate displacement offset
-              const displaceX = Math.floor(Math.random() * 20) - 10; // ±10 pixels horizontally
-              const displaceY = Math.floor(Math.random() * 20) - 10; // ±10 pixels vertically
-
-              // Convert linear index to x,y coordinates
-              const originalX = j % width;
-              const originalY = Math.floor(j / width);
-
-              // Calculate displaced position
-              const newX = originalX + displaceX;
-              const newY = originalY + displaceY;
-
-              // Check bounds and place displaced pixel
-              if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
-                const newIndex = newY * width + newX;
-                dst[newIndex] = sourcePixel;
-              }
-            } else {
-              // Background pixels go to their normal position
-              dst[j] = sourcePixel;
-            }
-
-            currentPixel++;
-          }
+      // Create particles from colored pixels
+      for (let i = 0; i < numParticles; i++) {
+        const randomIndex = Math.floor(Math.random() * imageView.length);
+        if (imageView[randomIndex] !== bg) {
+          particles.push({
+            startIndex: randomIndex,
+            currentIndex: randomIndex,
+            velocity: {
+              x: (Math.random() - 0.5) * 10,
+              y: (Math.random() - 0.5) * 10,
+            },
+            life: Math.random() * 60 + 30, // 30-90 frames
+            size: Math.floor(Math.random() * 2) + 1, // Random size from 1 to 2
+          });
         }
+      }
 
-        // Add chunky scan line corruption with displacement
-        if (Math.random() < 0.4) {
-          // 40% chance per frame
-          const scanStartY = Math.floor(Math.random() * (height - 8));
-          const scanHeight = Math.floor(Math.random() * 8) + 3;
+      let frameCount = 0;
 
-          // Random horizontal displacement for the entire scan line
-          const lineDisplaceX = Math.floor(Math.random() * 30) - 15; // ±15 pixels
+      function updateParticles() {
+        frameCount++;
 
-          for (
-            let y = scanStartY;
-            y < Math.min(scanStartY + scanHeight, height);
-            y++
-          ) {
-            for (let x = 0; x < width; x++) {
-              const sourceIndex = y * width + x;
-              const sourcePixel = imageView[sourceIndex];
+        particles.forEach((particle) => {
+          if (particle.life > 0) {
+            // Move particle
+            const oldX = particle.currentIndex % width;
+            const oldY = Math.floor(particle.currentIndex / width);
 
-              if (sourcePixel !== bg) {
-                // Displace colored pixels
-                const newX = x + lineDisplaceX;
-                if (newX >= 0 && newX < width) {
-                  const newIndex = y * width + newX;
-                  dst[newIndex] = sourcePixel;
+            const newX = Math.floor(oldX + particle.velocity.x);
+            const newY = Math.floor(oldY + particle.velocity.y);
+
+            if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
+              particle.currentIndex = newY * width + newX;
+
+              // Draw particle using its individual size
+              for (
+                let py = -Math.floor(particle.size / 2);
+                py <= Math.floor(particle.size / 2);
+                py++
+              ) {
+                for (
+                  let px = -Math.floor(particle.size / 2);
+                  px <= Math.floor(particle.size / 2);
+                  px++
+                ) {
+                  const drawX = newX + px;
+                  const drawY = newY + py;
+
+                  if (
+                    drawX >= 0 &&
+                    drawX < width &&
+                    drawY >= 0 &&
+                    drawY < height
+                  ) {
+                    const drawIndex = drawY * width + drawX;
+                    dst[drawIndex] = imageView[particle.startIndex];
+                  }
                 }
-              } else {
-                // Background stays in place
-                dst[sourceIndex] = sourcePixel;
               }
             }
+
+            particle.life--;
+            particle.velocity.x *= 0.98; // Slow down
+            particle.velocity.y *= 0.98;
           }
-        }
+        });
 
-        // Rectangular chunks with heavy displacement
-        if (Math.random() < 0.2) {
-          // 20% chance per frame
-          const rectX = Math.floor(Math.random() * (width - 100));
-          const rectY = Math.floor(Math.random() * (height - 100));
-          const rectW = Math.floor(Math.random() * 150) + 50;
-          const rectH = Math.floor(Math.random() * 100) + 30;
-
-          // Heavy displacement for the entire chunk
-          const chunkDisplaceX = Math.floor(Math.random() * 40) - 20; // ±20 pixels
-          const chunkDisplaceY = Math.floor(Math.random() * 40) - 20; // ±20 pixels
-
-          for (let y = rectY; y < Math.min(rectY + rectH, height); y++) {
-            for (let x = rectX; x < Math.min(rectX + rectW, width); x++) {
-              const sourceIndex = y * width + x;
-              const sourcePixel = imageView[sourceIndex];
-
-              if (sourcePixel !== bg) {
-                // Displace the entire chunk
-                const newX = x + chunkDisplaceX;
-                const newY = y + chunkDisplaceY;
-
-                if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
-                  const newIndex = newY * width + newX;
-                  dst[newIndex] = sourcePixel;
-                }
-              } else {
-                // Background pixels go to normal position
-                dst[sourceIndex] = sourcePixel;
-              }
-            }
-          }
+        // Fill in remaining pixels gradually
+        const fillRate = Math.floor(imageView.length / 60);
+        for (let i = 0; i < fillRate; i++) {
+          const randomIndex = Math.floor(Math.random() * imageView.length);
+          dst[randomIndex] = imageView[randomIndex];
         }
 
         ctx.putImageData(imageData, 0, 0);
 
-        if (currentPixel < totalPixels) {
-          rafs.push(requestAnimationFrame(updateGlitch));
+        if (frameCount < 90) {
+          rafs.push(requestAnimationFrame(updateParticles));
         } else {
-          // Ensure completion - final pass without displacement
-          for (let j = 0; j < totalPixels; j++) {
-            dst[j] = imageView[j];
-          }
-          ctx.putImageData(imageData, 0, 0);
-          finalPassCount++;
-          if (onEndTimeout) clearTimeout(onEndTimeout);
-          onEndTimeout = setTimeout(() => {
-            finalPassCount === expectedFinalPasses &&
-              onEnd &&
-              typeof onEnd === "function" &&
-              onEnd();
-          }, 33);
-          // finalPassCount === expectedFinalPasses && onEnd && typeof onEnd === "function" && onEnd();
+          finalizeTransition(onEnd);
         }
       }
 
-      rafs.push(requestAnimationFrame(updateGlitch));
+      rafs.push(requestAnimationFrame(updateParticles));
     }
 
     function drawSimpleImage() {
@@ -286,7 +257,7 @@ async function performAttractorDraw(data) {
           //   rafs = [];
           // }
 
-          initializeDestination();
+          // initializeDestination();
           transitionToNewImage(() => {
             if (finalPassCount === expectedFinalPasses) {
               console.log("All final passes completed");

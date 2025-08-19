@@ -113,7 +113,7 @@ async function performAttractorLoopCalculation(data) {
     // int loopNum;
 
     const loopNum = highQuality ? 100 : 5;
-    const drawAt = highQuality ? iterations / 10 : iterations / 5;
+    const drawAt = highQuality ? iterations / 20 : iterations / 5;
     console.log(
       "loopNum: ",
       loopNum,
