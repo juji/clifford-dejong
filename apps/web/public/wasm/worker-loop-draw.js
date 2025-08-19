@@ -134,7 +134,7 @@ async function performAttractorDraw(data) {
       // Generate random blocks
       const blocks = [];
       for (let y = 0; y < height; ) {
-        const blockH = Math.floor(Math.random() * 100) + 30;
+        const blockH = Math.floor(Math.random() * 200) + 30;
         for (let x = 0; x < width; ) {
           const blockW = Math.floor(Math.random() * 100) + 200;
           blocks.push({ x, y, width: blockW, height: blockH });
