@@ -113,20 +113,20 @@ async function performAttractorDraw(data) {
       ((background[1] || 0) << 8) |
       (background[0] || 0);
 
-    function initializeDestination() {
-      // fill with background
-      for (let j = 0; j < imageView.length; j++) {
-        dst[j] = bg;
-      }
-      ctx.putImageData(imageData, 0, 0);
-    }
+    // function initializeDestination() {
+    //   // fill with background
+    //   for (let j = 0; j < imageView.length; j++) {
+    //     dst[j] = bg;
+    //   }
+    //   ctx.putImageData(imageData, 0, 0);
+    // }
 
     // Add tracking for final passes
     let finalPassCount = 0;
     let expectedFinalPasses = 0;
     let onEndTimeout = null;
     function finalizeTransition(onEnd) {
-      // Ensure final image is perfect
+      // Final cleanup - ensure everything is perfect
       for (let j = 0; j < imageView.length; j++) {
         dst[j] = imageView[j];
       }
@@ -148,21 +148,26 @@ async function performAttractorDraw(data) {
     // Replace the transition buffer section with this:
     function transitionToNewImage(onEnd) {
       const particles = [];
-      const numParticles = 800;
+      const numParticles = 70000;
       expectedFinalPasses++;
 
       // Create particles from colored pixels
       for (let i = 0; i < numParticles; i++) {
         const randomIndex = Math.floor(Math.random() * imageView.length);
         if (imageView[randomIndex] !== bg) {
+          const originalX = randomIndex % width;
+          const originalY = Math.floor(randomIndex / width);
+
           particles.push({
             startIndex: randomIndex,
-            currentIndex: randomIndex,
-            velocity: {
-              x: (Math.random() - 0.5) * 10,
-              y: (Math.random() - 0.5) * 10,
-            },
-            life: Math.random() * 60 + 30, // 30-90 frames
+            originalX: originalX,
+            originalY: originalY,
+            x: originalX, // Current position
+            y: originalY,
+            velocityX: (Math.random() - 0.5) * 15, // Initial velocity
+            velocityY: (Math.random() - 0.5) * 15,
+            maxLife: Math.random() * 60 + 30, // Total lifespan
+            life: Math.random() * 60 + 30, // Current life (30-90 frames)
             size: Math.floor(Math.random() * 2) + 1, // Random size from 1 to 2
           });
         }
@@ -175,46 +180,81 @@ async function performAttractorDraw(data) {
 
         particles.forEach((particle) => {
           if (particle.life > 0) {
-            // Move particle
-            const oldX = particle.currentIndex % width;
-            const oldY = Math.floor(particle.currentIndex / width);
+            // Spring physics - calculate acceleration towards original position
+            const springStrength = 0.01; // How strong the spring force is
+            const damping = 0.88; // Velocity damping to reduce oscillation
 
-            const newX = Math.floor(oldX + particle.velocity.x);
-            const newY = Math.floor(oldY + particle.velocity.y);
+            // Calculate distance from original position
+            const deltaX = particle.originalX - particle.x;
+            const deltaY = particle.originalY - particle.y;
 
-            if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
-              particle.currentIndex = newY * width + newX;
+            // Apply spring force (acceleration towards original position)
+            const accelerationX = deltaX * springStrength;
+            const accelerationY = deltaY * springStrength;
 
-              // Draw particle using its individual size
+            // Update velocity with acceleration
+            particle.velocityX += accelerationX;
+            particle.velocityY += accelerationY;
+
+            // Apply damping to velocity
+            particle.velocityX *= damping;
+            particle.velocityY *= damping;
+
+            // Update position with velocity
+            particle.x += particle.velocityX;
+            particle.y += particle.velocityY;
+
+            // Keep particles within bounds
+            particle.x = Math.max(0, Math.min(width - 1, particle.x));
+            particle.y = Math.max(0, Math.min(height - 1, particle.y));
+
+            // Calculate alpha (0 → 1)
+            const alpha = 1 - particle.life / particle.maxLife; // 0 to 1 as particle ages
+
+            // Get original color components
+            const originalColor = imageView[particle.startIndex];
+            const r = originalColor & 0xff;
+            const g = (originalColor >> 8) & 0xff;
+            const b = (originalColor >> 16) & 0xff;
+            const a = (originalColor >> 24) & 0xff;
+
+            // Apply parabolic fade
+            const fadedAlpha = Math.floor(a * alpha);
+            const fadedColor = (fadedAlpha << 24) | (b << 16) | (g << 8) | r;
+
+            // Draw particle using its individual size with faded color
+            for (
+              let py = -Math.floor(particle.size / 2);
+              py <= Math.floor(particle.size / 2);
+              py++
+            ) {
               for (
-                let py = -Math.floor(particle.size / 2);
-                py <= Math.floor(particle.size / 2);
-                py++
+                let px = -Math.floor(particle.size / 2);
+                px <= Math.floor(particle.size / 2);
+                px++
               ) {
-                for (
-                  let px = -Math.floor(particle.size / 2);
-                  px <= Math.floor(particle.size / 2);
-                  px++
-                ) {
-                  const drawX = newX + px;
-                  const drawY = newY + py;
+                const drawX = Math.floor(particle.x) + px;
+                const drawY = Math.floor(particle.y) + py;
 
-                  if (
-                    drawX >= 0 &&
-                    drawX < width &&
-                    drawY >= 0 &&
-                    drawY < height
-                  ) {
-                    const drawIndex = drawY * width + drawX;
-                    dst[drawIndex] = imageView[particle.startIndex];
-                  }
+                if (
+                  drawX >= 0 &&
+                  drawX < width &&
+                  drawY >= 0 &&
+                  drawY < height
+                ) {
+                  const drawIndex = drawY * width + drawX;
+
+                  // Only draw if the faded particle is visible enough
+                  // if (fadedAlpha > 10) {
+                  //   dst[drawIndex] = fadedColor;
+                  // }
+
+                  dst[drawIndex] = fadedColor;
                 }
               }
             }
 
             particle.life--;
-            particle.velocity.x *= 0.98; // Slow down
-            particle.velocity.y *= 0.98;
           }
         });
 
