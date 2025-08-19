@@ -398,14 +398,13 @@ async function performAttractorDraw(data) {
 
       if (progress === 100) {
         console.log("draw done in", performance.now() - start, "ms");
-        wait = false;
 
         if (!highQuality) {
           self.postMessage({ type: "done", highQuality: false });
         }
+      } else {
+        requestAnimationFrame(run);
       }
-
-      requestAnimationFrame(run);
     });
   } catch (error) {
     console.error(error);
