@@ -80,7 +80,7 @@ async function performLowQualityCalculation(data) {
       width = 800,
       height = 800,
       highQuality = false,
-      iterations = 10000,
+      // iterations = 10000,
       densityBuffer = new SharedArrayBuffer(width * height * 4),
       imageBuffer = new SharedArrayBuffer(width * height * 4),
       infoBuffer = new SharedArrayBuffer(4 * 4), // uint32: maxDensity, cancel, done, progress (0-100)

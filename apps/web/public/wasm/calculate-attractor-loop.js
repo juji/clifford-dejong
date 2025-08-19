@@ -355,7 +355,7 @@ function calculateAttractorLoop(jsCtx) {
   try {
     const {
       attractorParams,
-      densityBuffer,
+      // densityBuffer,
       infoBuffer,
       imageBuffer,
       highQuality,

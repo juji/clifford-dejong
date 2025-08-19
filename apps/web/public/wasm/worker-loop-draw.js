@@ -233,7 +233,7 @@ async function performAttractorDraw(data) {
       expectedFinalPasses++;
 
       // Create particles from colored pixels with more attempts to ensure we get enough
-      let attempts = numParticles * 3; // Try more indices to ensure enough colored particles
+      const attempts = numParticles * 3; // Try more indices to ensure enough colored particles
       let particlesCreated = 0;
 
       for (let i = 0; i < attempts && particlesCreated < numParticles; i++) {
@@ -264,6 +264,7 @@ async function performAttractorDraw(data) {
         `Created ${particles.length} particles for indefinite animation`,
       );
 
+      // eslint-disable-next-line no-unused-vars
       let frameCount = 0;
 
       function updateParticles() {
@@ -275,7 +276,7 @@ async function performAttractorDraw(data) {
           {
             // Spring physics - calculate acceleration towards original position
             const springStrength = 0.01; // How strong the spring force is
-            let damping = 0.99; // Velocity damping to reduce oscillation
+            const damping = 0.99; // Velocity damping to reduce oscillation
 
             // Calculate distance from original position
             let deltaX = particle.originalX - particle.x;
