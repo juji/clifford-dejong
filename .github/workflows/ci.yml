@@ -144,6 +144,9 @@ jobs:
       - name: Verify em++
         run: em++ -v
 
+      - name: install wasm-pack
+        run: pnpm i -g wasm-pack
+
       # Set up the entire workspace with Turborepo
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
