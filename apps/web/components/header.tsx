@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getRandomFont } from "@/lib/font-utils";
+import { cn } from "@/lib/utils";
 
 export function Header() {
   const [fontFamily, setFontFamily] = useState("Roboto");
@@ -32,9 +33,18 @@ export function Header() {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 p-4 z-[10]">
+    <header className="fixed top-0 left-0 z-[10]">
       <h1
-        className="text-2xl font-light"
+        className={cn(
+          `text-2xl font-light
+          bg-black/40 
+          border-r-gray-900
+          border-b-gray-900
+          border-b-1
+          border-r-1
+          backdrop-blur-xl backdrop-opacity-80 p-4 rounded-br-lg
+          text-white`,
+        )}
         style={{ fontFamily: `"${fontFamily}", sans-serif` }}
       >
         <Link
