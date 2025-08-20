@@ -3,11 +3,10 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
-import * as React from "react";
 
 export function DarkModeToggle() {
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === "dark";
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const [loaded, setLoaded] = useState(false);
 
   // wait for the theme to be set correctly on initial load

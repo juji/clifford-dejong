@@ -1,7 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-// Remove unused import: import userEvent from "@testing-library/user-event";
 import { DarkModeToggle } from "../dark-mode-toggle";
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import React from "react";
 
 // Mock the useTheme hook from next-themes
@@ -15,16 +14,15 @@ vi.mock("next-themes", () => ({
 describe("DarkModeToggle", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers(); // Enable fake timers
     // Default mock implementation for useTheme
     mockUseTheme.mockReturnValue({
-      theme: "light",
+      resolvedTheme: "light",
       setTheme: mockSetTheme,
     });
   });
 
   afterEach(() => {
-    vi.useRealTimers(); // Restore real timers
+    vi.clearAllMocks();
   });
 
   // Skip accessibility test due to timeout issues
@@ -45,30 +43,28 @@ describe("DarkModeToggle", () => {
 
   // Test Case 1: Basic Rendering
   describe("Basic Rendering", () => {
-    it("renders the Moon icon when theme is light", () => {
+    it("renders the Moon icon when theme is light", async () => {
       mockUseTheme.mockReturnValue({
-        theme: "light",
+        resolvedTheme: "light",
         setTheme: mockSetTheme,
       });
       render(<DarkModeToggle />);
-      // Advance timers to trigger useEffect
-      vi.advanceTimersByTime(0);
-      const toggleButton = screen.getByLabelText("Toggle dark mode");
+
+      const toggleButton = await screen.findByLabelText("Toggle dark mode");
       expect(toggleButton).toBeInTheDocument();
       expect(toggleButton).toHaveAttribute("aria-pressed", "false");
       expect(screen.getByTestId("moon-icon")).toBeInTheDocument();
       expect(screen.queryByTestId("sun-icon")).not.toBeInTheDocument();
     });
 
-    it("renders the Sun icon when theme is dark", () => {
+    it("renders the Sun icon when theme is dark", async () => {
       mockUseTheme.mockReturnValue({
-        theme: "dark",
+        resolvedTheme: "dark",
         setTheme: mockSetTheme,
       });
       render(<DarkModeToggle />);
-      // Advance timers to trigger useEffect
-      vi.advanceTimersByTime(0);
-      const toggleButton = screen.getByLabelText("Toggle dark mode");
+
+      const toggleButton = await screen.findByLabelText("Toggle dark mode");
       expect(toggleButton).toBeInTheDocument();
       expect(toggleButton).toHaveAttribute("aria-pressed", "true");
       expect(screen.getByTestId("sun-icon")).toBeInTheDocument();
@@ -78,29 +74,27 @@ describe("DarkModeToggle", () => {
 
   // Test Case 2: Theme Toggling
   describe("Theme Toggling", () => {
-    it("switches to dark mode when current theme is light", () => {
+    it("switches to dark mode when current theme is light", async () => {
       mockUseTheme.mockReturnValue({
-        theme: "light",
+        resolvedTheme: "light",
         setTheme: mockSetTheme,
       });
       render(<DarkModeToggle />);
-      vi.advanceTimersByTime(0);
 
-      const toggleButton = screen.getByLabelText("Toggle dark mode");
+      const toggleButton = await screen.findByLabelText("Toggle dark mode");
       fireEvent.click(toggleButton);
 
       expect(mockSetTheme).toHaveBeenCalledWith("dark");
     });
 
-    it("switches to light mode when current theme is dark", () => {
+    it("switches to light mode when current theme is dark", async () => {
       mockUseTheme.mockReturnValue({
-        theme: "dark",
+        resolvedTheme: "dark",
         setTheme: mockSetTheme,
       });
       render(<DarkModeToggle />);
-      vi.advanceTimersByTime(0);
 
-      const toggleButton = screen.getByLabelText("Toggle dark mode");
+      const toggleButton = await screen.findByLabelText("Toggle dark mode");
       fireEvent.click(toggleButton);
 
       expect(mockSetTheme).toHaveBeenCalledWith("light");
@@ -109,27 +103,28 @@ describe("DarkModeToggle", () => {
 
   // Test Case 4: Accessibility
   describe("Accessibility", () => {
-    it("has correct aria-label on the button", () => {
+    it("has correct aria-label on the button", async () => {
       mockUseTheme.mockReturnValue({
-        theme: "light",
+        resolvedTheme: "light",
         setTheme: mockSetTheme,
       });
       render(<DarkModeToggle />);
-      vi.advanceTimersByTime(0);
+
       expect(
-        screen.getByRole("button", { name: "Toggle dark mode" }),
+        await screen.findByRole("button", { name: "Toggle dark mode" }),
       ).toBeInTheDocument();
     });
 
-    it("has proper focus-visible styles", () => {
+    it("has proper focus-visible styles", async () => {
       mockUseTheme.mockReturnValue({
-        theme: "light",
+        resolvedTheme: "light",
         setTheme: mockSetTheme,
       });
       render(<DarkModeToggle />);
-      vi.advanceTimersByTime(0);
 
-      const button = screen.getByRole("button", { name: "Toggle dark mode" });
+      const button = await screen.findByRole("button", {
+        name: "Toggle dark mode",
+      });
       expect(button.className).toContain("focus-visible:ring-[6px]");
       expect(button.className).toContain("focus-visible:ring-yellow-400");
 
@@ -138,24 +133,22 @@ describe("DarkModeToggle", () => {
       expect(button).toHaveFocus();
     });
 
-    it("has sr-only span for screen readers", () => {
+    it("has sr-only span for screen readers", async () => {
       mockUseTheme.mockReturnValue({
-        theme: "light",
+        resolvedTheme: "light",
         setTheme: mockSetTheme,
       });
       render(<DarkModeToggle />);
-      vi.advanceTimersByTime(0);
+
       expect(
-        screen.getByText("Toggle dark mode", { selector: "span.sr-only" }),
+        await screen.findByText("Toggle dark mode", {
+          selector: "span.sr-only",
+        }),
       ).toBeInTheDocument();
     });
   });
 });
 
-// Add data-testid to the icons in the component for easier selection
-// This is a temporary change for testing purposes, ideally icons would have accessible names
-// or be selected via their parent button's accessible name.
-// For now, we'll add data-testid to the component directly.
-// This would be done in apps/web/components/dark-mode-toggle.tsx
+// The component already has data-testid attributes on the icons
 // <Sun className="h-5 w-5" data-testid="sun-icon" />
 // <Moon className="h-5 w-5" data-testid="moon-icon" />
