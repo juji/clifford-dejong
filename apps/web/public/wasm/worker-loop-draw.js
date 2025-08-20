@@ -285,8 +285,7 @@ async function performAttractorDraw(data) {
             // add to delta, to preevnt speed decrease
             if (
               Math.abs(particle.velocityX) < 1 &&
-              Math.abs(particle.velocityY) < 1 &&
-              keepAnimating
+              Math.abs(particle.velocityY) < 1
             ) {
               deltaX *= Math.random() * 3 + 5;
               deltaY *= Math.random() * 3 + 5;
@@ -361,8 +360,8 @@ async function performAttractorDraw(data) {
 
         ctx.putImageData(imageData, 0, 0);
 
-        const velAvg = totalVelDenom ? totalVel / totalVelDenom : Infinity;
-        if (velAvg < 0.5) {
+        // const velAvg = totalVelDenom ? totalVel / totalVelDenom : Infinity;
+        if (!keepAnimating) {
           finalPassCount++;
           finalizeTransition(onEnd);
         } else {
