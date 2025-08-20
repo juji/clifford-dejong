@@ -25,6 +25,16 @@ export function ProgressIndicator() {
 
   return (
     <>
+      <style>{`
+        @keyframes slideRight {
+          0% {
+            transform: translateX(-100px);
+          }
+          100% {
+            transform: translateX(calc(100vw + 100px));
+          }
+        }
+      `}</style>
       <div
         role="progressbar"
         aria-label="Page loading progress"
@@ -35,16 +45,31 @@ export function ProgressIndicator() {
           `fixed top-0 left-0 right-0 w-screen 
           bg-[rgba(255,255,255,0)] text-[#222] z-[101] p-0 m-0 
           shadow-none flex items-stretch
-          h-1`,
+          h-[3px]`,
         )}
       >
         <div
           className={cn(
-            "h-full transition-[width] duration-200 rounded-none bg-gradient-to-r from-[#4f8cff] to-[#00e0c6]",
+            "h-full transition-[width] duration-200 rounded-none relative overflow-hidden",
             { "w-full": roundedProgress === 100 },
           )}
-          style={{ width: `${roundedProgress}%` }}
-        />
+          style={{
+            width: `${roundedProgress}%`,
+            background:
+              "linear-gradient(to right, rgb(59, 130, 246), rgb(29, 78, 216))",
+          }}
+        >
+          {roundedProgress < 100 ? (
+            <div
+              className="absolute inset-0 w-[50%] h-full"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent 0%, #8cc0ff 50%, transparent 100%)",
+                animation: "slideRight 1s linear infinite",
+              }}
+            />
+          ) : null}
+        </div>
       </div>
       {/* Aria-live region for announcing progress */}
       {announceProgress && (
