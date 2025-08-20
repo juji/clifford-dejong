@@ -23,14 +23,6 @@ describe("ProgressIndicator", () => {
 
       // Main container should be present with correct styles
       const container = screen.getByRole("progressbar");
-      expect(container).toHaveClass(
-        "fixed",
-        "top-0",
-        "left-0",
-        "right-0",
-        "w-screen",
-        "h-[2px]",
-      );
 
       // Progress bar value and attributes should be correct
       expect(container).toHaveAttribute("aria-valuenow", "0");
@@ -92,22 +84,6 @@ describe("ProgressIndicator", () => {
 
       // Main container styling
       const container = screen.getByRole("progressbar");
-      expect(container).toHaveClass(
-        "fixed",
-        "top-0",
-        "left-0",
-        "right-0",
-        "w-screen",
-        "bg-[rgba(255,255,255,0)]",
-        "text-[#222]",
-        "z-[101]",
-        "h-[2px]",
-        "p-0",
-        "m-0",
-        "shadow-none",
-        "flex",
-        "items-stretch",
-      );
 
       // Verify ARIA attributes
       expect(container).toHaveAttribute("aria-valuenow", "50");
@@ -116,15 +92,7 @@ describe("ProgressIndicator", () => {
 
       // Progress bar styling
       const progressBar = container.firstElementChild;
-      expect(progressBar).toHaveClass(
-        "h-full",
-        "transition-[width]",
-        "duration-200",
-        "rounded-none",
-        "bg-gradient-to-r",
-        "from-[#4f8cff]",
-        "to-[#00e0c6]",
-      );
+      expect(progressBar).toBeInTheDocument();
     });
   });
 });

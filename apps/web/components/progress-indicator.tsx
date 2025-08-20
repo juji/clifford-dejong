@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useUIStore } from "@/store/ui-store";
+import { cn } from "@/lib/utils";
 
 export function ProgressIndicator() {
   const progress = useUIStore((s) => s.progress);
@@ -30,10 +31,18 @@ export function ProgressIndicator() {
         aria-valuenow={roundedProgress}
         aria-valuemin={0}
         aria-valuemax={100}
-        className="fixed top-0 left-0 right-0 w-screen bg-[rgba(255,255,255,0)] text-[#222] z-[101] h-[2px] p-0 m-0 shadow-none flex items-stretch"
+        className={cn(
+          `fixed top-0 left-0 right-0 w-screen 
+          bg-[rgba(255,255,255,0)] text-[#222] z-[101] p-0 m-0 
+          shadow-none flex items-stretch
+          h-1`,
+        )}
       >
         <div
-          className="h-full transition-[width] duration-200 rounded-none bg-gradient-to-r from-[#4f8cff] to-[#00e0c6]"
+          className={cn(
+            "h-full transition-[width] duration-200 rounded-none bg-gradient-to-r from-[#4f8cff] to-[#00e0c6]",
+            { "w-full": roundedProgress === 100 },
+          )}
           style={{ width: `${roundedProgress}%` }}
         />
       </div>
