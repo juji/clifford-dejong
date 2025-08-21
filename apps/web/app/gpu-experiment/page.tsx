@@ -39,6 +39,7 @@ export default function GpuExperiment() {
       densityTime: number;
       imageTime: number;
       totalTime: number;
+      accumulatedTime?: number; // Track accumulated time across stages
       pointsPerSecond: string;
       accumulatedPoints: number;
       progress: number;
@@ -46,7 +47,7 @@ export default function GpuExperiment() {
   >([]);
 
   // Define the points for each stage - accessible throughout the component
-  const stagePoints = [2000000, 8000000, 10000000]; // 2M, 8M, 10M points for stages 1, 2, 3
+  const stagePoints = [2_000_000, 8_000_000, 10_000_000];
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -144,6 +145,31 @@ export default function GpuExperiment() {
 
         // Store results for this stage in timeline
         setStageTimeline((prevTimeline) => {
+          // Calculate accumulated time from previous stages
+          let accumulatedTime = 0;
+          if (prevTimeline && prevTimeline.length > 0) {
+            // Find the highest stage below current one
+            const prevStages = prevTimeline.filter(
+              (entry) => entry.stage < data.stage,
+            );
+            if (prevStages.length > 0) {
+              // Sort stages by stage number (descending)
+              const sortedPrevStages = [...prevStages].sort(
+                (a, b) => b.stage - a.stage,
+              );
+              // Take the highest stage number (first after sorting)
+              const lastPrevStage = sortedPrevStages[0];
+
+              // Use accumulated time if available, otherwise use total time
+              if (lastPrevStage) {
+                accumulatedTime =
+                  lastPrevStage.accumulatedTime !== undefined
+                    ? lastPrevStage.accumulatedTime
+                    : lastPrevStage.totalTime;
+              }
+            }
+          }
+
           // Create new stage entry
           const newStageEntry = {
             stage: data.stage,
@@ -151,6 +177,7 @@ export default function GpuExperiment() {
             densityTime: data.densityTime,
             imageTime: data.imageTime || 0,
             totalTime: data.totalTime,
+            accumulatedTime: accumulatedTime + data.totalTime, // Add current stage time
             pointsPerSecond: data.pointsPerSecond,
             accumulatedPoints: data.accumulatedPoints,
             progress: data.progress,
@@ -178,7 +205,7 @@ export default function GpuExperiment() {
           pointSamples: [],
           densitySamples: [],
         });
-      } else if (data.type === "cliffordResult") {
+      } else if (data.type === "result") {
         const canvasStatus = data.drawnToCanvas
           ? `Image drawn directly to canvas in ${data.drawTime ? data.drawTime.toFixed(2) : "?"}ms`
           : "Image data returned to main thread";
@@ -198,6 +225,31 @@ export default function GpuExperiment() {
 
         // Ensure we have the final stage in our timeline
         setStageTimeline((prevTimeline) => {
+          // Calculate accumulated time from previous stages
+          let accumulatedTime = 0;
+          if (prevTimeline && prevTimeline.length > 0) {
+            // Find the highest stage below the final stage
+            const prevStages = prevTimeline.filter(
+              (entry) => entry.stage < stagePoints.length,
+            );
+            if (prevStages.length > 0) {
+              // Sort stages by stage number (descending)
+              const sortedPrevStages = [...prevStages].sort(
+                (a, b) => b.stage - a.stage,
+              );
+              // Take the highest stage number (first after sorting)
+              const lastPrevStage = sortedPrevStages[0];
+
+              // Use accumulated time if available, otherwise use total time
+              if (lastPrevStage) {
+                accumulatedTime =
+                  lastPrevStage.accumulatedTime !== undefined
+                    ? lastPrevStage.accumulatedTime
+                    : lastPrevStage.totalTime;
+              }
+            }
+          }
+
           // Final stage data
           const finalStageEntry = {
             stage: stagePoints.length,
@@ -205,6 +257,7 @@ export default function GpuExperiment() {
             densityTime: data.densityTime,
             imageTime: data.imageTime || 0,
             totalTime: data.totalTime,
+            accumulatedTime: accumulatedTime + data.totalTime, // Add final stage time
             pointsPerSecond: data.pointsPerSecond,
             accumulatedPoints:
               data.totalPoints ||
@@ -214,7 +267,7 @@ export default function GpuExperiment() {
 
           // If we already have an entry for this stage, replace it
           const filteredTimeline = prevTimeline
-            ? prevTimeline.filter((entry) => entry.stage !== 3)
+            ? prevTimeline.filter((entry) => entry.stage !== stagePoints.length)
             : [];
 
           return [...filteredTimeline, finalStageEntry].sort(
@@ -425,13 +478,18 @@ export default function GpuExperiment() {
                         {stageData.imageTime.toFixed(2)}ms
                       </div>
 
+                      <div>Stage time:</div>
+                      <div style={{ textAlign: "right" }}>
+                        {stageData.totalTime.toFixed(2)}ms
+                      </div>
+
                       <div
                         style={{
                           borderTop: "1px solid rgba(255,255,255,0.2)",
                           paddingTop: "3px",
                         }}
                       >
-                        Total time:
+                        Accumulated time:
                       </div>
                       <div
                         style={{
@@ -441,7 +499,10 @@ export default function GpuExperiment() {
                           fontWeight: "bold",
                         }}
                       >
-                        {stageData.totalTime.toFixed(2)}ms
+                        {(
+                          stageData.accumulatedTime || stageData.totalTime
+                        ).toFixed(2)}
+                        ms
                       </div>
 
                       <div>Points/second:</div>

@@ -426,7 +426,7 @@ async function processAllStages(params, customStagePoints) {
 
     // Send the final result
     self.postMessage({
-      type: "cliffordResult",
+      type: "result",
       ...finalResult,
       renderId: renderId,
       pointsPerSecond: (totalPoints / (finalResult.pointsTime / 1000)).toFixed(
