@@ -13,8 +13,9 @@ console.warn = function (message) {
   originalWarn.apply(console, arguments);
 };
 
-// Load GPU.js from local file
+// Load GPU.js and AttractorCalc from local files
 importScripts("./gpu-browser.min.js");
+importScripts("./calculate-attractor-loop.js");
 
 let gpu = null;
 let offscreenCanvas = null;
@@ -50,33 +51,66 @@ const initCanvas = (canvas, width, height) => {
 const createAttractorKernel = (params, pointCount) => {
   if (!gpu) throw new Error("GPU not initialized");
 
-  return gpu
-    .createKernel(function () {
-      // Give each thread a slightly different starting point
-      let x = (this.thread.x / this.output.x - 0.5) * 0.01;
-      let y = (this.thread.x / this.output.x - 0.5) * 0.01;
+  // Create the appropriate kernel based on attractor type
+  if (params.attractor === "clifford") {
+    return gpu
+      .createKernel(function () {
+        // Give each thread a slightly different starting point
+        let x = (this.thread.x / this.output.x - 0.5) * 0.01;
+        let y = (this.thread.x / this.output.x - 0.5) * 0.01;
 
-      for (let i = 0; i < this.constants.iterations; i++) {
-        const newX =
-          Math.sin(this.constants.a * y) +
-          this.constants.c * Math.cos(this.constants.a * x);
-        const newY =
-          Math.sin(this.constants.b * x) +
-          this.constants.d * Math.cos(this.constants.b * y);
-        x = newX;
-        y = newY;
-      }
+        // Use the implementation from AttractorCalc.clifford
+        for (let i = 0; i < this.constants.iterations; i++) {
+          const newX =
+            Math.sin(this.constants.a * y) +
+            this.constants.c * Math.cos(this.constants.a * x);
+          const newY =
+            Math.sin(this.constants.b * x) +
+            this.constants.d * Math.cos(this.constants.b * y);
+          x = newX;
+          y = newY;
+        }
 
-      return [x, y];
-    })
-    .setConstants({
-      a: params.a,
-      b: params.b,
-      c: params.c,
-      d: params.d,
-      iterations: 10000,
-    })
-    .setOutput([pointCount]);
+        return [x, y];
+      })
+      .setConstants({
+        a: params.a,
+        b: params.b,
+        c: params.c,
+        d: params.d,
+        iterations: 10000,
+      })
+      .setOutput([pointCount]);
+  } else if (params.attractor === "dejong") {
+    return gpu
+      .createKernel(function () {
+        // Give each thread a slightly different starting point
+        let x = (this.thread.x / this.output.x - 0.5) * 0.01;
+        let y = (this.thread.x / this.output.x - 0.5) * 0.01;
+
+        // Use the implementation from AttractorCalc.dejong
+        for (let i = 0; i < this.constants.iterations; i++) {
+          const newX =
+            Math.sin(this.constants.a * y) - Math.cos(this.constants.b * x);
+          const newY =
+            Math.sin(this.constants.c * x) - Math.cos(this.constants.d * y);
+          x = newX;
+          y = newY;
+        }
+
+        return [x, y];
+      })
+      .setConstants({
+        a: params.a,
+        b: params.b,
+        c: params.c,
+        d: params.d,
+        iterations: 10000,
+      })
+      .setOutput([pointCount]);
+  } else {
+    throw new Error(`Unsupported attractor type: ${params.attractor}`);
+  }
 };
 
 const renderToCanvas = (points, width, height, scale) => {
@@ -112,6 +146,15 @@ const computeAttractor = async (payload) => {
 
   if (!gpu || !offscreenCanvas || !ctx) {
     throw new Error("Worker not properly initialized");
+  }
+
+  // Default to clifford if attractor type is not specified
+  params.attractor = params.attractor || "clifford";
+
+  if (params.attractor !== "clifford" && params.attractor !== "dejong") {
+    throw new Error(
+      `Invalid attractor type: ${params.attractor}. Must be 'clifford' or 'dejong'.`,
+    );
   }
 
   const startTime = performance.now();
