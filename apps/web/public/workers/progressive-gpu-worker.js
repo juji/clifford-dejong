@@ -33,6 +33,14 @@ gpu.addFunction(function gpuSmoothing(num, scale, threadX, threadY, iteration) {
   return num + (normalizedRandom < 0.5 ? -factor : factor) * (1.0 / scale);
 });
 
+// can't call from here
+// gpu.addFunction(function cliffordWithSmoothing(x,y,a,b,c,d,scale){
+//   const result = clifford(x,y,a,b,c,d);
+//   const smoothedX = gpuSmoothing(result[0], scale, this.thread.x, this.thread.y, 0);
+//   const smoothedY = gpuSmoothing(result[1], scale, this.thread.x, this.thread.y, 0);
+//   return [smoothedX, smoothedY];
+// });
+
 // Default parameters
 let params = {
   attractor: "clifford",
@@ -66,11 +74,10 @@ let totalPoints = 0; // Total points across all stages
 function createCliffordKernel(outputWidth, outputHeight) {
   return gpu
     .createKernel(function (a, b, c, d, iterations, scale, width, height) {
-      // Use a consistent starting position for all threads, but offset slightly
-      // to avoid all threads computing the same trajectory
-      // Start with a small value close to 0, which is what the original JS implementation uses
-      let x = 0.1 + (0.01 * this.thread.x) / this.output.x;
-      let y = 0.1 + (0.01 * this.thread.y) / this.output.y;
+      // Use more randomized starting positions for better distribution
+      // Create highly varied starting points based on thread coordinates
+      let x = Math.sin(this.thread.x * 0.3171 + this.thread.y * 0.1543) * 0.45;
+      let y = Math.cos(this.thread.y * 0.2779 + this.thread.x * 0.1237) * 0.45;
 
       // Do not skip initial iterations - this matches the original implementation
       // which uses all points in the trajectory
@@ -148,7 +155,7 @@ function calculateDensityArray(
       if (x >= 0 && x < canvasWidth && y >= 0 && y < canvasHeight) {
         // Convert 2D coordinates to 1D index: y * width + x
         const idx = y * canvasWidth + x;
-        densityArray[idx]++;
+        densityArray[idx] += 1;
       }
     }
   }
@@ -240,7 +247,8 @@ async function processStage(stage, params) {
     params.b,
     params.c,
     params.d,
-    params.iterations || 100,
+    // params.iterations || 100,
+    100 + Math.round(Math.random() * 500),
     params.scale || 100,
     width,
     height,
@@ -258,6 +266,7 @@ async function processStage(stage, params) {
     height,
     accumulatedDensity, // Pass the existing density if we have it
   );
+
   const densityTime = performance.now() - densityStartTime;
   console.log(`Density map updated in ${densityTime.toFixed(2)}ms`);
 

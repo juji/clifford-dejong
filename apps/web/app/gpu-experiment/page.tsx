@@ -16,6 +16,11 @@ html, body {
 
 export default function GpuExperiment() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Reference to store worker instance
+  const workerRef = useRef<Worker | null>(null);
+  // Reference to store accumulated time
+  const accumulatedTimeRef = useRef<number>(0);
+
   const [status, setStatus] = useState("Initializing...");
   const [canvasTransferred, setCanvasTransferred] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -48,12 +53,33 @@ export default function GpuExperiment() {
 
   // Define the points for each stage - accessible throughout the component
   // prettier-ignore
-  const stagePoints = [
-    5_000_000, 
-    5_000_000, 
-    5_000_000, 
-    5_000_000
-    // 5_000_000_000
+  const stagePoints = [ 
+    // 50, 
+    1_000_000, 
+    1_000_000, 
+    1_000_000, 
+    1_000_000, 
+    1_000_000, 
+    
+    1_000_000, 
+    1_000_000, 
+    1_000_000, 
+    1_000_000, 
+    1_000_000, 
+
+    1_000_000, 
+    1_000_000, 
+    1_000_000, 
+    1_000_000, 
+    1_000_000, 
+
+    1_000_000, 
+    1_000_000, 
+    1_000_000, 
+    1_000_000, 
+    1_000_000, 
+
+    
   ];
 
   useEffect(() => {
@@ -82,6 +108,8 @@ export default function GpuExperiment() {
       const data = e.data;
 
       if (data.type === "ready") {
+        // Reset accumulated time when starting a new calculation
+        accumulatedTimeRef.current = 0;
         setStatus("Worker ready, initializing GPU...");
         worker.postMessage({ type: "init" });
       } else if (data.type === "init") {
@@ -141,50 +169,25 @@ export default function GpuExperiment() {
         // Handle progressive rendering progress updates
         setStage(data.stage);
         setProgress(data.progress);
+        console.log(data);
+
+        // Update accumulated time with current stage time
+        accumulatedTimeRef.current += data.totalTime;
 
         const stagePercent = Math.round(data.progress * 100);
         const pointsInMillions = (data.accumulatedPoints / 1000000).toFixed(1);
         const totalStages = stagePoints.length;
 
-        setStatus(
-          `Stage ${data.stage}/${totalStages} (${stagePercent}%): ${pointsInMillions}M points processed`,
-        );
-
         // Store results for this stage in timeline
         setStageTimeline((prevTimeline) => {
-          // Calculate accumulated time from previous stages
-          let accumulatedTime = 0;
-          if (prevTimeline && prevTimeline.length > 0) {
-            // Find the highest stage below current one
-            const prevStages = prevTimeline.filter(
-              (entry) => entry.stage < data.stage,
-            );
-            if (prevStages.length > 0) {
-              // Sort stages by stage number (descending)
-              const sortedPrevStages = [...prevStages].sort(
-                (a, b) => b.stage - a.stage,
-              );
-              // Take the highest stage number (first after sorting)
-              const lastPrevStage = sortedPrevStages[0];
-
-              // Use accumulated time if available, otherwise use total time
-              if (lastPrevStage) {
-                accumulatedTime =
-                  lastPrevStage.accumulatedTime !== undefined
-                    ? lastPrevStage.accumulatedTime
-                    : lastPrevStage.totalTime;
-              }
-            }
-          }
-
-          // Create new stage entry
+          // Create new stage entry with ref-based accumulated time
           const newStageEntry = {
             stage: data.stage,
             pointsTime: data.pointsTime,
             densityTime: data.densityTime,
             imageTime: data.imageTime || 0,
             totalTime: data.totalTime,
-            accumulatedTime: accumulatedTime + data.totalTime, // Add current stage time
+            accumulatedTime: accumulatedTimeRef.current, // Use ref's accumulated time
             pointsPerSecond: data.pointsPerSecond,
             accumulatedPoints: data.accumulatedPoints,
             progress: data.progress,
@@ -192,14 +195,18 @@ export default function GpuExperiment() {
 
           // If we already have an entry for this stage, replace it
           // otherwise add the new entry
-          const filteredTimeline = prevTimeline
+          const updatedTimeline = prevTimeline
             ? prevTimeline.filter((entry) => entry.stage !== data.stage)
             : [];
 
-          return [...filteredTimeline, newStageEntry].sort(
+          return [...updatedTimeline, newStageEntry].sort(
             (a, b) => a.stage - b.stage,
           ); // Keep sorted by stage
         });
+
+        setStatus(
+          `Stage ${data.stage}/${totalStages} (${stagePercent}%): ${pointsInMillions}M points processed. Accumulated time: ${accumulatedTimeRef.current.toFixed(2)}ms`,
+        );
 
         // Update the current results with current data
         setResults({
@@ -213,13 +220,11 @@ export default function GpuExperiment() {
           densitySamples: [],
         });
       } else if (data.type === "result") {
-        const canvasStatus = data.drawnToCanvas
-          ? `Image drawn directly to canvas in ${data.drawTime ? data.drawTime.toFixed(2) : "?"}ms`
-          : "Image data returned to main thread";
+        // Update accumulated time with final stage time
+        accumulatedTimeRef.current += data.totalTime;
 
         setStage(3);
         setProgress(1.0);
-        setStatus(`Calculation complete. ${canvasStatus}`);
         const totalPointsInMillions =
           (data.totalPoints ||
             stagePoints.reduce((sum, points) => sum + points, 0)) / 1000000;
@@ -229,42 +234,20 @@ export default function GpuExperiment() {
         console.log(`Points calculation: ${data.pointsTime.toFixed(2)}ms`);
         console.log(`Density calculation: ${data.densityTime.toFixed(2)}ms`);
         console.log(`Performance: ${data.pointsPerSecond} points/second`);
+        console.log(
+          `Total accumulated time: ${accumulatedTimeRef.current.toFixed(2)}ms`,
+        );
 
         // Ensure we have the final stage in our timeline
         setStageTimeline((prevTimeline) => {
-          // Calculate accumulated time from previous stages
-          let accumulatedTime = 0;
-          if (prevTimeline && prevTimeline.length > 0) {
-            // Find the highest stage below the final stage
-            const prevStages = prevTimeline.filter(
-              (entry) => entry.stage < stagePoints.length,
-            );
-            if (prevStages.length > 0) {
-              // Sort stages by stage number (descending)
-              const sortedPrevStages = [...prevStages].sort(
-                (a, b) => b.stage - a.stage,
-              );
-              // Take the highest stage number (first after sorting)
-              const lastPrevStage = sortedPrevStages[0];
-
-              // Use accumulated time if available, otherwise use total time
-              if (lastPrevStage) {
-                accumulatedTime =
-                  lastPrevStage.accumulatedTime !== undefined
-                    ? lastPrevStage.accumulatedTime
-                    : lastPrevStage.totalTime;
-              }
-            }
-          }
-
-          // Final stage data
+          // Final stage data using the ref for accumulated time
           const finalStageEntry = {
             stage: stagePoints.length,
             pointsTime: data.pointsTime,
             densityTime: data.densityTime,
             imageTime: data.imageTime || 0,
             totalTime: data.totalTime,
-            accumulatedTime: accumulatedTime + data.totalTime, // Add final stage time
+            accumulatedTime: accumulatedTimeRef.current, // Use ref's accumulated time
             pointsPerSecond: data.pointsPerSecond,
             accumulatedPoints:
               data.totalPoints ||
@@ -311,9 +294,6 @@ export default function GpuExperiment() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Reference to store worker instance
-  const workerRef = useRef<Worker | null>(null);
 
   // Effect to handle initial canvas sizing
   useEffect(() => {
@@ -413,6 +393,7 @@ export default function GpuExperiment() {
             maxWidth: "360px",
             height: "100%",
             overflowY: "auto",
+            // display: 'none',
           }}
         >
           <h2 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>
@@ -506,9 +487,7 @@ export default function GpuExperiment() {
                           fontWeight: "bold",
                         }}
                       >
-                        {(
-                          stageData.accumulatedTime || stageData.totalTime
-                        ).toFixed(2)}
+                        {(stageData.accumulatedTime || 0).toFixed(2)}
                         ms
                       </div>
 
