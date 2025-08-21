@@ -16,17 +16,21 @@ gpu.addFunction(clifford);
 
 // Add smoothing function for GPU.js
 gpu.addFunction(function gpuSmoothing(num, scale, threadX, threadY, iteration) {
-  // Create a deterministic but varied pseudo-random value
+  // Use a better pseudo-random number generation that more closely matches Math.random()
+  // This algorithm uses multiple sin operations with different prime multipliers to reduce patterns
   const pseudoRandom =
-    Math.sin(
-      num * 12.9898 + threadX * 78.233 + threadY * 43.7221 + iteration * 3.1415,
-    ) *
-      0.5 +
-    0.5;
+    (Math.sin(threadX * 12.9898 + threadY * 78.233 + iteration * 3.1415) *
+      43758.5453123 +
+      Math.sin(threadY * 39.346 + threadX * 11.789 + (iteration + 10) * 7.643) *
+        22189.6876423) %
+    1.0;
 
-  // Apply similar logic as original smoothing function
+  // Ensure it's in the 0 to 1 range
+  const normalizedRandom = Math.abs(pseudoRandom);
+
+  // Apply the exact same logic as original smoothing function
   const factor = 0.2;
-  return num + (pseudoRandom < 0.5 ? -factor : factor) * (1.0 / scale);
+  return num + (normalizedRandom < 0.5 ? -factor : factor) * (1.0 / scale);
 });
 
 // Default parameters
@@ -62,31 +66,35 @@ let totalPoints = 0; // Total points across all stages
 function createCliffordKernel(outputWidth, outputHeight) {
   return gpu
     .createKernel(function (a, b, c, d, iterations, scale, width, height) {
-      // Each thread gets a slightly different starting position
-      // Use wider range of starting values for better coverage
-      let x = -0.75 + (1.5 * this.thread.x) / this.output.x;
-      let y = -0.75 + (1.5 * this.thread.y) / this.output.y;
+      // Use a consistent starting position for all threads, but offset slightly
+      // to avoid all threads computing the same trajectory
+      // Start with a small value close to 0, which is what the original JS implementation uses
+      let x = 0.1 + (0.01 * this.thread.x) / this.output.x;
+      let y = 0.1 + (0.01 * this.thread.y) / this.output.y;
 
-      // Skip the first few iterations which are usually transient
-      for (let i = 0; i < 20; i++) {
-        const result = clifford(x, y, a, b, c, d);
-        x = result[0];
-        y = result[1];
-      }
+      // Do not skip initial iterations - this matches the original implementation
+      // which uses all points in the trajectory
 
-      // Run the iterations that we'll actually keep
+      // Run all iterations
       for (let i = 0; i < iterations; i++) {
         // Calculate next point using clifford attractor
         const result = clifford(x, y, a, b, c, d);
 
-        // Apply smoothing to add variety to the trajectories
-        x = gpuSmoothing(result[0], scale, this.thread.x, this.thread.y, i);
+        // Apply smoothing with the improved random function
+        // Use unique seeds for each point to get a good distribution
+        x = gpuSmoothing(
+          result[0],
+          scale,
+          this.thread.x + i * 0.01,
+          this.thread.y,
+          i,
+        );
         y = gpuSmoothing(
           result[1],
           scale,
-          this.thread.y,
+          this.thread.y + i * 0.01,
           this.thread.x,
-          i + 10000,
+          i + 100,
         );
       }
 
@@ -283,11 +291,12 @@ async function processStage(stage, params) {
     imageArray[i] = bgColor;
   }
 
-  // Process density values
+  // Process density values - using exactly the same color mapping approach as the original
   for (let i = 0; i < accumulatedDensity.length; i++) {
     const dval = accumulatedDensity[i];
     if (dval > 0) {
       // Use AttractorCalc's getColorData function for consistency
+      // Ensure we're using the exact params from the request, or default identical to the original
       const colorData = AttractorCalc.getColorData(
         dval,
         maxDensity,

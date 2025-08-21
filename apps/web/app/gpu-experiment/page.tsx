@@ -53,6 +53,7 @@ export default function GpuExperiment() {
     5_000_000, 
     5_000_000, 
     5_000_000
+    // 5_000_000_000
   ];
 
   useEffect(() => {
@@ -513,7 +514,7 @@ export default function GpuExperiment() {
 
                       <div>Points/second:</div>
                       <div style={{ textAlign: "right" }}>
-                        {stageData.pointsPerSecond}
+                        {parseInt(stageData.pointsPerSecond).toLocaleString()}
                       </div>
                     </div>
                   </div>
