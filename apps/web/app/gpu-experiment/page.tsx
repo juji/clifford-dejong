@@ -47,11 +47,8 @@ export default function GpuExperiment() {
   >([]);
 
   // Define the points for each stage - accessible throughout the component
-  const stagePoints = [
-    10_000_000, 10_000_000, 10_000_000, 10_000_000, 10_000_000, 10_000_000,
-    10_000_000, 10_000_000, 10_000_000, 10_000_000, 10_000_000, 10_000_000,
-    10_000_000, 10_000_000, 10_000_000,
-  ];
+
+  const stagePoints = [5_000_000, 5_000_000, 5_000_000, 5_000_000, 5_000_000];
 
   useEffect(() => {
     const canvas = canvasRef.current;
