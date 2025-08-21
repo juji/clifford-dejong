@@ -45,6 +45,9 @@ export default function GpuExperiment() {
     }>
   >([]);
 
+  // Define the points for each stage - accessible throughout the component
+  const stagePoints = [2000000, 8000000, 10000000]; // 2M, 8M, 10M points for stages 1, 2, 3
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -83,11 +86,14 @@ export default function GpuExperiment() {
           // Get an offscreen canvas that can be transferred to the worker
           const offscreenCanvas = canvas.transferControlToOffscreen();
 
+          // Use the stagePoints defined at component level
+
           // Run the Clifford calculation with canvas dimensions and transfer the canvas
           worker.postMessage(
             {
               type: "runClifford",
               canvas: offscreenCanvas,
+              stagePoints: stagePoints, // Pass the points for each stage
               params: {
                 width: window.innerWidth,
                 height: window.innerHeight,
@@ -123,17 +129,17 @@ export default function GpuExperiment() {
             `Canvas transfer failed: ${error instanceof Error ? error.message : "Unknown error"}`,
           );
         }
-      } else if (data.type === "cliffordProgress") {
+      } else if (data.type === "progress") {
         // Handle progressive rendering progress updates
         setStage(data.stage);
         setProgress(data.progress);
 
-        const stageText =
-          data.stage === 1 ? "10%" : data.stage === 2 ? "50%" : "100%";
+        const stagePercent = Math.round(data.progress * 100);
         const pointsInMillions = (data.accumulatedPoints / 1000000).toFixed(1);
+        const totalStages = stagePoints.length;
 
         setStatus(
-          `Stage ${data.stage}/3 (${stageText}): ${pointsInMillions}M points processed`,
+          `Stage ${data.stage}/${totalStages} (${stagePercent}%): ${pointsInMillions}M points processed`,
         );
 
         // Store results for this stage in timeline
@@ -180,24 +186,29 @@ export default function GpuExperiment() {
         setStage(3);
         setProgress(1.0);
         setStatus(`Calculation complete. ${canvasStatus}`);
+        const totalPointsInMillions =
+          (data.totalPoints ||
+            stagePoints.reduce((sum, points) => sum + points, 0)) / 1000000;
         console.log(
-          `Calculated 20 million points in ${data.totalTime.toFixed(2)}ms`,
+          `Calculated ${totalPointsInMillions.toFixed(1)} million points in ${data.totalTime.toFixed(2)}ms`,
         );
         console.log(`Points calculation: ${data.pointsTime.toFixed(2)}ms`);
         console.log(`Density calculation: ${data.densityTime.toFixed(2)}ms`);
         console.log(`Performance: ${data.pointsPerSecond} points/second`);
 
-        // Ensure we have the final stage (3) in our timeline
+        // Ensure we have the final stage in our timeline
         setStageTimeline((prevTimeline) => {
           // Final stage data
           const finalStageEntry = {
-            stage: 3,
+            stage: stagePoints.length,
             pointsTime: data.pointsTime,
             densityTime: data.densityTime,
             imageTime: data.imageTime || 0,
             totalTime: data.totalTime,
             pointsPerSecond: data.pointsPerSecond,
-            accumulatedPoints: 20000000, // 20M points in final stage
+            accumulatedPoints:
+              data.totalPoints ||
+              stagePoints.reduce((sum, points) => sum + points, 0),
             progress: 1.0,
           };
 
@@ -309,12 +320,14 @@ export default function GpuExperiment() {
                 style={{
                   height: "100%",
                   width: `${progress * 100}%`,
-                  backgroundColor:
-                    stage === 1
-                      ? "#4CAF50"
-                      : stage === 2
-                        ? "#2196F3"
-                        : "#9C27B0",
+                  backgroundColor: [
+                    "#4CAF50",
+                    "#2196F3",
+                    "#9C27B0",
+                    "#FF9800",
+                    "#795548",
+                    "#607D8B",
+                  ][(stage - 1) % 6],
                   transition: "width 0.3s ease-out",
                 }}
               />
@@ -328,8 +341,8 @@ export default function GpuExperiment() {
         <div
           style={{
             position: "fixed",
-            top: 50,
-            right: 10,
+            top: 0,
+            right: 0,
             color: "white",
             background: "rgba(0, 0, 0, 0.7)",
             padding: "12px",
@@ -338,6 +351,8 @@ export default function GpuExperiment() {
             fontFamily: "monospace",
             zIndex: 100,
             maxWidth: "360px",
+            height: "100%",
+            overflowY: "auto",
           }}
         >
           <h2 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>
@@ -348,21 +363,22 @@ export default function GpuExperiment() {
           {stageTimeline && stageTimeline.length > 0 && (
             <>
               {stageTimeline.map((stageData) => {
-                const stageText =
-                  stageData.stage === 1
-                    ? "Stage 1 (10%)"
-                    : stageData.stage === 2
-                      ? "Stage 2 (50%)"
-                      : "Stage 3 (100%)";
+                const stagePercent = Math.round(stageData.progress * 100);
+                const stageText = `Stage ${stageData.stage} (${stagePercent}%)`;
                 const pointsInMillions = (
                   stageData.accumulatedPoints / 1000000
                 ).toFixed(1);
+                // Create a dynamic color based on stage number
+                const colorMap = [
+                  "#4CAF50",
+                  "#2196F3",
+                  "#9C27B0",
+                  "#FF9800",
+                  "#795548",
+                  "#607D8B",
+                ];
                 const stageColor =
-                  stageData.stage === 1
-                    ? "#4CAF50"
-                    : stageData.stage === 2
-                      ? "#2196F3"
-                      : "#9C27B0";
+                  colorMap[(stageData.stage - 1) % colorMap.length];
 
                 return (
                   <div
@@ -451,7 +467,9 @@ export default function GpuExperiment() {
             }}
           >
             <div>Current stage:</div>
-            <div style={{ textAlign: "right" }}>{stage}/3</div>
+            <div style={{ textAlign: "right" }}>
+              {stage}/{stagePoints.length}
+            </div>
 
             <div>Completion:</div>
             <div style={{ textAlign: "right" }}>
