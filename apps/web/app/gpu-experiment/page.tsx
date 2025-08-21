@@ -18,6 +18,8 @@ export default function GpuExperiment() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState("Initializing...");
   const [canvasTransferred, setCanvasTransferred] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [stage, setStage] = useState(0);
   const [results, setResults] = useState<{
     pointsTime: number;
     densityTime: number;
@@ -29,12 +31,26 @@ export default function GpuExperiment() {
     densitySamples: Array<{ pos: [number, number]; value: number }>;
   } | null>(null);
 
+  // Store results for all stages in a timeline array
+  const [stageTimeline, setStageTimeline] = useState<
+    Array<{
+      stage: number;
+      pointsTime: number;
+      densityTime: number;
+      imageTime: number;
+      totalTime: number;
+      pointsPerSecond: string;
+      accumulatedPoints: number;
+      progress: number;
+    }>
+  >([]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     // Create worker
-    const worker = new Worker("/workers/gpu-attractor-worker.js");
+    const worker = new Worker("/workers/progressive-gpu-worker.js");
     workerRef.current = worker;
 
     // Handle window resize events - only notify worker after canvas is transferred
@@ -107,11 +123,62 @@ export default function GpuExperiment() {
             `Canvas transfer failed: ${error instanceof Error ? error.message : "Unknown error"}`,
           );
         }
+      } else if (data.type === "cliffordProgress") {
+        // Handle progressive rendering progress updates
+        setStage(data.stage);
+        setProgress(data.progress);
+
+        const stageText =
+          data.stage === 1 ? "10%" : data.stage === 2 ? "50%" : "100%";
+        const pointsInMillions = (data.accumulatedPoints / 1000000).toFixed(1);
+
+        setStatus(
+          `Stage ${data.stage}/3 (${stageText}): ${pointsInMillions}M points processed`,
+        );
+
+        // Store results for this stage in timeline
+        setStageTimeline((prevTimeline) => {
+          // Create new stage entry
+          const newStageEntry = {
+            stage: data.stage,
+            pointsTime: data.pointsTime,
+            densityTime: data.densityTime,
+            imageTime: data.imageTime || 0,
+            totalTime: data.totalTime,
+            pointsPerSecond: data.pointsPerSecond,
+            accumulatedPoints: data.accumulatedPoints,
+            progress: data.progress,
+          };
+
+          // If we already have an entry for this stage, replace it
+          // otherwise add the new entry
+          const filteredTimeline = prevTimeline
+            ? prevTimeline.filter((entry) => entry.stage !== data.stage)
+            : [];
+
+          return [...filteredTimeline, newStageEntry].sort(
+            (a, b) => a.stage - b.stage,
+          ); // Keep sorted by stage
+        });
+
+        // Update the current results with current data
+        setResults({
+          pointsTime: data.pointsTime,
+          densityTime: data.densityTime,
+          imageTime: data.imageTime || 0,
+          totalTime: data.totalTime,
+          pointsPerSecond: data.pointsPerSecond,
+          gpuMode: data.gpuMode,
+          pointSamples: [],
+          densitySamples: [],
+        });
       } else if (data.type === "cliffordResult") {
         const canvasStatus = data.drawnToCanvas
-          ? `Image drawn directly to canvas in ${data.drawTime.toFixed(2)}ms`
+          ? `Image drawn directly to canvas in ${data.drawTime ? data.drawTime.toFixed(2) : "?"}ms`
           : "Image data returned to main thread";
 
+        setStage(3);
+        setProgress(1.0);
         setStatus(`Calculation complete. ${canvasStatus}`);
         console.log(
           `Calculated 20 million points in ${data.totalTime.toFixed(2)}ms`,
@@ -119,22 +186,41 @@ export default function GpuExperiment() {
         console.log(`Points calculation: ${data.pointsTime.toFixed(2)}ms`);
         console.log(`Density calculation: ${data.densityTime.toFixed(2)}ms`);
         console.log(`Performance: ${data.pointsPerSecond} points/second`);
-        console.log("Point samples:", data.pointSamples);
-        console.log("Density samples:", data.densitySamples);
 
-        // Since we always transfer the canvas, we don't need to handle drawing in the main thread
-        // The image should always be drawn directly in the worker
+        // Ensure we have the final stage (3) in our timeline
+        setStageTimeline((prevTimeline) => {
+          // Final stage data
+          const finalStageEntry = {
+            stage: 3,
+            pointsTime: data.pointsTime,
+            densityTime: data.densityTime,
+            imageTime: data.imageTime || 0,
+            totalTime: data.totalTime,
+            pointsPerSecond: data.pointsPerSecond,
+            accumulatedPoints: 20000000, // 20M points in final stage
+            progress: 1.0,
+          };
 
-        // Store results for display
+          // If we already have an entry for this stage, replace it
+          const filteredTimeline = prevTimeline
+            ? prevTimeline.filter((entry) => entry.stage !== 3)
+            : [];
+
+          return [...filteredTimeline, finalStageEntry].sort(
+            (a, b) => a.stage - b.stage,
+          ); // Keep sorted by stage
+        });
+
+        // Store final results for display
         setResults({
           pointsTime: data.pointsTime,
           densityTime: data.densityTime,
-          imageTime: data.imageTime || 0, // Add imageTime with fallback
+          imageTime: data.imageTime || 0,
           totalTime: data.totalTime,
           pointsPerSecond: data.pointsPerSecond,
           gpuMode: data.gpuMode,
-          pointSamples: data.pointSamples,
-          densitySamples: data.densitySamples,
+          pointSamples: [],
+          densitySamples: [],
         });
       } else if (data.type === "error") {
         setStatus(`Calculation error: ${data.message}`);
@@ -202,9 +288,39 @@ export default function GpuExperiment() {
           fontSize: "14px",
           fontFamily: "monospace",
           zIndex: 100,
+          width: "300px",
         }}
       >
-        GPU.js Attractor • {status}
+        <div style={{ marginBottom: "8px" }}>GPU.js Attractor • {status}</div>
+
+        {/* Progress bar */}
+        {stage > 0 && (
+          <div style={{ width: "100%" }}>
+            <div
+              style={{
+                height: "6px",
+                width: "100%",
+                backgroundColor: "rgba(255,255,255,0.2)",
+                borderRadius: "3px",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${progress * 100}%`,
+                  backgroundColor:
+                    stage === 1
+                      ? "#4CAF50"
+                      : stage === 2
+                        ? "#2196F3"
+                        : "#9C27B0",
+                  transition: "width 0.3s ease-out",
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Results overlay */}
@@ -221,57 +337,125 @@ export default function GpuExperiment() {
             fontSize: "14px",
             fontFamily: "monospace",
             zIndex: 100,
+            maxWidth: "360px",
           }}
         >
           <h2 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>
-            Performance
+            Performance Timeline
           </h2>
+
+          {/* Show all completed stages in timeline */}
+          {stageTimeline && stageTimeline.length > 0 && (
+            <>
+              {stageTimeline.map((stageData) => {
+                const stageText =
+                  stageData.stage === 1
+                    ? "Stage 1 (10%)"
+                    : stageData.stage === 2
+                      ? "Stage 2 (50%)"
+                      : "Stage 3 (100%)";
+                const pointsInMillions = (
+                  stageData.accumulatedPoints / 1000000
+                ).toFixed(1);
+                const stageColor =
+                  stageData.stage === 1
+                    ? "#4CAF50"
+                    : stageData.stage === 2
+                      ? "#2196F3"
+                      : "#9C27B0";
+
+                return (
+                  <div
+                    key={`stage-${stageData.stage}`}
+                    style={{
+                      marginBottom: "16px",
+                      padding: "8px",
+                      borderLeft: `3px solid ${stageColor}`,
+                      backgroundColor: "rgba(255, 255, 255, 0.05)",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        margin: "0 0 8px 0",
+                        fontSize: "15px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span>{stageText}</span>
+                      <span>{pointsInMillions}M points</span>
+                    </h3>
+
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "140px 100px",
+                        gap: "3px",
+                        fontSize: "12px",
+                      }}
+                    >
+                      <div>Points calculation:</div>
+                      <div style={{ textAlign: "right" }}>
+                        {stageData.pointsTime.toFixed(2)}ms
+                      </div>
+
+                      <div>Density mapping:</div>
+                      <div style={{ textAlign: "right" }}>
+                        {stageData.densityTime.toFixed(2)}ms
+                      </div>
+
+                      <div>Image creation:</div>
+                      <div style={{ textAlign: "right" }}>
+                        {stageData.imageTime.toFixed(2)}ms
+                      </div>
+
+                      <div
+                        style={{
+                          borderTop: "1px solid rgba(255,255,255,0.2)",
+                          paddingTop: "3px",
+                        }}
+                      >
+                        Total time:
+                      </div>
+                      <div
+                        style={{
+                          borderTop: "1px solid rgba(255,255,255,0.2)",
+                          paddingTop: "3px",
+                          textAlign: "right",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {stageData.totalTime.toFixed(2)}ms
+                      </div>
+
+                      <div>Points/second:</div>
+                      <div style={{ textAlign: "right" }}>
+                        {stageData.pointsPerSecond}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {/* Current execution status */}
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "140px 100px",
               gap: "4px",
+              marginTop: "12px",
+              borderTop: "1px solid rgba(255,255,255,0.3)",
+              paddingTop: "12px",
             }}
           >
-            <div>Points calculation:</div>
+            <div>Current stage:</div>
+            <div style={{ textAlign: "right" }}>{stage}/3</div>
+
+            <div>Completion:</div>
             <div style={{ textAlign: "right" }}>
-              {results.pointsTime.toFixed(2)}ms
-            </div>
-
-            <div>Density mapping:</div>
-            <div style={{ textAlign: "right" }}>
-              {results.densityTime.toFixed(2)}ms
-            </div>
-
-            <div>Image creation:</div>
-            <div style={{ textAlign: "right" }}>
-              {results.imageTime.toFixed(2)}ms
-            </div>
-
-            <div
-              style={{
-                borderTop: "1px solid rgba(255,255,255,0.2)",
-                paddingTop: "4px",
-                marginTop: "2px",
-              }}
-            >
-              Total time:
-            </div>
-            <div
-              style={{
-                borderTop: "1px solid rgba(255,255,255,0.2)",
-                paddingTop: "4px",
-                marginTop: "2px",
-                textAlign: "right",
-                fontWeight: "bold",
-              }}
-            >
-              {results.totalTime.toFixed(2)}ms
-            </div>
-
-            <div style={{ marginTop: "8px" }}>Points/second:</div>
-            <div style={{ marginTop: "8px", textAlign: "right" }}>
-              {results.pointsPerSecond}
+              {Math.round(progress * 100)}%
             </div>
 
             <div>Mode:</div>
