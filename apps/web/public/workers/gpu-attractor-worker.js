@@ -29,9 +29,8 @@ const gpu = new GPU.GPU();
 const isGpu = gpu.mode === "gpu";
 
 const clifford = AttractorCalc.clifford;
-const smoothing = AttractorCalc.smoothing;
 
-// Add the clifford and smoothing functions to GPU.js
+// Add the clifford function to GPU.js
 gpu.addFunction(clifford);
 
 // We need to create a GPU-compatible version of smoothing since Math.random() isn't available in GPU.js
@@ -307,6 +306,7 @@ self.onmessage = function (e) {
       const pointsStartTime = performance.now();
 
       // Use the params values with their proper defaults
+      console.log("SCALE", params.scale);
       const pointsResult = cliffordKernel(
         params.a,
         params.b,

@@ -75,7 +75,7 @@ export default function GpuExperiment() {
               params: {
                 width: window.innerWidth,
                 height: window.innerHeight,
-                scale: 100,
+                scale: 150,
                 iterations: 100,
                 a: 2,
                 b: -2,
