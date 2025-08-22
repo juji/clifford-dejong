@@ -228,22 +228,24 @@ pub fn accumulate_density(
 ) {
     let mut i = 0;
     let density_size = (context.width * context.height) as usize;
+    let mut x = context.x;
+    let mut y = context.y;
 
     while i < context.points_to_calculate && info_array[1] == 0 {
         let (next_x, next_y) = attractor_fn(
-            context.x,
-            context.y,
+            x,
+            y,
             context.attractor_params.a,
             context.attractor_params.b,
             context.attractor_params.c,
             context.attractor_params.d,
         );
 
-        context.x = smoothing(next_x, context.attractor_params.scale);
-        context.y = smoothing(next_y, context.attractor_params.scale);
+        x = smoothing(next_x, context.attractor_params.scale);
+        y = smoothing(next_y, context.attractor_params.scale);
 
-        let screen_x = context.x * context.attractor_params.scale;
-        let screen_y = context.y * context.attractor_params.scale;
+        let screen_x = x * context.attractor_params.scale;
+        let screen_y = y * context.attractor_params.scale;
         let px = (context.center_x + screen_x).floor() as i32;
         let py = (context.center_y + screen_y).floor() as i32;
 
