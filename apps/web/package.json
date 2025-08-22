@@ -14,8 +14,8 @@
     "build:wasm": "cd wasm && chmod +x build-attractor.sh && ./build-attractor.sh",
     "build:wasmrust": "cd wasm && chmod +x build-rust.sh && ./build-rust.sh",
     "generate-favicon": "node scripts/generate-favicon.js",
-    "build:wasm:dev": "cd wasm && chmod +x build-attractor.sh && ./build-attractor.sh",
-    "watch:wasm": "chokidar \"wasm/**/*.cpp\" -c \"pnpm run build:wasm:dev\""
+    "build:wasm:dev": "cd wasm && chmod +x build-attractor.sh && ./build-attractor.sh && chmod +x build-rust.sh && ./build-rust.sh",
+    "watch:wasm": "chokidar \"wasm/**/*.{cpp,rs}\" -c \"pnpm run build:wasm:dev\""
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.14",

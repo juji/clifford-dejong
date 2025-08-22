@@ -207,14 +207,14 @@ pub fn dejong(x: f64, y: f64, a: f64, b: f64, c: f64, d: f64) -> (f64, f64) {
 }
 
 // Context for accumulating density
-pub struct AccumulationContext {
-    pub density_array: Vec<u32>,
+pub struct AccumulationContext<'a> {
+    pub density_array: &'a mut Vec<u32>,
     pub x: f64,
     pub y: f64,
     pub points_to_calculate: i32,
     pub width: i32,
     pub height: i32,
-    pub attractor_params: AttractorParameters,
+    pub attractor_params: &'a AttractorParameters,
     pub center_x: f64,
     pub center_y: f64,
     pub update_progress: bool,
@@ -271,12 +271,12 @@ pub fn accumulate_density(
 }
 
 // Context for image data creation
-pub struct ImageDataCreationContext {
-    pub image_array: Vec<u32>,
+pub struct ImageDataCreationContext<'a> {
+    pub image_array: &'a mut Vec<u32>,
     pub image_size: usize,
-    pub density_array: Vec<u32>,
+    pub density_array: &'a mut Vec<u32>,
     pub high_quality: bool,
-    pub attractor_params: AttractorParameters,
+    pub attractor_params: &'a AttractorParameters,
 }
 
 // Create image data from density data
@@ -470,7 +470,7 @@ pub fn calculate_attractor_loop(js_ctx: &JsValue) -> Result<JsValue, JsValue> {
     let points_per_loop = points_to_calculate / loop_num;
 
     // Create local arrays for computation
-    let density_array = vec![0u32; (width * height) as usize];
+    let mut density_array = vec![0u32; (width * height) as usize];
     let mut image_array_local = vec![0u32; (width * height) as usize];
     let mut info_array_local = vec![0u32; info_array.length() as usize];
 
@@ -479,24 +479,27 @@ pub fn calculate_attractor_loop(js_ctx: &JsValue) -> Result<JsValue, JsValue> {
         info_array_local[i as usize] = info_array.get_index(i);
     }
 
-    let mut accumulation_context = AccumulationContext {
-        density_array,
-        x,
-        y,
-        points_to_calculate: points_per_loop,
-        width,
-        height,
-        attractor_params: attractor_params.clone(),
-        center_x,
-        center_y,
-        update_progress: false,
-    };
-
     let mut total_loop = 0;
     let mut num = 0;
 
     while num < loop_num {
-        accumulate_density(&mut accumulation_context, &mut info_array_local, attractor_fn);
+
+        {
+            let mut accumulation_context = AccumulationContext {
+                density_array: &mut density_array,
+                x,
+                y,
+                points_to_calculate: points_per_loop,
+                width,
+                height,
+                attractor_params: &attractor_params,
+                center_x,
+                center_y,
+                update_progress: false,
+            };
+
+            accumulate_density(&mut accumulation_context, &mut info_array_local, attractor_fn);
+        }
 
         if info_array.get_index(1) != 0 {
             break;
@@ -504,11 +507,11 @@ pub fn calculate_attractor_loop(js_ctx: &JsValue) -> Result<JsValue, JsValue> {
 
         if (total_loop % draw_at) == 0 || num == loop_num - 1 {
             let mut img_context = ImageDataCreationContext {
-                image_array: image_array_local.clone(),
+                image_array: &mut image_array_local,
                 image_size: (width * height) as usize,
-                density_array: accumulation_context.density_array.clone(),
+                density_array: &mut density_array,
                 high_quality,
-                attractor_params: attractor_params.clone(),
+                attractor_params: &attractor_params,
             };
 
             create_image_data(&mut img_context, &info_array_local);
@@ -517,7 +520,6 @@ pub fn calculate_attractor_loop(js_ctx: &JsValue) -> Result<JsValue, JsValue> {
             for i in 0..img_context.image_size {
                 image_array.set_index(i as u32, img_context.image_array[i]);
             }
-            image_array_local = img_context.image_array;
         }
 
         if info_array.get_index(1) != 0 {
@@ -537,9 +539,6 @@ pub fn calculate_attractor_loop(js_ctx: &JsValue) -> Result<JsValue, JsValue> {
 
     // Create result object
     let result = js_sys::Object::new();
-    js_sys::Reflect::set(&result, &"x".into(), &accumulation_context.x.into())?;
-    js_sys::Reflect::set(&result, &"y".into(), &accumulation_context.y.into())?;
-    js_sys::Reflect::set(&result, &"pointsAdded".into(), &points_to_calculate.into())?;
 
     Ok(result.into())
 }
