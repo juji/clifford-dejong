@@ -143,7 +143,7 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
             t1.clientX - t2.clientX,
             t1.clientY - t2.clientY,
           );
-          const scaleChange = clamp(dist / lastDistance.current, 0.001, 5);
+          const scaleChange = clamp(dist / lastDistance.current, 0.001, 20);
 
           if (scaleChange !== scale) {
             setAttractorParams({
