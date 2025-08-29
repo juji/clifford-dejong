@@ -122,11 +122,18 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
             screen,
             { top: last.current.top, left: last.current.left },
           );
-          setAttractorParams({
-            ...attractorParameters,
-            left: newLeft,
-            top: newTop,
-          });
+
+          // limit update
+          if (
+            attractorParameters.left !== newLeft ||
+            attractorParameters.top !== newTop
+          ) {
+            setAttractorParams({
+              ...attractorParameters,
+              left: newLeft,
+              top: newTop,
+            });
+          }
         }
       } else if (e.touches.length === 2 && lastDistance.current !== null) {
         const t1 = e.touches[0];
@@ -136,11 +143,14 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
             t1.clientX - t2.clientX,
             t1.clientY - t2.clientY,
           );
-          const scaleChange = dist / lastDistance.current;
-          setAttractorParams({
-            ...attractorParameters,
-            scale: clamp(scale * scaleChange, 0.001, 5),
-          });
+          const scaleChange = clamp(dist / lastDistance.current, 0.001, 5);
+
+          if (scaleChange !== scale) {
+            setAttractorParams({
+              ...attractorParameters,
+              scale: scaleChange,
+            });
+          }
           lastDistance.current = dist;
         }
       }
