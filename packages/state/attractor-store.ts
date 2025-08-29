@@ -29,7 +29,7 @@ export const paramRanges = {
     brightness: [0, 100],
   },
   position: {
-    scale: [0.1, 3],
+    scale: [0.1, 20],
     left: [-2, 2],
     top: [-2, 2],
   },

@@ -1,5 +1,5 @@
 import { useEffect, useRef, RefObject } from "react";
-import { useAttractorStore } from "@repo/state/attractor-store";
+import { useAttractorStore, paramRanges } from "@repo/state/attractor-store";
 import { useUIStore } from "@/store/ui-store";
 
 function clamp(val: number, min: number, max: number) {
@@ -72,11 +72,12 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
 
     // --- Wheel for scale ---
     const onWheel = (e: WheelEvent) => {
+      if (!paramRanges.position.scale[1]) return;
       e.preventDefault();
       const delta = -e.deltaY * 0.001;
       setAttractorParams({
         ...attractorParameters,
-        scale: clamp(scale * (1 + delta), 0.001, 5),
+        scale: clamp(scale * (1 + delta), 0.001, paramRanges.position.scale[1]),
       });
       setQualityMode("low");
       if (wheelingTimeout.current) clearTimeout(wheelingTimeout.current);
@@ -138,12 +139,18 @@ export function usePointerControl(targetRef: RefObject<HTMLElement | null>) {
       } else if (e.touches.length === 2 && lastDistance.current !== null) {
         const t1 = e.touches[0];
         const t2 = e.touches[1];
+        if (!paramRanges.position.scale[1]) return;
+
         if (t1 && t2) {
           const dist = Math.hypot(
             t1.clientX - t2.clientX,
             t1.clientY - t2.clientY,
           );
-          const scaleChange = clamp(dist / lastDistance.current, 0.001, 20);
+          const scaleChange = clamp(
+            dist / lastDistance.current,
+            0.001,
+            paramRanges.position.scale[1],
+          );
 
           if (scaleChange !== scale) {
             setAttractorParams({
