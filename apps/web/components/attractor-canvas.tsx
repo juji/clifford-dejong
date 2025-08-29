@@ -75,8 +75,8 @@ export function AttractorCanvas() {
       className={cn(
         `flex items-center justify-center 
         w-full h-full fixed top-0 left-0 
-        ${canvasVisible ? "opacity-100" : "opacity-0"} 
         cursor-grab active:cursor-grabbing`,
+        `${canvasVisible ? "opacity-100" : "opacity-0"}`,
       )}
       ref={containerRef}
       style={
@@ -87,6 +87,7 @@ export function AttractorCanvas() {
     >
       <AttractorImage />
       <AttractorCanvasDynamic ariaLabel={ariaLabel} />
+      {/* <AttractorCanvasDynamic /> */}
     </div>
   );
 }

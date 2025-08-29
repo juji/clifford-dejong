@@ -62,7 +62,7 @@ export function AttractorCanvasDynamic({ ariaLabel }: { ariaLabel?: string }) {
     })();
   }, [setBenchmarkResult]);
 
-  console.log("workerSupport", workerSupport);
+  // console.log("workerSupport", workerSupport);
 
   return workerSupport === "none" ? (
     <PlainCanvas ariaLabel={ariaLabel} />

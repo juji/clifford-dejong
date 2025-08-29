@@ -133,6 +133,11 @@ async function performAttractorDraw(data) {
       let currentStep = 0;
 
       const animate = () => {
+        if (info[1] !== 0) {
+          // If cancel flag is set, just return
+          return;
+        }
+
         if (currentStep >= numSteps) {
           dst.set(imageView);
           ctx.putImageData(imageData, 0, 0);
@@ -408,6 +413,7 @@ async function performAttractorDraw(data) {
     });
   } catch (error) {
     console.error(error);
+    error.stack && console.error(error.stack);
     self.postMessage({
       type: "error",
       message: "Error calculating attractor",

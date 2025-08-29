@@ -24,22 +24,16 @@ export function RustWasmLoopCanvas({ ariaLabel }: { ariaLabel?: string }) {
   const attractorParameters = useAttractorStore((s) => s.attractorParameters);
   const infoBufferRef = useRef<SharedArrayBuffer | null>(null);
 
-  useEffect(() => {
-    if (!ready) return;
-    if (!init) return;
+  function runAttractorCalculation() {
     if (!canvasSize) return;
-    if (!canvasRef.current) return;
-    if (!workerDrawRef.current) return;
-    if (!workerCalcRef.current) return;
 
-    setImageUrl(null);
-
-    const densityBuffer = new SharedArrayBuffer(
-      canvasSize?.width * canvasSize?.height * 4,
-    );
     const imageBuffer = new SharedArrayBuffer(
       canvasSize?.width * canvasSize?.height * 4,
     );
+    const densityBuffer = new SharedArrayBuffer(
+      canvasSize?.width * canvasSize?.height * 4,
+    );
+
     infoBufferRef.current = new SharedArrayBuffer(4 * 4); // uint32: maxDensity, cancel, done, progress (0-100)
 
     const data = {
@@ -63,6 +57,34 @@ export function RustWasmLoopCanvas({ ariaLabel }: { ariaLabel?: string }) {
       type: "draw",
       data,
     });
+  }
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const changedTimes = useRef(0);
+  useEffect(() => {
+    if (!ready) return;
+    if (!init) return;
+    if (!canvasSize) return;
+    if (!canvasRef.current) return;
+    if (!workerDrawRef.current) return;
+    if (!workerCalcRef.current) return;
+
+    changedTimes.current = changedTimes.current + 1;
+
+    setImageUrl(null);
+
+    // debounce to limit memory usage
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      debounceRef.current = null;
+      try {
+        runAttractorCalculation();
+      } catch (e) {
+        // if failed
+        console.error(e);
+        window.location.reload();
+      }
+    }, 33);
 
     return () => {
       // cancel all operation
