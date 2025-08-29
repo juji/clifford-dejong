@@ -516,6 +516,10 @@ pub fn calculate_attractor_loop(js_ctx: &JsValue) -> Result<JsValue, JsValue> {
 
             create_image_data(&mut img_context, &info_array_local);
 
+            if info_array.get_index(1) != 0 {
+                break;
+            }
+
             // Copy image data to JavaScript array
             for i in 0..img_context.image_size {
                 image_array.set_index(i as u32, img_context.image_array[i]);
