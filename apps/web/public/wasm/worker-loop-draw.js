@@ -390,23 +390,26 @@ async function performAttractorDraw(data) {
       progress = info[3];
       self.postMessage({ type: "progress", progress });
 
-      if (highQuality) {
-        // Always recreate animation on progress updates
-        if (progress === 100) keepAnimating = false;
-        transitionToNewImage(() => {
-          console.log("Sending Done message");
-          self.postMessage({ type: "done", highQuality: true });
-        });
-      } else {
-        drawSimpleImage();
-      }
+      drawSimpleImage();
+      // if (highQuality) {
+      //   // Always recreate animation on progress updates
+      //   if (progress === 100) keepAnimating = false;
+      //   transitionToNewImage(() => {
+      //     console.log("Sending Done message");
+      //     self.postMessage({ type: "done", highQuality: true });
+      //   });
+      // } else {
+      //   drawSimpleImage();
+      // }
 
       if (progress === 100) {
         console.log("draw done in", performance.now() - start, "ms");
 
-        if (!highQuality) {
-          self.postMessage({ type: "done", highQuality: false });
-        }
+        self.postMessage({ type: "done", highQuality });
+
+        // if (!highQuality) {
+        //   self.postMessage({ type: "done", highQuality: false });
+        // }
       } else {
         requestAnimationFrame(run);
       }
