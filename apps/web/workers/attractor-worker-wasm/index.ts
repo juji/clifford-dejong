@@ -16,6 +16,8 @@ const state = {
 
 const paramsUnsub = paramsObservable.subscribe(
   async (data: ObservableAttractorData) => {
+    state.stopFunction();
+
     if (data.qualityMode === "low") {
       state.stopFunction = lowQualityMode(data, (percentComplete) => {
         self.postMessage({

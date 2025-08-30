@@ -33,12 +33,12 @@ export function highQualityMode(
   // Initialize shared buffers for communication with the worker
   const width = canvasSize.width;
   const height = canvasSize.height;
+  const highQuality = data.qualityMode === "high";
   const densityBuffer = new SharedArrayBuffer(width * height * 4);
   const imageBuffer = new SharedArrayBuffer(width * height * 4);
   const infoBuffer = new SharedArrayBuffer(4 * 4); // uint32: maxDensity, cancel, done, progress
 
   // Create arrays for accessing the buffers
-  const densityArray = new Uint32Array(densityBuffer);
   const imageArray = new Uint8ClampedArray(imageBuffer);
   const infoArray = new Uint32Array(infoBuffer);
 
@@ -148,19 +148,23 @@ export function highQualityMode(
   // Set up rendering loop using requestAnimationFrame
   let animationFrameId: number;
   let isRunning = true;
+  let lastProgress = 0;
 
   function renderLoop() {
     if (!isRunning) return;
 
-    // Check if calculation is still running
-    if (infoArray[2] === 0) {
-      // Update progress
-      const progress = infoArray[3] || 0;
+    // Update progress
+    const progress = infoArray[3] || 0;
+    if (progress !== lastProgress) {
+      lastProgress = progress;
       onProgress(progress);
 
       // Update canvas with current state
       updateCanvas();
+    }
 
+    // Check if calculation is still running
+    if (infoArray[2] === 0) {
       // Continue the rendering loop
       animationFrameId = requestAnimationFrame(renderLoop);
     } else {
@@ -173,8 +177,9 @@ export function highQualityMode(
   // Function to update the canvas with the current state of the calculation
   function updateCanvas() {
     if (!ctx) return;
-    // Create image data from the shared buffer
+    // // Create image data from the shared buffer
     const imageData = new ImageData(imageArray.slice(), width, height);
+    console.log("highQ putting image data");
     ctx.putImageData(imageData, 0, 0);
   }
 
@@ -210,7 +215,8 @@ export function highQualityMode(
           top: attractorParameters.top,
           width,
           height,
-          highQuality: true,
+          // highQuality: true,
+          highQuality,
           iterations: DEFAULT_POINTS,
           densityBuffer,
           imageBuffer,

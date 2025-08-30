@@ -26,10 +26,12 @@ export function RustWasmLoopCanvas2({ ariaLabel }: { ariaLabel?: string }) {
     if (!readyState.workerReady) return;
     if (!canvasSize) return;
 
+    setImageUrl(null);
     workerRef.current?.postMessage({
       type: "size",
       data: { canvasSize },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasSize, readyState]);
 
   // set params update
@@ -38,6 +40,7 @@ export function RustWasmLoopCanvas2({ ariaLabel }: { ariaLabel?: string }) {
     if (!readyState.workerReady) return;
     if (!canvasSize) return;
 
+    setImageUrl(null);
     workerRef.current?.postMessage({
       type: "update",
       data: {
