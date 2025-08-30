@@ -274,7 +274,9 @@ async function performAttractorDraw(data) {
 
       function updateParticles() {
         frameCount++;
+        // eslint-disable-next-line no-unused-vars
         let totalVel = 0;
+        // eslint-disable-next-line no-unused-vars
         let totalVelDenom = 0;
         particles.forEach((particle) => {
           // Always keep particles active, removing life check

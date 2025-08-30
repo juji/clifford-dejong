@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { AttractorBenchmarkResult } from "../lib/attractor-benchmark";
+// import { AttractorBenchmarkResult } from "../lib/attractor-benchmark";
 
 export type UITab = "attractor" | "color" | "position";
 export type QualityMode = "high" | "low";
@@ -54,7 +54,8 @@ export const useUIStore = create<UIState & UIActions>()(
     showInfo: false,
     toggleInfo: () => set((state) => ({ showInfo: !state.showInfo })),
     showSettings: false,
-    toggleSettings: () => set((state) => ({ showSettings: !state.showSettings })),
+    toggleSettings: () =>
+      set((state) => ({ showSettings: !state.showSettings })),
     fullscreen: false,
     toggleFullscreen: () => set((state) => ({ fullscreen: !state.fullscreen })),
     progress: 0,
@@ -64,7 +65,7 @@ export const useUIStore = create<UIState & UIActions>()(
     error: null,
     setError: (error) => set({ error }),
     canvasSize: null,
-    setCanvasSize: (size) => set({ canvasSize: size }), 
+    setCanvasSize: (size) => set({ canvasSize: size }),
     canvasVisible: true,
     setCanvasVisible: (visible) => set({ canvasVisible: visible }),
     setOnInitResize: (callback) => set({ onInitResize: callback }),
