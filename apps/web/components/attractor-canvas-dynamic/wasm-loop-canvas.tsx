@@ -106,8 +106,10 @@ export function WasmLoopCanvas({ ariaLabel }: { ariaLabel?: string }) {
       }
       if (e.data.type === "done") {
         console.log("Worker Draw Done");
-        if (canvasRef.current && e.data.highQuality)
+        if (canvasRef.current && e.data.highQuality) {
+          console.log("setting image URL");
           setImageUrl(canvasRef.current.toDataURL("image/png"));
+        }
       }
       if (e.data.type === "progress") {
         // console.log("Worker Draw Progress:", e.data.progress);

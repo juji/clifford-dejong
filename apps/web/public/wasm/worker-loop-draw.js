@@ -225,7 +225,7 @@ async function performAttractorDraw(data) {
 
     const maxParticle = 120000;
     let numParticlesCreated = 0;
-    let keepAnimating = true;
+    const keepAnimating = true;
     function transitionToNewImage(onEnd) {
       if (numParticlesCreated >= maxParticle) {
         return;

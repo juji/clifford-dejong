@@ -183,12 +183,11 @@ function AttractorRecordList({ onSelect }: { onSelect: () => void }) {
   return (
     <>
       {/* Aria-live region for deletion actions */}
-      <div
-        aria-live="assertive"
-        className={deleteAnnouncement ? "" : "sr-only"}
-      >
-        {deleteAnnouncement}
-      </div>
+      {deleteAnnouncement ? (
+        <div aria-live="assertive" className={"sr-only"}>
+          {deleteAnnouncement}
+        </div>
+      ) : null}
 
       <ul className="space-y-2 h-full overflow-y-auto">
         {records.map((rec, idx) => {
