@@ -19,7 +19,28 @@ export function Footer() {
         before:from-[#343434cf] before:to-[#ffffff63]
       `)}
     >
-      <span>Chaos Canvas &copy; {new Date().getFullYear()}</span>
+      <span>Chaos Canvas &copy; {new Date().getFullYear()}</span> &nbsp;|&nbsp;{" "}
+      <a
+        style={{
+          textDecoration: "underline",
+        }}
+        href="https://jujiplay.com"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        JujiPlay
+      </a>{" "}
+      &nbsp;|&nbsp;{" "}
+      <a
+        style={{
+          textDecoration: "underline",
+        }}
+        href="https://github.com/juji/clifford-dejong"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Github
+      </a>
     </footer>
   );
 }
