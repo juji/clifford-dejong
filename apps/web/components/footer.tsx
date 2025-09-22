@@ -19,14 +19,11 @@ export function Footer() {
         before:from-[#343434cf] before:to-[#ffffff63]
       `)}
     >
-      <span>Chaos Canvas &copy; {new Date().getFullYear()}</span> &nbsp;|&nbsp;{" "}
       <a
         style={{
           textDecoration: "underline",
         }}
         href="https://jujiplay.com"
-        target="_blank"
-        rel="noopener noreferrer"
       >
         JujiPlay
       </a>{" "}
@@ -40,7 +37,8 @@ export function Footer() {
         rel="noopener noreferrer"
       >
         Github
-      </a>
+      </a>{" "}
+      &nbsp;|&nbsp; <span>Chaos Canvas &copy; {new Date().getFullYear()}</span>
     </footer>
   );
 }
