@@ -261,7 +261,8 @@ function runAttractor({
             hue || 120,
             saturation || 100,
             brightness || 100,
-            progress,
+            // progress,
+            1, // not using progress for now
             bgArr,
           );
         } else {
