@@ -53,7 +53,10 @@ export function highQualityMode(
     // In a web worker, we need to use a relative or absolute path
     // For relative paths, it's relative to the worker's location
     sharedWorker = new Worker(
+      // rust
       `${self.location.origin}/wasm/worker-loop-calc-rust.js`,
+      // cpp
+      // `${self.location.origin}/wasm/worker-loop-calc.js`,
       {
         type: "module",
       },

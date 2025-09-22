@@ -43,12 +43,15 @@ let parameters: Params | null = null;
 self.postMessage({ type: "ready" });
 
 self.onmessage = function (e) {
+  console.log("worker received", e.data);
+
   if (e.data && e.data.type === "stop") {
     handleStop();
     return;
   }
 
   if (e.data && e.data.type === "init") {
+    console.log("data", e.data);
     initialize(e.data);
     return;
   }

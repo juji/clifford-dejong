@@ -35,10 +35,12 @@ export function useWorkerSupport() {
       typeof window.URL.createObjectURL === "function";
 
     // Check if wasm is supported
-    const isWasmSupported =
-      typeof window !== "undefined" &&
-      typeof WebAssembly !== "undefined" &&
-      typeof WebAssembly.instantiate === "function";
+    // currentl;y wasm is disabled due to some bug.
+    // const isWasmSupported =
+    //   typeof window !== "undefined" &&
+    //   typeof WebAssembly !== "undefined" &&
+    //   typeof WebAssembly.instantiate === "function";
+    const isWasmSupported = false;
 
     if (
       isWasmSupported &&

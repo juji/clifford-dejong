@@ -211,7 +211,7 @@ async function performAttractorLoopCalculation(data) {
     const pointsToCalculate = highQuality ? iterations : 40000;
     const drawAt = highQuality ? pointsToCalculate / 20 : pointsToCalculate;
     console.log(
-      "loopNum: ",
+      "CPP High Quality - loopNum: ",
       loopNum,
       "drawAt: ",
       drawAt,
